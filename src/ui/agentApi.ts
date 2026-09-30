@@ -25,6 +25,10 @@ export interface ActOptions {
   milk?: 'breast' | 'formula';
   diaper?: 'wet' | 'dirty' | 'both';
   note?: string;
+  /** Breastfeeding length in minutes: per side, or one total. */
+  minL?: number;
+  minR?: number;
+  min?: number;
 }
 
 export interface Entry {
@@ -64,7 +68,8 @@ function act(verb: 'log' | 'start' | 'stop' | 'toggle', what: string, opts: ActO
   const q = new URLSearchParams({ do: verb, what: String(what) });
   const { minutesAgo, ...rest } = opts;
   if (minutesAgo !== undefined) q.set('ago', String(minutesAgo));
-  for (const [k, v] of Object.entries(rest)) if (v !== undefined && v !== null) q.set(k, String(v));
+  // Option names match link parameters, lower-cased (minL → minl).
+  for (const [k, v] of Object.entries(rest)) if (v !== undefined && v !== null) q.set(k.toLowerCase(), String(v));
   const now = Date.now();
   const a = parseLinkAction(`?${q}`, now);
   if (!a || a.kind === 'invalid') throw new Error(`tinylog: ${a?.kind === 'invalid' ? a.reason : 'nothing to do'}`);
@@ -90,7 +95,8 @@ All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, n
 
 tinylog.state()                        what's going on now, the last of each thing, today's totals
 tinylog.log(what, opts?)               log it now (timed things toggle); opts:
-                                       { minutesAgo, side: 'L'|'R'|'both', ml, oz, method, milk, diaper, note }
+                                       { minutesAgo, side: 'L'|'R'|'both', ml, oz, method, milk, diaper, note,
+                                         minL, minR, min }  (breastfeeding minutes: per side, or a total)
 tinylog.start(what, opts?)             start nap / night / tummy / pump / fussy
 tinylog.stop(what, opts?)              stop it (pump: pass ml)
 tinylog.toggle(what, opts?)            start or stop

@@ -7,6 +7,12 @@ type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'>;
 
 const SIDE = { L: 'L', R: 'R', both: 'both sides' } as const;
 
+/** Total breastfeeding minutes for a feed: the per-side lengths, or the single total. */
+export function feedMinutes(d: { minL?: number; minR?: number; min?: number } | undefined): number {
+  if (!d) return 0;
+  return (d.minL ?? 0) + (d.minR ?? 0) || (d.min ?? 0);
+}
+
 /** One-line description of an event's details, e.g. "Bottle · 90 ml · formula". */
 export function summary(e: LogEvent, prefs: Pick<Settings, 'units'>): string {
   const d = e.detail ?? {};
@@ -19,7 +25,12 @@ export function summary(e: LogEvent, prefs: Pick<Settings, 'units'>): string {
         if (d.milk) bits.push(d.milk === 'formula' ? 'formula' : 'breast milk');
       } else {
         bits.push('Breast');
-        if (d.side) bits.push(SIDE[d.side]);
+        // "Breast · L 12m · R 8m", or "Breast · both · 20m" with a single length.
+        if (d.minL || d.minR) {
+          if (d.minL) bits.push(`L ${d.minL}m`);
+          if (d.minR) bits.push(`R ${d.minR}m`);
+        } else if (d.side) bits.push(SIDE[d.side]);
+        if (d.min && !(d.minL || d.minR)) bits.push(`${d.min}m`);
       }
       break;
     case 'diaper':

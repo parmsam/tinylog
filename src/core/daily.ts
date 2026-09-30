@@ -1,4 +1,5 @@
 import { dayRange, overlap } from './days';
+import { feedMinutes } from './status';
 import type { LogEvent } from './types';
 
 /** Everything a day adds up to. All derived from the log; nothing here is stored. */
@@ -6,6 +7,8 @@ export interface DayTotals {
   day: string;
   feeds: number;
   breastFeeds: number;
+  /** Logged breastfeeding length, in minutes (only feeds that have one). */
+  breastMin: number;
   bottleMl: number;
   wet: number;
   dirty: number;
@@ -30,6 +33,7 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
     day,
     feeds: 0,
     breastFeeds: 0,
+    breastMin: 0,
     bottleMl: 0,
     wet: 0,
     dirty: 0,
@@ -54,7 +58,10 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
         if (!starts) break;
         t.feeds++;
         if (d.method === 'bottle') t.bottleMl += d.amount ?? 0;
-        else t.breastFeeds++;
+        else {
+          t.breastFeeds++;
+          t.breastMin += feedMinutes(d);
+        }
         break;
       case 'diaper':
         if (!starts) break;

@@ -8,6 +8,10 @@ export interface Detail {
   side?: Side; // breast feed, pump
   milk?: 'breast' | 'formula'; // bottle
   amount?: number; // ml (bottle, pump); displayed in the user's unit
+  /** Breastfeeding length in minutes: per side, or one total (e.g. when both sides weren't timed separately). */
+  minL?: number;
+  minR?: number;
+  min?: number;
   diaper?: 'wet' | 'dirty' | 'both';
   sleep?: 'nap' | 'night';
   note?: string;

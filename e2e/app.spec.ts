@@ -322,3 +322,28 @@ test('the footer links to GitHub and shows the version', async ({ page }) => {
   await expect(foot.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/parmsam/tinylog');
   await expect(foot).toContainText(`v${pkg.version}`);
 });
+
+test('breastfeeding length: per side, or one total, optional', async ({ page }) => {
+  await open(page);
+  const feed = card(page, 'feed');
+  const box = (await feed.boundingBox())!;
+  await page.mouse.move(box.x + 20, box.y + 20);
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  await page.mouse.up();
+  const sheet = page.locator('#sheet');
+  await sheet.getByText('Both', { exact: true }).click();
+  await sheet.getByLabel('Left (min)').fill('12');
+  await sheet.getByLabel('Right (min)').fill('8');
+  await sheet.getByRole('button', { name: 'Save' }).click();
+  await expect(entries(page).first()).toContainText('Breast · L 12m · R 8m');
+
+  // Edit it: switch to one side, and only that side's length is kept.
+  await entries(page).first().click();
+  await sheet.getByText('Left', { exact: true }).click();
+  await expect(sheet.getByLabel('Right (min)')).toHaveCount(0);
+  await expect(sheet.getByLabel('Left (min)')).toHaveValue('12');
+  await sheet.getByRole('button', { name: 'Save' }).click();
+  await expect(entries(page).first()).toContainText('Breast · L 12m');
+  await expect(entries(page).first()).not.toContainText('R 8m');
+});

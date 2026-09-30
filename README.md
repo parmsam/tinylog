@@ -6,7 +6,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 
 ## Features
 - **"When did we last…?" cards.** Tap to log right now. Timed things (nap, night sleep, tummy time, pump) are tap to start, tap to stop, and keep running across reloads.
-- **Logging late is normal.** Every log gets a toast with **Undo** and **−5m / −15m / −30m** chips. Hold a card to fill in details first (breast side, bottle amount, pump volume, a note).
+- **Logging late is normal.** Every log gets a toast with **Undo** and **−5m / −15m / −30m** chips. Hold a card to fill in details first (breast side and optional minutes per side, bottle amount, pump volume, a note).
 - **One day at a time.** Step back through days to fill in or fix entries; a night sleep that crosses midnight shows on both days. Each day has its own note.
 - **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Patterns, not predictions.** Typical nap length, bedtime and wake-up windows, longest stretch, feeds and diapers per day, time between feeds, weekly tummy time and pump output. Each says what it's based on, and waits until there's enough data.

@@ -44,12 +44,30 @@ function amountField(ml: number | undefined, label: string) {
     <input type="number" name="amount" inputmode="decimal" min="0" step="${units === 'oz' ? 0.5 : 5}" value="${v}" placeholder="optional" /></label>`;
 }
 
+function minutesField(name: 'minL' | 'minR' | 'min', label: string, value: number | undefined, placeholder = 'optional') {
+  return `<label class="field"><span class="field-label">${label}</span>
+    <input type="number" name="${name}" inputmode="numeric" min="1" max="180" step="1" value="${value ?? ''}" placeholder="${placeholder}" /></label>`;
+}
+
+/** Optional breastfeeding length: per side, or one total when both sides weren't timed separately. */
+function lengthFields(d: Detail): string {
+  if (d.side === 'L') return minutesField('minL', 'Left (min)', d.minL);
+  if (d.side === 'R') return minutesField('minR', 'Right (min)', d.minR);
+  if (d.side === 'both')
+    return `<div class="row">${minutesField('minL', 'Left (min)', d.minL)}${minutesField('minR', 'Right (min)', d.minR)}</div>
+      ${minutesField('min', 'Or total (min)', d.min, 'if sides weren’t timed')}`;
+  return minutesField('min', 'Length (min)', d.min);
+}
+
 function fieldsFor(card: CardDef, d: Detail): string {
   switch (card.id) {
     case 'feed': {
       const method = d.method ?? 'breast';
       const parts = [seg('method', [['breast', 'Breast'], ['bottle', 'Bottle']], method, 'Feed')];
-      if (method === 'breast') parts.push(seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side'));
+      if (method === 'breast') {
+        parts.push(seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side'));
+        parts.push(lengthFields(d));
+      }
       else {
         parts.push(`<div class="row">${amountField(d.amount, 'Amount')}${seg('milk', [['breast', 'Breast milk'], ['formula', 'Formula']], d.milk, 'Milk')}</div>`);
       }
@@ -128,6 +146,10 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   if (diaper) detail.diaper = diaper;
   const sleep = str('sleep') as Detail['sleep'];
   if (sleep) detail.sleep = sleep;
+  for (const k of ['minL', 'minR', 'min'] as const) {
+    const v = Math.round(parseFloat(str(k) ?? ''));
+    if (v > 0 && v <= 180) detail[k] = v;
+  }
   const amount = parseFloat(str('amount') ?? '');
   if (amount > 0) detail.amount = toMl(amount, settings.get().units);
   // Switching cards in the picker resets card-specific choices to that card's preset.
@@ -147,7 +169,13 @@ function detailFor(card: CardDef, d: Detail): Detail {
   switch (card.id) {
     case 'feed':
       out.method = d.method ?? 'breast';
-      if (out.method === 'breast') out.side = d.side;
+      if (out.method === 'breast') {
+        out.side = d.side;
+        if (d.side === 'L' || d.side === 'both') out.minL = d.minL;
+        if (d.side === 'R' || d.side === 'both') out.minR = d.minR;
+        // A total only counts when there are no per-side lengths.
+        if ((d.side === 'both' || !d.side) && !out.minL && !out.minR) out.min = d.min;
+      }
       else Object.assign(out, { amount: d.amount, milk: d.milk });
       break;
     case 'wet':
@@ -195,7 +223,7 @@ export function openSheet(opts: SheetOpts) {
 
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
-    if (['card', 'method', 'ongoing'].includes(t.name)) {
+    if (['card', 'method', 'ongoing', 'side'].includes(t.name)) {
       draft = withEnd(read(form(), draft));
       render(dialog, draft, existing);
       form().querySelector<HTMLElement>(`[name="${t.name}"]:checked, [name="${t.name}"]`)?.focus();

@@ -62,3 +62,16 @@ describe('markdown', () => {
     expect(toMarkdown([], {}, '2026-09-30', '2026-09-30', prefs, now)).toContain('_Nothing logged._');
   });
 });
+
+describe('breastfeeding minutes', () => {
+  it('adds per-side lengths, or the total when there are none', () => {
+    const feeds = [
+      createEvent('feed', at(8), { method: 'breast', minL: 12, minR: 8 }, 0),
+      createEvent('feed', at(11), { method: 'breast', min: 15 }, 0),
+      createEvent('feed', at(14), { method: 'breast' }, 0),
+    ];
+    const t = dayTotals(feeds, '2026-09-30', 0, now);
+    expect(t.breastMin).toBe(35);
+    expect(totalsLine(t, { units: 'ml' })).toBe('3 feeds (35m breastfeeding)');
+  });
+});

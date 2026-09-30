@@ -22,6 +22,13 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=breast&side=left')).toMatchObject({ detail: { method: 'breast', side: 'L' } });
   });
 
+  it('takes breastfeeding length per side or as a total', () => {
+    expect(p('?do=log&what=feed&minl=12&minr=8')).toMatchObject({ detail: { method: 'breast', side: 'both', minL: 12, minR: 8 } });
+    expect(p('?do=log&what=feed&minl=10')).toMatchObject({ detail: { side: 'L', minL: 10 } });
+    expect(p('?do=log&what=breast&side=both&min=20')).toMatchObject({ detail: { side: 'both', min: 20 } });
+    expect(p('?do=log&what=feed&min=0')).toMatchObject({ kind: 'invalid' });
+  });
+
   it('starts, stops and toggles timed things, with an optional "ago"', () => {
     expect(p('?do=toggle&what=nap')).toMatchObject({ kind: 'toggle', card: 'nap' });
     expect(p('?do=start&what=tummy&ago=10')).toMatchObject({ kind: 'start', card: 'tummy', minutesAgo: 10 });

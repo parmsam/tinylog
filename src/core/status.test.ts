@@ -60,3 +60,12 @@ describe('cardStatus on a past day', () => {
     expect(status('bath', events, '2026-09-29').primary).toBe('—');
   });
 });
+
+describe('breastfeeding length', () => {
+  it('shows per-side minutes, or one total', () => {
+    expect(summary(createEvent('feed', 0, { method: 'breast', side: 'both', minL: 12, minR: 8 }, 0), prefs)).toBe('Breast · L 12m · R 8m');
+    expect(summary(createEvent('feed', 0, { method: 'breast', side: 'L', minL: 15 }, 0), prefs)).toBe('Breast · L 15m');
+    expect(summary(createEvent('feed', 0, { method: 'breast', side: 'both', min: 20 }, 0), prefs)).toBe('Breast · both sides · 20m');
+    expect(summary(createEvent('feed', 0, { method: 'breast', min: 10 }, 0), prefs)).toBe('Breast · 10m');
+  });
+});

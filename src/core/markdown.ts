@@ -12,7 +12,10 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 /** "7 feeds (180 ml by bottle) · 6 wet, 2 dirty · sleep 14h 20m (3 naps, 3h 10m) · tummy 25m · pumped 240 ml" */
 export function totalsLine(t: DayTotals, prefs: Pick<Settings, 'units'>): string {
   const bits: string[] = [];
-  if (t.feeds) bits.push(`${plural(t.feeds, 'feed')}${t.bottleMl ? ` (${amount(t.bottleMl, prefs.units)} by bottle)` : ''}`);
+  if (t.feeds) {
+    const extra = [t.bottleMl ? `${amount(t.bottleMl, prefs.units)} by bottle` : '', t.breastMin ? `${duration(t.breastMin * 60_000)} breastfeeding` : ''].filter(Boolean);
+    bits.push(`${plural(t.feeds, 'feed')}${extra.length ? ` (${extra.join(', ')})` : ''}`);
+  }
   if (t.wet || t.dirty) bits.push(`${t.wet} wet, ${t.dirty} dirty`);
   if (t.sleepMs) bits.push(`sleep ${duration(t.sleepMs)}${t.naps ? ` (${plural(t.naps, 'nap')}, ${duration(t.napMs)})` : ''}`);
   if (t.tummyMs) bits.push(`tummy ${duration(t.tummyMs)}`);
