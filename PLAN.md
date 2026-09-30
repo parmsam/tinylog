@@ -92,7 +92,7 @@ Today's log                      (timeline, newest first; tap to edit)
 - **Day strip**: a horizontal 24h bar per day, stacked for 2–4 weeks (the classic "sleep log" chart), as the precise, accessible alternative to the rings.
 - **Feeding streaks & intervals**: a spark-strip of gaps between feeds for today.
 - **Tummy-time meter**: daily progress toward an optional goal; weekly totals.
-- Chart design follows one palette per event type, working in light, dark and night modes.
+- Charts use five validated series colors (feed, sleep, tummy, diaper, pump; checked with the dataviz palette validator in light and dark). Sleep/diaper and tummy/pump are too close to share a lane, so every chart gives each series its own lane or ring plus a distinct mark shape. Bath and doctor appear as emoji markers. Every chart has a text equivalent (the day log, or the daily totals table).
 
 ## Patterns (lightweight analytics)
 Descriptive only, computed from the log, each with "based on N days" shown. Hidden until there's enough data (e.g. ≥3 days); never phrased as advice.
@@ -146,16 +146,16 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] JSON export/import that merges (last write wins), "Share with partner" via the share sheet
 - [x] `storage.persist()`, backup reminder, storage status in settings
 - [x] PWA: offline, installable, update prompt, iOS "install to keep your data" tip
-- [ ] First deploy
+- [x] First deploy
 
 ### Phase 2 — Timeline & keyboard
-- [ ] 24h radial clock for today, with anime.js arc drawing and "now" hand
-- [ ] Day view: scroll back through days (radial + list)
-- [ ] Day strip chart (multi-day)
-- [ ] Week of rings
-- [ ] Markdown export (per-day headings, events with times, daily totals), copy + download
-- [ ] Keyboard shortcuts: letter keys and ←/→ shipped in Phase 1; still to do: `U` undo, `?` cheat sheet (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet), plus Cmd/Ctrl+K palette later
-- [ ] Ambient "last event" display with optional Wake Lock
+- [x] 24h radial clock for today, with anime.js arc drawing and "now" hand
+- [x] Day view: scroll back through days (radial + list)
+- [x] Day strip chart (multi-day)
+- [x] Week of rings
+- [x] Markdown export (per-day headings, events with times, daily totals), copy + download
+- [x] Keyboard shortcuts (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet, `.` today, `G` trends, `A` bedside, `M` copy today as Markdown, `?` cheat sheet). Cmd/Ctrl+K palette: backburner
+- [x] Ambient "last event" display with optional Wake Lock
 
 ### Phase 3 — Patterns
 - [ ] Stats module with minimum-data thresholds and "based on N days"
@@ -193,3 +193,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - 2026-09-30 — Phase 1 built. Past days: a card tap opens the sheet at the same clock time on that day (never logs "now"). Tapping Night sleep during a nap (or the reverse) switches the running sleep instead of starting a second one. Stopping a pump opens the sheet for side and volume.
 - 2026-09-30 — Auto theme: night 9 PM–6 AM, otherwise follows the system light/dark setting. Night also dims emoji and stops background motion.
 - 2026-09-30 — E2E tests reset storage from `favicon.svg` (same origin, not the app) so no open IndexedDB connection blocks the delete.
+- 2026-09-30 — Phase 2 built. The radial day clock sits between the cards and the log and follows day navigation. Trends (G) holds the day strip (7/14/28 days), the week of rings, the daily totals table and Markdown export. Bedside display (A) is a dim full-screen dialog with Wake Lock.
+- 2026-09-30 — Chart palette: the card colors failed the validator as a 9-color categorical set, so charts use 5 re-stepped series colors (`--v-*` tokens) in a validated order; the cards keep their pastel identity colors.
+- 2026-09-30 — Arcs draw in with anime.js `createDrawable` when a day opens; afterwards only new entries animate. Dots only fade (no SVG scale transforms, per the Safari pivot rule). No animation in the night theme.
+- 2026-09-30 — Fixed before shipping: a full-day arc collapsed to nothing (start = end), and hour marks skipped the repeated hour when clocks fall back.

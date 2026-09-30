@@ -37,6 +37,10 @@ button {
   outline: 2px solid color-mix(in oklab, var(--text) 70%, transparent);
   outline-offset: 2px;
 }
+/* Headings focused by script (to keep the phone keyboard closed) don't need a ring. */
+[tabindex='-1']:focus {
+  outline: none;
+}
 
 [hidden] {
   display: none !important;
@@ -686,4 +690,425 @@ fieldset.field {
 /* Night: full-color emoji are the brightest thing on screen, so warm and dim them too. */
 :root[data-theme='night'] :is(.card-emoji, .entry-emoji, .seg span, .toast-msg) {
   filter: sepia(0.5) saturate(0.6) brightness(0.75);
+}
+
+/* ---------- Phase 2: charts ---------- */
+.topbar-actions {
+  display: flex;
+  gap: 2px;
+}
+@media (hover: none) {
+  .kbd-only {
+    display: none;
+  }
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dayclock {
+  margin-top: 22px;
+}
+.viz-box svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font);
+}
+.clock-box {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Radial day clock */
+.rc-tracks circle {
+  stroke: var(--v-track);
+}
+.rc-ticks line {
+  stroke: var(--v-grid);
+  stroke-width: 1;
+}
+.rc-ticks line.major {
+  stroke-width: 1.5;
+}
+.rc-ticks text,
+.ds-grid text,
+.wr-hour {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.rc-sleep {
+  stroke: var(--v-sleep);
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+.rc-sleep.nap {
+  stroke-width: 12;
+}
+.rc-sleep.ongoing {
+  stroke-dasharray: 2 3;
+  animation: pulse-op 2.4s ease-in-out infinite;
+}
+.rc-tummy {
+  stroke: var(--v-tummy);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.rc-pump {
+  stroke: var(--v-pump);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+/* Wider invisible strokes make thin marks easy to hit. */
+.rc-hit,
+.ds-hit {
+  stroke: transparent;
+  fill: transparent;
+  stroke-width: 26;
+}
+.rc-dots .rc-hit,
+.ds-hit {
+  stroke-width: 0;
+}
+.rc-feed {
+  fill: var(--v-feed);
+  stroke: var(--surface-strong);
+  stroke-width: 2;
+}
+.rc-diaper {
+  stroke: var(--v-diaper);
+  stroke-width: 2;
+  fill: var(--surface-strong);
+}
+.rc-diaper.dirty,
+.rc-diaper.both {
+  fill: var(--v-diaper);
+}
+.rc-diaper.both {
+  stroke: var(--surface-strong);
+  paint-order: stroke;
+  outline: none;
+}
+.rc-emoji {
+  font-size: 13px;
+}
+.rc-mark {
+  cursor: pointer;
+  outline: none;
+}
+.rc-mark:focus-visible .rc-sleep,
+.rc-mark:focus-visible circle:not(.rc-hit) {
+  filter: drop-shadow(0 0 3px var(--text));
+}
+.rc-now line {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+.rc-now circle {
+  fill: var(--text);
+}
+.rc-hero {
+  fill: var(--text);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.rc-sub {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+@keyframes pulse-op {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.viz-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.viz-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.viz-legend small {
+  font-weight: 600;
+}
+.sw {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+.sw.sleep {
+  background: var(--v-sleep);
+}
+.sw.feed {
+  background: var(--v-feed);
+  border-radius: 50%;
+}
+.sw.feed.tick {
+  width: 4px;
+  border-radius: 2px;
+}
+.sw.feed.dot {
+  width: 7px;
+  height: 7px;
+}
+.sw.diaper {
+  background: var(--v-diaper);
+  border-radius: 50%;
+}
+.sw.tummy {
+  background: var(--v-tummy);
+}
+.sw.pump {
+  background: var(--v-pump);
+}
+
+.viz-tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 8px 11px;
+  border-radius: 12px;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.5);
+  font-size: 0.85rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Trends */
+.sheet.tall {
+  width: min(720px, 100%);
+  height: min(94dvh, 1100px);
+}
+.trends {
+  display: grid;
+  gap: 16px;
+  padding: 18px 18px max(24px, env(safe-area-inset-bottom));
+}
+.viz-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.viz-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.rings-box {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.ds-grid line {
+  stroke: var(--v-grid);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 3;
+}
+.ds-grid line.major {
+  stroke-dasharray: none;
+}
+.ds-day {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.ds-track {
+  fill: var(--v-track);
+}
+.ds-sleep {
+  fill: var(--v-sleep);
+}
+.ds-sleep.nap {
+  fill: color-mix(in oklab, var(--v-sleep) 70%, var(--surface-strong));
+}
+.ds-feed {
+  fill: var(--v-feed);
+}
+.ds-mark {
+  cursor: pointer;
+}
+
+.wr-track {
+  fill: none;
+  stroke: var(--v-track);
+  stroke-width: 10;
+}
+.wr-sleep {
+  fill: none;
+  stroke: var(--v-sleep);
+  stroke-width: 10;
+  stroke-linecap: butt;
+  cursor: pointer;
+}
+.wr-feed {
+  fill: var(--v-feed);
+  stroke: var(--surface-strong);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+.wr-spoke {
+  stroke: var(--v-grid);
+  stroke-width: 0.8;
+}
+.wr-day {
+  fill: var(--muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: var(--surface-strong);
+  stroke-width: 3px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+table.totals {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+table.totals caption {
+  text-align: left;
+  font-weight: 800;
+  font-size: 1rem;
+  padding-bottom: 8px;
+}
+table.totals th,
+table.totals td {
+  padding: 6px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border);
+}
+table.totals th[scope='row'],
+table.totals thead th:first-child {
+  text-align: left;
+}
+table.totals thead th {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Shortcuts */
+.keys {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.keys div {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  align-items: center;
+}
+.keys dd {
+  margin: 0;
+}
+kbd {
+  display: inline-block;
+  min-width: 1.8em;
+  padding: 2px 7px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  background: var(--surface);
+  font: 700 0.85rem var(--font);
+  text-align: center;
+}
+
+/* Bedside display: dim, huge, nothing moves. */
+.ambient {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #050403;
+  color: #b78a6c;
+}
+.ambient::backdrop {
+  background: #050403;
+}
+.amb {
+  height: 100%;
+  display: grid;
+  place-content: center;
+  gap: 5vh;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+}
+.amb-clock {
+  font-size: clamp(3rem, 16vw, 9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+.amb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6vw;
+}
+.amb-label {
+  font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+  font-weight: 700;
+  opacity: 0.7;
+}
+.amb-big {
+  font-size: clamp(1.8rem, 9vw, 4.5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.amb-sub {
+  font-size: clamp(0.8rem, 3vw, 1.1rem);
+  opacity: 0.6;
+}
+.amb-hint {
+  font-size: 0.8rem;
+  opacity: 0.35;
+  margin: 0;
+}
+
+/* Night: charts dim with everything else (colors stay in order; this is for 3 AM eyes, not analysis). */
+:root[data-theme='night'] .viz-box svg {
+  filter: sepia(0.45) saturate(0.7) brightness(0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-sleep.ongoing {
+    animation: none;
+  }
 }

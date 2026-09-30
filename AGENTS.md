@@ -27,6 +27,7 @@ Baby tracker: one-tap logging plus beautiful visualizations. Static site on GitH
 - **Night mode**: no bright flashes, no sound by default, reduced animation.
 - **Motion**: respect `prefers-reduced-motion`.
 - **SVG pivots**: never use pixel `transform-origin` on SVG artwork (Safari bug from pomo). Use `transform-box: fill-box` with percentages, or SVG `transform` attributes.
+- **Charts**: series colors are the `--v-*` tokens, validated with the dataviz palette validator (light + dark). Don't add series colors without re-running it. Each series gets its own lane/ring and mark shape; every chart needs a text equivalent (log list or totals table) and `data-tip` tooltips on marks. Geometry lives in `src/viz/geom.ts` (tested, DST-aware).
 - **Stats**: descriptive only. Show "based on N days", hide below a minimum, never phrase as advice or prediction.
 - **Privacy**: no analytics, no network calls besides fonts. Never commit real logs or the real baby's name; demo data uses a fake baby.
 - New behavior needs tests; every bug fix needs a regression test.

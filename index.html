@@ -24,9 +24,20 @@
     <div class="app">
       <header class="topbar">
         <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span id="brand-name">tinylog</span></div>
+        <div class="topbar-actions">
+        <button id="shortcuts-open" class="icon-btn kbd-only" type="button" aria-label="Keyboard shortcuts (?)" title="Keyboard shortcuts (?)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/></svg>
+        </button>
+        <button id="ambient-open" class="icon-btn" type="button" aria-label="Bedside display (A)" title="Bedside display (A)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        </button>
+        <button id="trends-open" class="icon-btn" type="button" aria-label="Trends (G)" title="Trends (G)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+        </button>
         <button id="settings-open" class="icon-btn" type="button" aria-label="Settings" title="Settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
         </button>
+        </div>
       </header>
 
       <nav class="daynav" aria-label="Day">
@@ -46,6 +57,11 @@
 
       <main>
         <section id="cards" class="cards" aria-label="Log something"></section>
+
+        <section class="dayclock" aria-labelledby="clock-title">
+          <h2 id="clock-title" class="visually-hidden">Day clock</h2>
+          <div id="day-clock" class="viz-box clock-box"></div>
+        </section>
 
         <section class="daylog" aria-labelledby="log-title">
           <div class="section-head">
@@ -68,6 +84,9 @@
     <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
     <dialog id="sheet" class="sheet" aria-labelledby="sheet-title"></dialog>
     <dialog id="settings" class="sheet" aria-labelledby="settings-title"></dialog>
+    <dialog id="trends" class="sheet tall" aria-labelledby="trends-title"></dialog>
+    <dialog id="shortcuts" class="sheet" aria-labelledby="shortcuts-title"></dialog>
+    <dialog id="ambient" class="ambient" aria-label="Bedside display"></dialog>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

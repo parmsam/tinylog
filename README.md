@@ -8,9 +8,12 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **"When did we last…?" cards.** Tap to log right now. Timed things (nap, night sleep, tummy time, pump) are tap to start, tap to stop, and keep running across reloads.
 - **Logging late is normal.** Every log gets a toast with **Undo** and **−5m / −15m / −30m** chips. Hold a card to fill in details first (breast side, bottle amount, pump volume, a note).
 - **One day at a time.** Step back through days to fill in or fix entries; a night sleep that crosses midnight shows on both days. Each day has its own note.
+- **Over-engineered charts.** A 24-hour day clock with sleep arcs that draw themselves in. In Trends: a day-by-day sleep log, a week of concentric sleep rings, and a daily totals table.
+- **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
+- **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
 - **Two phones.** Share an export from one phone (AirDrop, Messages) and import it on the other: entries merge, the newest edit wins, and importing twice is harmless.
-- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `B` bath, `O` doctor, `←/→` days, `,` settings.
+- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `,` settings, `?` all shortcuts.
 - **Works offline** as an installable PWA.
 
 ## Privacy
@@ -31,4 +34,4 @@ Pushing to `main` runs CI and deploys to GitHub Pages (set Pages → Source to "
 See [PLAN.md](PLAN.md) for the roadmap and [AGENTS.md](AGENTS.md) for conventions. Sibling project: [pomotimer2](https://github.com/parmsam/pomotimer2).
 
 ## License
-MIT
+[MIT](LICENSE) © 2026 Sam Parmar

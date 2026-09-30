@@ -9,7 +9,11 @@ import { isIosBrowserTab } from './ui/persist';
 import { setupPwa } from './ui/pwa';
 import { exportDownload, openSettings } from './ui/settingsView';
 import { applyTheme } from './ui/theme';
-import { toast } from './ui/toast';
+import { toast, undoLast } from './ui/toast';
+import { openAmbient } from './ui/ambient';
+import { openShortcuts } from './ui/shortcuts';
+import { copyMarkdown, openTrends } from './ui/trendsView';
+import { renderRadialClock } from './viz/radialClock';
 
 const DAY = 86_400_000;
 const cardsEl = document.getElementById('cards')!;
@@ -19,6 +23,10 @@ applyTheme(settings.get().theme);
 mountCards(cardsEl);
 mountDayView();
 document.getElementById('settings-open')!.addEventListener('click', openSettings);
+document.getElementById('trends-open')!.addEventListener('click', openTrends);
+document.getElementById('ambient-open')!.addEventListener('click', openAmbient);
+document.getElementById('shortcuts-open')!.addEventListener('click', openShortcuts);
+const clockEl = document.getElementById('day-clock')!;
 
 let frame = 0;
 function render() {
@@ -28,6 +36,8 @@ function render() {
     const now = Date.now();
     renderCards(cardsEl, now);
     renderDayView(now);
+    const s = app.get();
+    if (s.loaded) renderRadialClock(clockEl, s.events, s.day, now, settings.get());
     const name = settings.get().babyName.trim();
     document.getElementById('brand-name')!.textContent = name || 'tinylog';
     document.title = name ? `${name} · tinylog` : 'tinylog';
@@ -61,11 +71,19 @@ document.addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]')) return;
   const el = e.target as HTMLElement;
   if (el.closest('input, textarea, select, [contenteditable]')) return;
-  if (e.key === 'ArrowLeft') goToDay(addDays(app.get().day, -1));
-  else if (e.key === 'ArrowRight') goToDay(addDays(app.get().day, 1));
-  else if (e.key === ',') openSettings();
-  else {
-    const card = CARDS.find((c) => c.key === e.key.toLowerCase());
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (key === 'ArrowLeft') goToDay(addDays(app.get().day, -1));
+  else if (key === 'ArrowRight') goToDay(addDays(app.get().day, 1));
+  else if (key === '.') goToDay(today());
+  else if (key === ',') openSettings();
+  else if (key === '?') openShortcuts();
+  else if (key === 'g') openTrends();
+  else if (key === 'a') openAmbient();
+  else if (key === 'm') void copyMarkdown(1);
+  else if (key === 'u') {
+    if (!undoLast()) toast('Nothing to undo');
+  } else {
+    const card = CARDS.find((c) => c.key === key);
     if (!card) return;
     cardsEl.querySelector<HTMLElement>(`[data-card="${card.id}"]`)?.focus();
     tapCard(card.id);

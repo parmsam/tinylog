@@ -13,6 +13,19 @@ export interface ToastHandle {
 
 let current: { el: HTMLElement; timer: number | undefined } | null = null;
 
+/** The latest Undo on offer, so the U key can use it even after its toast has faded. */
+let lastUndo: { run: () => void; at: number } | null = null;
+const UNDO_WINDOW = 2 * 60_000;
+
+export function undoLast(): boolean {
+  if (!lastUndo || Date.now() - lastUndo.at > UNDO_WINDOW) return false;
+  const { run } = lastUndo;
+  lastUndo = null;
+  dismiss();
+  run();
+  return true;
+}
+
 /** Shows one toast at a time; a new one replaces the last, so Undo always refers to the latest action. */
 export function toast(msg: string, opts: { actions?: ToastAction[]; duration?: number } = {}): ToastHandle {
   const host = document.getElementById('toasts')!;
@@ -39,12 +52,16 @@ export function toast(msg: string, opts: { actions?: ToastAction[]; duration?: n
     setTimeout(() => el.remove(), 250);
   }
 
+  const undo = opts.actions?.find((a) => a.label === 'Undo');
+  if (undo) lastUndo = { run: undo.run, at: Date.now() };
+
   for (const a of opts.actions ?? []) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = a.primary ? 'chip primary' : 'chip';
     b.textContent = a.label;
     b.addEventListener('click', () => {
+      if (a === undo) lastUndo = null;
       a.run();
       if (a.keepOpen) arm();
       else close();
