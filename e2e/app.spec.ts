@@ -248,3 +248,38 @@ test.describe('data', () => {
     await expect(entries(page).first()).toContainText('4.1 oz');
   });
 });
+
+test.describe('backup reminders', () => {
+  const now = Date.now();
+  const entries49 = () => Array.from({ length: 49 }, (_, i) => ev('diaper', now - (i + 1) * 20 * MIN, { detail: { diaper: 'wet' } }));
+
+  test('the 50th new entry brings up a reminder; Not now waits for the next 50', async ({ page }) => {
+    await open(page, { events: entries49() });
+    const banner = page.locator('#banner');
+    await expect(banner).toBeHidden();
+
+    await card(page, 'bath').click();
+    await expect(banner).toContainText('50 new entries');
+    await expect(banner).toContainText('no backup yet');
+    await banner.getByRole('button', { name: 'Not now' }).click();
+    await expect(banner).toBeHidden();
+
+    await card(page, 'wet').click();
+    await expect(banner).toBeHidden();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(banner).toBeHidden();
+  });
+
+  test('exporting from the reminder counts as a backup', async ({ page }) => {
+    await open(page, { events: [...entries49(), ev('bath', now - 5 * MIN)] });
+    const banner = page.locator('#banner');
+    await expect(banner).toContainText('50 new entries');
+    const download = page.waitForEvent('download');
+    await banner.getByRole('button', { name: 'Export' }).click();
+    await download;
+    await expect(banner).toBeHidden();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.locator('#data-status')).not.toContainText('never');
+  });
+});

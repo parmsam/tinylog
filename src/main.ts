@@ -5,17 +5,17 @@ import { app, init, settings, setupPersistence, today } from './core/log';
 import { tapCard } from './ui/actions';
 import { mountCards, renderCards } from './ui/cardsView';
 import { goToDay, mountDayView, renderDayView } from './ui/dayView';
-import { isIosBrowserTab } from './ui/persist';
 import { setupPwa } from './ui/pwa';
-import { exportDownload, openSettings } from './ui/settingsView';
+import { openSettings } from './ui/settingsView';
+import { showBanner } from './ui/tips';
 import { applyTheme } from './ui/theme';
 import { toast, undoLast } from './ui/toast';
 import { openAmbient } from './ui/ambient';
 import { openShortcuts } from './ui/shortcuts';
 import { copyMarkdown, openTrends } from './ui/trendsView';
+import { renderDayGrid } from './viz/dayGridView';
 import { renderRadialClock } from './viz/radialClock';
 
-const DAY = 86_400_000;
 const cardsEl = document.getElementById('cards')!;
 
 setupPersistence();
@@ -28,6 +28,27 @@ document.getElementById('ambient-open')!.addEventListener('click', openAmbient);
 document.getElementById('shortcuts-open')!.addEventListener('click', openShortcuts);
 const clockEl = document.getElementById('day-clock')!;
 
+// Clock or grid for the selected day; remembered per device.
+let dayView: 'clock' | 'grid' = 'clock';
+try {
+  if (localStorage.getItem('tinylog:day-view') === 'grid') dayView = 'grid';
+} catch {
+  /* ignore */
+}
+const dayViewInputs = document.querySelectorAll<HTMLInputElement>('input[name="dayview"]');
+dayViewInputs.forEach((input) => {
+  input.checked = input.value === dayView;
+  input.addEventListener('change', () => {
+    dayView = input.value as typeof dayView;
+    try {
+      localStorage.setItem('tinylog:day-view', dayView);
+    } catch {
+      /* ignore */
+    }
+    render();
+  });
+});
+
 let frame = 0;
 function render() {
   if (frame) return;
@@ -37,7 +58,11 @@ function render() {
     renderCards(cardsEl, now);
     renderDayView(now);
     const s = app.get();
-    if (s.loaded) renderRadialClock(clockEl, s.events, s.day, now, settings.get());
+    if (s.loaded) {
+      clockEl.classList.toggle('grid-box', dayView === 'grid');
+      if (dayView === 'grid') renderDayGrid(clockEl, s.events, s.day, now, settings.get());
+      else renderRadialClock(clockEl, s.events, s.day, now, settings.get());
+    }
     const name = settings.get().babyName.trim();
     document.getElementById('brand-name')!.textContent = name || 'tinylog';
     document.title = name ? `${name} · tinylog` : 'tinylog';
@@ -45,6 +70,10 @@ function render() {
 }
 
 app.subscribe(render);
+// New entries can make the backup reminder due (every 50 since the last backup).
+app.subscribe((s, prev) => {
+  if (s.loaded && s.events.length !== prev.events.length) showBanner();
+});
 settings.subscribe((s, prev) => {
   if (s.theme !== prev.theme) applyTheme(s.theme);
   if (s.dayStartHour !== prev.dayStartHour) app.set({ day: dayKey(Date.now(), s.dayStartHour) });
@@ -90,46 +119,6 @@ document.addEventListener('keydown', (e) => {
   }
   e.preventDefault();
 });
-
-function showBanner() {
-  const banner = document.getElementById('banner')!;
-  const s = settings.get();
-  const events = app.get().events.filter((e) => !e.deleted);
-  const now = Date.now();
-  let dismissed = false;
-  try {
-    dismissed = sessionStorage.getItem('tinylog:banner-dismissed') === '1';
-  } catch {
-    /* ignore */
-  }
-  if (dismissed) return;
-
-  const oldest = events.reduce((m, e) => Math.min(m, e.createdAt), now);
-  const needsBackup = events.length >= 20 && now - oldest > 3 * DAY && (!s.lastBackupAt || now - s.lastBackupAt > 7 * DAY);
-  let html = '';
-  if (isIosBrowserTab() && !s.installTipSeen) {
-    html = `<span>📲 <b>Add to Home Screen</b> (Share → Add to Home Screen). Safari can clear data for sites that aren't installed.</span>
-      <button type="button" class="chip" data-dismiss="install">Got it</button>`;
-  } else if (needsBackup) {
-    html = `<span>💾 It's been a while since your last backup.</span>
-      <button type="button" class="chip primary" data-backup>Export</button>`;
-  }
-  if (!html) return;
-  banner.innerHTML = html;
-  banner.hidden = false;
-  banner.onclick = (e) => {
-    const t = e.target as HTMLElement;
-    if (t.closest('[data-dismiss="install"]')) settings.set({ installTipSeen: true });
-    else if (t.closest('[data-backup]')) exportDownload();
-    else return;
-    banner.hidden = true;
-    try {
-      sessionStorage.setItem('tinylog:banner-dismissed', '1');
-    } catch {
-      /* ignore */
-    }
-  };
-}
 
 render();
 void init().then(({ restored }) => {

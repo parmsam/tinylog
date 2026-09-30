@@ -8,7 +8,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **"When did we last…?" cards.** Tap to log right now. Timed things (nap, night sleep, tummy time, pump) are tap to start, tap to stop, and keep running across reloads.
 - **Logging late is normal.** Every log gets a toast with **Undo** and **−5m / −15m / −30m** chips. Hold a card to fill in details first (breast side, bottle amount, pump volume, a note).
 - **One day at a time.** Step back through days to fill in or fix entries; a night sleep that crosses midnight shows on both days. Each day has its own note.
-- **Over-engineered charts.** A 24-hour day clock with sleep arcs that draw themselves in. In Trends: a day-by-day sleep log, a week of concentric sleep rings, and a daily totals table.
+- **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
@@ -17,7 +17,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Works offline** as an installable PWA.
 
 ## Privacy
-Everything stays in your browser: IndexedDB, with a second copy in localStorage. No accounts, no servers, no analytics. Export a backup now and then (the app reminds you). On iPhone, add it to your Home Screen: Safari can clear data for sites that aren't installed.
+Everything stays in your browser: IndexedDB, with a second copy in localStorage. No accounts, no servers, no analytics. Export a backup now and then: the app reminds you every 50 new entries, or after a week. On iPhone, add it to your Home Screen: Safari can clear data for sites that aren't installed.
 
 tinylog describes what you logged. It isn't medical advice.
 

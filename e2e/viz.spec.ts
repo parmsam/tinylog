@@ -119,3 +119,58 @@ test('bedside display shows the last feed and awake time, and closes on tap', as
   await amb.click();
   await expect(amb).toBeHidden();
 });
+
+test.describe('day grid', () => {
+  test('Grid shows the day hour by hour, remembers the choice, and can use ✓ marks', async ({ page }) => {
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const t = (h: number, m = 0) => midnight.getTime() + (h * 60 + m) * MIN;
+    await open(page, {
+      events: [
+        ev('sleep', t(0, 0), { endAt: t(1, 30), detail: { sleep: 'night' } }),
+        ev('diaper', t(0, 45), { detail: { diaper: 'both' } }),
+      ],
+    });
+    const dayView = page.getByRole('radiogroup', { name: 'Day view' });
+    await dayView.getByText('Grid').click();
+    const grid = page.locator('#day-clock table.daygrid');
+    await expect(grid).toBeVisible();
+    await expect(grid.locator('tbody tr')).toHaveCount(24);
+    // 12 AM row: full hour of sleep, and a "both" diaper in wet and dirty.
+    const row0 = grid.locator('tbody tr').first();
+    await expect(row0.locator('.dg-seg')).toHaveCount(1);
+    await expect(row0.locator('.dg-mark')).toHaveCount(2);
+    // 1 AM row: half an hour of sleep.
+    await expect(grid.locator('tbody tr').nth(1).locator('.dg-seg')).toHaveAttribute('style', /left:0%;width:50%/);
+
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(page.locator('#day-clock table.daygrid')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings').getByText('✓ Checks').click();
+    await page.keyboard.press('Escape');
+    await expect(row0.locator('.dg-glyph')).toHaveCount(2);
+    await expect(row0.locator('.dg-glyph').first()).toHaveText('✓');
+
+    await dayView.getByText('Clock').click();
+    await expect(page.locator('#day-clock svg.radial')).toBeVisible();
+  });
+});
+
+test.describe('tips', () => {
+  test('the welcome tip shows once, and Settings → Show tips again brings it back', async ({ page }) => {
+    await open(page, { settings: { tipsSeen: [] } });
+    const banner = page.locator('#banner');
+    await expect(banner).toContainText('Tap a card');
+    await banner.getByRole('button', { name: 'Got it' }).click();
+    await expect(banner).toBeHidden();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(banner).toBeHidden();
+
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Show tips again' }).click();
+    await expect(banner).toContainText('Tap a card');
+  });
+});

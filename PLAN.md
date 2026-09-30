@@ -144,7 +144,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Settings: baby name, ml/oz, 12/24h, day start
 - [x] Night mode (auto by time or manual), light/dark themes
 - [x] JSON export/import that merges (last write wins), "Share with partner" via the share sheet
-- [x] `storage.persist()`, backup reminder, storage status in settings
+- [x] `storage.persist()`, backup reminder (every 50 new entries, or weekly), storage status in settings
 - [x] PWA: offline, installable, update prompt, iOS "install to keep your data" tip
 - [x] First deploy
 
@@ -153,6 +153,8 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Day view: scroll back through days (radial + list)
 - [x] Day strip chart (multi-day)
 - [x] Week of rings
+- [x] Day view: Clock | Grid toggle on the main page. Grid = hour rows × category columns for the selected day, position in a cell = minute; marks as dots, ✓ or ✕ (Settings → Grid marks)
+- [x] One-time tips (welcome, iPhone install, two phones) with Settings → Show tips again
 - [x] Heatmap view (Trends → Timeline | Heatmap): rows are hours of the day, columns are feeds, wet, dirty, sleep, tummy, pump; darker = more often at that hour over the range
 - [x] Markdown export (per-day headings, events with times, daily totals), copy + download
 - [x] Keyboard shortcuts (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet, `.` today, `G` trends, `A` bedside, `M` copy today as Markdown, `?` cheat sheet). Cmd/Ctrl+K palette: backburner
@@ -199,3 +201,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - 2026-09-30 — Arcs draw in with anime.js `createDrawable` when a day opens; afterwards only new entries animate. Dots only fade (no SVG scale transforms, per the Safari pivot rule). No animation in the night theme.
 - 2026-09-30 — Fixed before shipping: a full-day arc collapsed to nothing (start = end), and hour marks skipped the repeated hour when clocks fall back.
 - 2026-09-30 — Heatmap added as a view option next to the day-by-day timeline. Rows start at the day-start hour (12 AM by default) and cover all 24 hours. Counts are per day; sleep/tummy/pump are minutes of the hour. Each column is scaled on its own (sleep against the full 60 minutes) and quantized into 5 steps of its series hue. Days before the first entry, and today's hours that haven't happened yet, don't dilute the averages. It's a real <table>, so it's its own text equivalent.
+- 2026-09-30 — Main page gets a Clock | Grid toggle (remembered per device). The grid is the heatmap's layout for one day, but exact rather than averaged: segments for sleep/tummy/pump and marks for feeds/diapers at their minute within the hour, DST-aware rows, a "now" line.
+- 2026-09-30 — Grid marks are a setting: dots (wet hollow, dirty filled), ✓ or ✕. Wet and dirty have their own columns, so glyphs lose nothing.
+- 2026-09-30 — Tips: `tipsSeen: string[]` replaces `installTipSeen` (migrated on load). One tip at a time in the banner; the backup reminder is a reminder, not a tip, so it isn't reset by "Show tips again".
+- 2026-09-30 — Backup reminder also counts: every 50 entries created since the last backup (50, 100, 150…), checked as you log, not just at launch. "Not now" snoozes to the next 50 (and the weekly reminder to the next session); Export or Share resets both. The weekly rule now only fires if something new was logged since the last backup. Logic is pure in `core/backupReminder.ts`.

@@ -43,6 +43,7 @@ export interface LogData {
 export type Units = 'ml' | 'oz';
 export type ClockFormat = 'auto' | '12h' | '24h';
 export type ThemeChoice = 'auto' | 'day' | 'dusk' | 'night';
+export type GridMarks = 'dots' | 'checks' | 'crosses';
 
 export interface Settings {
   babyName: string;
@@ -52,5 +53,10 @@ export interface Settings {
   dayStartHour: number;
   theme: ThemeChoice;
   lastBackupAt: number | null;
-  installTipSeen: boolean;
+  /** New-entry count at which the backup reminder was last put off ("Not now"); 0 after a backup. */
+  backupSnoozedAt: number;
+  /** One-time tips already dismissed ("Show tips again" clears this). */
+  tipsSeen: string[];
+  /** How the day grid marks feeds and diapers. */
+  gridMarks: GridMarks;
 }

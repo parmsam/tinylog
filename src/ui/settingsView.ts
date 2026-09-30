@@ -4,6 +4,7 @@ import { app, importData, settings, snapshot } from '../core/log';
 import type { Settings } from '../core/types';
 import { downloadText } from './clipboard';
 import { storageStatus } from './persist';
+import { resetTips } from './tips';
 import { toast } from './toast';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -25,7 +26,7 @@ export function exportFile(): File {
 }
 
 function markBackedUp() {
-  settings.set({ lastBackupAt: Date.now() });
+  settings.set({ lastBackupAt: Date.now(), backupSnoozedAt: 0 });
 }
 
 export function exportDownload() {
@@ -76,6 +77,7 @@ export function openSettings() {
     ${seg('clock', [['auto', 'Auto'], ['12h', '12-hour'], ['24h', '24-hour']], s.clock, 'Clock')}
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>
+    ${seg('gridMarks', [['dots', '● Dots'], ['checks', '✓ Checks'], ['crosses', '✕ Crosses']], s.gridMarks, 'Grid marks (feeds and diapers)')}
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
 
@@ -89,6 +91,11 @@ export function openSettings() {
         <label class="btn" role="button" tabindex="0">Import…<input type="file" accept="application/json,.json" data-import hidden /></label>
       </div>
       <p class="hint">Two phones? Share an export and import it on the other phone. Importing merges: nothing is lost, the newest edit wins, and importing the same file twice is safe.</p>
+    </section>
+
+    <section class="settings-section">
+      <h3>Tips</h3>
+      <div class="btn-row"><button type="button" class="btn" data-tips-reset>Show tips again</button></div>
     </section>
 
     <section class="settings-section">
@@ -114,6 +121,11 @@ export function openSettings() {
       exportDownload();
       void refreshStatus(dialog);
     } else if (t.closest('[data-share]')) void shareWithPartner().then(() => refreshStatus(dialog));
+    else if (t.closest('[data-tips-reset]')) {
+      resetTips();
+      dialog.close();
+      toast('Tips will show again, starting now');
+    }
   };
   dialog.querySelector<HTMLInputElement>('[data-import]')!.onchange = async (e) => {
     const input = e.target as HTMLInputElement;

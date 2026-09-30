@@ -1207,3 +1207,82 @@ table.heatmap tbody th.major {
 :root[data-theme='night'] .hm-box {
   filter: sepia(0.45) saturate(0.7) brightness(0.8);
 }
+
+/* Day grid: hour rows × category columns; inside a cell, left → right is :00 → :59. */
+.clock-box.grid-box {
+  max-width: none;
+}
+.dayclock .section-head {
+  margin-bottom: 4px;
+}
+table.daygrid {
+  border-spacing: 3px 2px;
+}
+.dg-cell {
+  position: relative;
+  height: 18px;
+  padding: 0;
+  border-radius: 5px;
+  background: var(--v-track);
+  overflow: hidden;
+}
+.dg-seg {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  min-width: 3px;
+  border-radius: 3px;
+  background: var(--c);
+  cursor: pointer;
+}
+.dg-seg.ongoing {
+  background: repeating-linear-gradient(90deg, var(--c) 0 4px, color-mix(in oklab, var(--c) 45%, transparent) 4px 6px);
+}
+.dg-mark {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 2px var(--surface-strong);
+  cursor: pointer;
+}
+/* Wet is hollow, dirty filled: the same shape code as the clock and the timeline. */
+.dg-mark.wet {
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 0 2px var(--c);
+}
+.dg-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.daygrid tr.is-now th {
+  color: var(--text);
+}
+.daygrid tr.is-future .dg-cell {
+  opacity: 0.45;
+}
+.dg-hint {
+  text-align: center;
+  margin-top: 6px;
+}
+/* ✓ / ✕ marks (Settings → Grid marks). The column already says wet vs dirty. */
+.dg-glyph {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--c);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  text-shadow: 0 0 3px var(--surface-strong);
+}

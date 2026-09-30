@@ -59,7 +59,13 @@
         <section id="cards" class="cards" aria-label="Log something"></section>
 
         <section class="dayclock" aria-labelledby="clock-title">
-          <h2 id="clock-title" class="visually-hidden">Day clock</h2>
+          <div class="section-head">
+            <h2 id="clock-title">The day</h2>
+            <div class="seg small" role="radiogroup" aria-label="Day view">
+              <label><input type="radio" name="dayview" value="clock" checked /><span>Clock</span></label>
+              <label><input type="radio" name="dayview" value="grid" /><span>Grid</span></label>
+            </div>
+          </div>
           <div id="day-clock" class="viz-box clock-box"></div>
         </section>
 

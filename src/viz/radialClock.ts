@@ -18,7 +18,7 @@ const LANE = { sleep: 140, feed: 117, diaper: 99, tummy: 83, pump: 70, other: 56
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const f1 = (v: number) => Math.round(v * 10) / 10;
 
-function tipFor(e: LogEvent, prefs: Prefs, now: number): string {
+export function tipFor(e: LogEvent, prefs: Prefs, now: number): string {
   const card = cardFor(e)!;
   const t = (ts: number) => clockTime(ts, prefs.clock);
   const label = e.type === 'diaper' ? `${summary(e, prefs)} diaper` : card.label;
@@ -155,7 +155,9 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 export function renderRadialClock(host: HTMLElement, events: LogEvent[], day: string, now: number, prefs: Prefs) {
   const list = eventsForDay(events, day, prefs.dayStartHour, now);
   const key = `${day}|${prefs.dayStartHour}|${prefs.clock}|${prefs.units}|${Math.floor(now / 60_000)}|${list.map((e) => `${e.id}:${e.updatedAt}`).join(',')}`;
-  if (key === lastKey && host.firstElementChild) return;
+  if (key === lastKey && host.querySelector('svg.radial')) return;
+  // Coming back from the grid view counts as opening the day again (arcs draw in).
+  if (!host.querySelector('svg.radial')) lastDay = '';
   lastKey = key;
   host.innerHTML = radialClockSvg(events, day, now, prefs) + LEGEND;
   attachTips(host);

@@ -38,7 +38,7 @@ export async function open(page: Page, seed: Seed = {}) {
       const r = indexedDB.deleteDatabase('tinylog');
       r.onsuccess = r.onerror = r.onblocked = () => res(null);
     });
-    localStorage.setItem('tinylog:v1:settings', JSON.stringify({ installTipSeen: true, theme: 'dusk', ...seed.settings }));
+    localStorage.setItem('tinylog:v1:settings', JSON.stringify({ tipsSeen: ['welcome', 'install', 'partner'], theme: 'dusk', ...seed.settings }));
     const events = seed.events ?? [];
     const notes = seed.notes ?? [];
     if (seed.mirrorOnly) {
