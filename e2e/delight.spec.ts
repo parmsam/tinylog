@@ -1,10 +1,10 @@
 import { card, entries, ev, expect, MIN, open, test } from './helpers';
 
-test.describe('Puff', () => {
+test.describe('companions', () => {
   test('mirrors what is happening and reacts to logs', async ({ page }) => {
     await open(page, { settings: { babyName: 'Pip' } });
     const companion = page.locator('#companion');
-    const puff = companion.locator('svg.puff');
+    const puff = companion.locator('svg.buddy');
     await expect(companion).toBeVisible();
     await expect(puff).toHaveAttribute('data-state', 'idle');
 
@@ -30,9 +30,30 @@ test.describe('Puff', () => {
     await page.getByRole('button', { name: 'Back to today' }).click();
     await expect(page.locator('#companion')).toBeVisible();
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByLabel('Show Puff, the little companion').uncheck();
+    await page.locator('#settings .buddy-picker').getByText('Off', { exact: true }).click();
     await page.keyboard.press('Escape');
     await expect(page.locator('#companion')).toBeHidden();
+  });
+
+  test('Sadie and friends: pick one in Settings, and they react the same way', async ({ page }) => {
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const picker = page.locator('#settings .buddy-picker');
+    for (const [label, id] of [['Moon', 'moon'], ['Bunny', 'bunny'], ['Duckling', 'duck'], ['Sadie', 'sadie']]) {
+      await picker.getByText(label, { exact: true }).click();
+      await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-companion', id);
+    }
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#companion')).toContainText('Hi from Sadie');
+    await card(page, 'feed').click();
+    const sadie = page.locator('#companion svg.buddy');
+    await expect(sadie).toHaveAttribute('data-face', 'o');
+    await expect(sadie).toHaveAttribute('data-excited', '');
+    await card(page, 'nap').click();
+    await expect(sadie).toHaveAttribute('data-state', 'sleeping');
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-companion', 'sadie');
   });
 });
 

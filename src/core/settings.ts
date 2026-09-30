@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tipsSeen: [],
   gridMarks: 'dots',
   haptics: true,
-  companion: true,
+  companion: 'puff',
   background: 'glow',
 };
 
@@ -31,7 +31,11 @@ export function loadSettings(): Settings {
     if (!Number.isInteger(s.backupSnoozedAt) || s.backupSnoozedAt < 0) s.backupSnoozedAt = 0;
     if (!['glow', 'none', 'sky', 'fireflies', 'bubbles', 'mobile', 'snow'].includes(s.background)) s.background = 'glow';
     s.haptics = s.haptics !== false;
-    s.companion = s.companion !== false;
+    // v0.1 stored a boolean.
+    const c = s.companion as unknown;
+    if (c === true) s.companion = 'puff';
+    else if (c === false) s.companion = 'off';
+    if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'off'].includes(s.companion)) s.companion = 'puff';
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
     return s;
   } catch {

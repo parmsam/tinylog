@@ -25,6 +25,7 @@ Baby tracker: one-tap logging plus beautiful visualizations. Static site on GitH
 - **Storage**: only via `src/core/db.ts` (events + day notes: IndexedDB primary, mirrored to localStorage `tinylog:v1:mirror`) and `src/core/settings.ts` (`tinylog:v1:settings`). Wrap every read/write in try/catch; bump the version and add a migration on schema changes. Deletes are soft (`deleted: true`).
 - **State**: mutate via `src/core/store.ts`; UI modules subscribe.
 - **Night mode**: no bright flashes, no sound by default, reduced animation.
+- **Companions**: new characters go in `src/companion/characters.ts` and must follow the contract at the top of that file (shared part names and positions), so shared reactions and the recap snapshot just work.
 - **Motion**: respect `prefers-reduced-motion`. three.js is only ever reached through `import('../fx/scenes')` in `ui/background.ts`; never import it statically. Scenes follow pomotimer2's `Scene` interface (`src/fx/scenes/types.ts`).
 - **SVG pivots**: never use pixel `transform-origin` on SVG artwork (Safari bug from pomo). Use `transform-box: fill-box` with percentages, or SVG `transform` attributes.
 - **Charts**: series colors are the `--v-*` tokens, validated with the dataviz palette validator (light + dark). Don't add series colors without re-running it. Each series gets its own lane/ring and mark shape; every chart needs a text equivalent (log list or totals table) and `data-tip` tooltips on marks. Geometry lives in `src/viz/geom.ts` (tested, DST-aware).

@@ -1419,7 +1419,7 @@ table.daygrid {
   stroke-width: 0.6;
 }
 
-/* ---------- Puff, the companion ---------- */
+/* ---------- Companions (Puff, Sadie, Moon, Bunny, Duckling) ---------- */
 .companion {
   display: flex;
   align-items: center;
@@ -1431,7 +1431,7 @@ table.daygrid {
   flex: none;
   width: 84px;
 }
-.puff {
+.buddy {
   display: block;
   width: 100%;
   height: auto;
@@ -1444,140 +1444,140 @@ table.daygrid {
   color: var(--muted);
   line-height: 1.3;
 }
-.puff .p-fill {
+.buddy .p-fill {
   fill: var(--puff);
   stroke: color-mix(in oklab, var(--puff-ink) 12%, transparent);
   stroke-width: 1.5;
 }
-.puff .p-shadow {
+.buddy .p-shadow {
   fill: color-mix(in oklab, var(--text) 12%, transparent);
 }
-.puff .p-eyes ellipse {
+.buddy .p-eyes ellipse {
   fill: var(--puff-ink);
 }
-.puff .p-glint {
+.buddy .p-glint {
   fill: var(--puff);
 }
-.puff .p-cheek {
+.buddy .p-cheek {
   fill: var(--puff-cheek);
   opacity: 0.55;
 }
-.puff .p-closed,
-.puff .p-smile,
-.puff .p-wince {
+.buddy .p-closed,
+.buddy .p-smile,
+.buddy .p-wince {
   fill: none;
   stroke: var(--puff-ink);
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.puff .p-o {
+.buddy .p-o {
   fill: var(--puff-ink);
 }
-.puff .p-sweat {
+.buddy .p-sweat {
   fill: #8ecbf0;
 }
-.puff .p-zs text {
+.buddy .p-zs text {
   fill: var(--muted);
   font: 800 11px var(--font);
 }
-.puff .p-prop {
+.buddy .p-prop {
   opacity: 0;
 }
-.puff .p-prop.show {
+.buddy .p-prop.show {
   opacity: 1;
 }
-.puff .p-bottle rect {
+.buddy .p-bottle rect {
   fill: #fff;
   stroke: var(--puff-ink);
   stroke-width: 1.2;
 }
-.puff .p-bottle .p-nipple {
+.buddy .p-bottle .p-nipple {
   fill: var(--puff-prop);
 }
-.puff .p-drop path,
-.puff .p-bubbles circle {
+.buddy .p-drop path,
+.buddy .p-bubbles circle {
   fill: color-mix(in oklab, #7cc8ee 70%, transparent);
   stroke: #7cc8ee;
   stroke-width: 1;
 }
-.puff .p-stink path {
+.buddy .p-stink path {
   fill: none;
   stroke: #b8a07a;
   stroke-width: 2;
   stroke-linecap: round;
 }
-.puff .p-sparkles path,
-.puff .p-plus rect {
+.buddy .p-sparkles path,
+.buddy .p-plus rect {
   fill: var(--puff-prop);
 }
-.puff .p-plus rect {
+.buddy .p-plus rect {
   fill: #ff8a8a;
 }
-.puff .p-hearts path {
+.buddy .p-hearts path {
   fill: #ff8fab;
 }
 
 /* Everything that moves pivots on its own box (Safari rule, see AGENTS.md). */
-.puff .p-bob,
-.puff .p-body,
-.puff .p-eyes,
-.puff .p-prop {
+.buddy .p-bob,
+.buddy .p-body,
+.buddy .p-eyes,
+.buddy .p-prop {
   transform-box: fill-box;
   transform-origin: 50% 100%;
 }
-.puff .p-eyes {
+.buddy .p-eyes {
   transform-origin: 50% 50%;
 }
 
 /* Faces: smile by default; reactions swap in "o" or a wince. Closed eyes while asleep. */
-.puff .p-o,
-.puff .p-wince,
-.puff .p-closed,
-.puff .p-sweat,
-.puff .p-zs {
+.buddy .p-o,
+.buddy .p-wince,
+.buddy .p-closed,
+.buddy .p-sweat,
+.buddy .p-zs {
   display: none;
 }
-.puff[data-face='o'] .p-smile,
-.puff[data-face='wince'] .p-smile {
+.buddy[data-face='o'] .p-smile,
+.buddy[data-face='wince'] .p-smile {
   display: none;
 }
-.puff[data-face='o'] .p-o,
-.puff[data-face='wince'] .p-wince {
+.buddy[data-face='o'] .p-o,
+.buddy[data-face='wince'] .p-wince {
   display: inline;
 }
-.puff[data-state='sleeping'] .p-eyes {
+.buddy[data-state='sleeping'] .p-eyes {
   display: none;
 }
-.puff[data-state='sleeping'] .p-closed,
-.puff[data-state='sleeping'] .p-zs,
-.puff[data-state='fussy'] .p-sweat {
+.buddy[data-state='sleeping'] .p-closed,
+.buddy[data-state='sleeping'] .p-zs,
+.buddy[data-state='fussy'] .p-sweat {
   display: inline;
 }
 
 /* States */
-.puff .p-bob {
+.buddy .p-bob {
   animation: puff-bob 4.5s ease-in-out infinite;
 }
-.puff .p-eyes {
+.buddy .p-eyes {
   animation: puff-blink 5s infinite;
 }
-.puff[data-state='sleeping'] .p-bob {
+.buddy[data-state='sleeping'] .p-bob {
   animation: puff-breathe 5s ease-in-out infinite;
 }
-.puff[data-state='fussy'] .p-bob {
+.buddy[data-state='fussy'] .p-bob {
   animation: puff-wobble 0.9s ease-in-out infinite;
 }
-.puff[data-state='tummy'] .p-bob {
+.buddy[data-state='tummy'] .p-bob {
   animation: puff-roll 2.4s ease-in-out infinite;
 }
-.puff .p-zs text {
+.buddy .p-zs text {
   animation: puff-z 3s ease-in-out infinite;
 }
-.puff .p-zs text:nth-child(2) {
+.buddy .p-zs text:nth-child(2) {
   animation-delay: 1s;
 }
-.puff .p-zs text:nth-child(3) {
+.buddy .p-zs text:nth-child(3) {
   animation-delay: 2s;
 }
 @keyframes puff-bob {
@@ -1630,16 +1630,16 @@ table.daygrid {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .puff *,
-  .puff .p-bob {
+  .buddy *,
+  .buddy .p-bob {
     animation: none !important;
   }
-  .puff .p-zs text {
+  .buddy .p-zs text {
     opacity: 1;
   }
 }
-:root[data-theme='night'] .puff .p-bob,
-:root[data-theme='night'] .puff .p-eyes {
+:root[data-theme='night'] .buddy .p-bob,
+:root[data-theme='night'] .buddy .p-eyes {
   animation-duration: 9s;
 }
 
@@ -1729,4 +1729,132 @@ table.daygrid {
 .scene-tile:has(input:focus-visible) {
   outline: 2px solid var(--text);
   outline-offset: 2px;
+}
+
+/* Character touches. Everything pivots on its own box (Safari rule). */
+.buddy .c-tail,
+.buddy .c-ears,
+.buddy .c-ear-l,
+.buddy .c-ear-r,
+.buddy .c-nose,
+.buddy .c-wing,
+.buddy .c-topknot {
+  transform-box: fill-box;
+}
+/* Sadie: tail wags (faster when excited), ears lift a little when excited, droop while asleep. */
+.buddy[data-companion='sadie'] .c-tail {
+  transform-origin: 0% 90%;
+  animation: sadie-wag 0.7s ease-in-out infinite alternate;
+}
+.buddy[data-companion='sadie'][data-excited] .c-tail {
+  animation-duration: 0.18s;
+}
+.buddy[data-companion='sadie'][data-state='sleeping'] .c-tail,
+.buddy[data-companion='sadie'][data-state='fussy'] .c-tail {
+  animation: none;
+}
+.buddy[data-companion='sadie'] .c-ear-l {
+  transform-origin: 70% 10%;
+  transition: transform 0.3s;
+}
+.buddy[data-companion='sadie'] .c-ear-r {
+  transform-origin: 30% 10%;
+  transition: transform 0.3s;
+}
+.buddy[data-companion='sadie'][data-excited] .c-ear-l {
+  transform: rotate(14deg);
+}
+.buddy[data-companion='sadie'][data-excited] .c-ear-r {
+  transform: rotate(-14deg);
+}
+@keyframes sadie-wag {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(16deg);
+  }
+}
+/* Moon rocks gently while the baby sleeps. */
+.buddy[data-companion='moon'][data-state='sleeping'] .p-bob {
+  animation: moon-rock 5s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes moon-rock {
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+/* Bunny: nose twitches; ears perk up when excited and flop for naps. */
+.buddy[data-companion='bunny'] .c-nose {
+  transform-origin: 50% 50%;
+  animation: bunny-nose 3.2s ease-in-out infinite;
+}
+.buddy[data-companion='bunny'] .c-ear-l,
+.buddy[data-companion='bunny'] .c-ear-r {
+  transform-origin: 50% 100%;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.buddy[data-companion='bunny'][data-excited] .c-ear-l,
+.buddy[data-companion='bunny'][data-excited] .c-ear-r {
+  transform: scaleY(1.12);
+}
+.buddy[data-companion='bunny'][data-state='sleeping'] .c-ear-l {
+  transform: rotate(-70deg) translateY(4px);
+}
+.buddy[data-companion='bunny'][data-state='sleeping'] .c-ear-r {
+  transform: rotate(70deg) translateY(4px);
+}
+@keyframes bunny-nose {
+  0%,
+  86%,
+  100% {
+    transform: scale(1);
+  }
+  90% {
+    transform: scale(1.18, 0.9);
+  }
+  94% {
+    transform: scale(0.94, 1.08);
+  }
+}
+/* Duckling flaps when excited (bath, tummy time, feeds). */
+.buddy[data-companion='duck'] .c-wing {
+  transform-origin: 20% 40%;
+}
+.buddy[data-companion='duck'][data-excited] .c-wing {
+  animation: duck-flap 0.22s ease-in-out infinite alternate;
+}
+@keyframes duck-flap {
+  to {
+    transform: rotate(-24deg);
+  }
+}
+/* Characters with their own colors dim at night like the emoji do (Puff uses theme tokens instead). */
+:root[data-theme='night'] .buddy:not([data-companion='puff']) {
+  filter: sepia(0.5) saturate(0.6) brightness(0.7);
+}
+/* Picker previews: still. */
+.buddy.preview,
+.buddy.preview * {
+  animation: none !important;
+}
+.buddy.preview .p-zs,
+.buddy.preview .p-shadow {
+  display: none;
+}
+.buddy-picker {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+}
+.buddy-picker svg {
+  aspect-ratio: 120 / 96;
+}
+@media (prefers-reduced-motion: reduce) {
+  .buddy [class^='c-'] {
+    animation: none !important;
+    transition: none !important;
+  }
 }

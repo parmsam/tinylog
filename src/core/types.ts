@@ -44,6 +44,7 @@ export type Units = 'ml' | 'oz';
 export type ClockFormat = 'auto' | '12h' | '24h';
 export type ThemeChoice = 'auto' | 'day' | 'dusk' | 'night';
 export type GridMarks = 'dots' | 'checks' | 'crosses';
+export type CompanionChoice = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'off';
 export type Background = 'glow' | 'none' | 'sky' | 'fireflies' | 'bubbles' | 'mobile' | 'snow';
 
 export interface Settings {
@@ -62,8 +63,8 @@ export interface Settings {
   gridMarks: GridMarks;
   /** Taps buzz (Android vibration, iOS switch haptics). */
   haptics: boolean;
-  /** The little companion under the date. */
-  companion: boolean;
+  /** The little companion under the date, or 'off'. */
+  companion: CompanionChoice;
   /** Page background: soft glow (default), three.js night sky, or plain. */
   background: Background;
 }

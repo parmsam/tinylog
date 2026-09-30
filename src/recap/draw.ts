@@ -35,17 +35,6 @@ function resolver() {
   };
 }
 
-function puffSvg(body: string, ink: string, cheek: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96" width="240" height="192">
-    <ellipse cx="60" cy="88" rx="36" ry="4" fill="${ink}" opacity=".15"/>
-    <path d="M30 70c-12 0-20-8-20-18s8-17 18-17c2-12 13-21 26-21 11 0 20 6 24 15 3-1 5-2 8-2 12 0 21 9 21 21 0 12-9 22-21 22H30Z" fill="${body}" stroke="${ink}" stroke-opacity=".14" stroke-width="1.5"/>
-    <ellipse cx="40" cy="58" rx="6" ry="3.5" fill="${cheek}" opacity=".6"/><ellipse cx="80" cy="58" rx="6" ry="3.5" fill="${cheek}" opacity=".6"/>
-    <ellipse cx="47" cy="49" rx="3.6" ry="4.6" fill="${ink}"/><ellipse cx="73" cy="49" rx="3.6" ry="4.6" fill="${ink}"/>
-    <circle cx="48.4" cy="47.2" r="1.2" fill="${body}"/><circle cx="74.4" cy="47.2" r="1.2" fill="${body}"/>
-    <path d="M55 59q5 5 10 0" fill="none" stroke="${ink}" stroke-width="2.2" stroke-linecap="round"/>
-  </svg>`;
-}
-
 function loadImage(svg: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -95,7 +84,8 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, max
   return lines;
 }
 
-export async function drawRecap(canvas: HTMLCanvasElement, r: Recap, prefs: Prefs, now: number): Promise<void> {
+/** `companion` is a self-contained SVG of the chosen companion (see recapView), or null when it's turned off. */
+export async function drawRecap(canvas: HTMLCanvasElement, r: Recap, prefs: Prefs, now: number, companion: string | null): Promise<void> {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
@@ -117,9 +107,6 @@ export async function drawRecap(canvas: HTMLCanvasElement, r: Recap, prefs: Pref
     tummy: c.get('var(--v-tummy)'),
     pump: c.get('var(--v-pump)'),
     fussy: c.get('var(--v-fussy)'),
-    puff: c.get('var(--puff)'),
-    puffInk: c.get('var(--puff-ink)'),
-    puffCheek: c.get('var(--puff-cheek)'),
   };
   c.done();
   const font = (w: number, px: number) => `${w} ${px}px Nunito, ui-rounded, system-ui, sans-serif`;
@@ -271,9 +258,9 @@ export async function drawRecap(canvas: HTMLCanvasElement, r: Recap, prefs: Pref
     }
   }
 
-  // Puff and the footer.
-  const puff = await loadImage(puffSvg(col.puff, col.puffInk, col.puffCheek));
-  if (puff) ctx.drawImage(puff, W - 72 - 200, H - 210, 200, 160);
+  // The companion and the footer.
+  const buddy = companion ? await loadImage(companion) : null;
+  if (buddy) ctx.drawImage(buddy, W - 72 - 200, H - 210, 200, 160);
   ctx.fillStyle = col.muted;
   ctx.font = font(700, 24);
   ctx.textAlign = 'left';

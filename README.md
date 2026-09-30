@@ -11,7 +11,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Patterns, not predictions.** Typical nap length, bedtime and wake-up windows, longest stretch, feeds and diapers per day, time between feeds, weekly tummy time and pump output. Each says what it's based on, and waits until there's enough data.
 - **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
-- **Puff.** A little cloud companion that sips a bottle when you log a feed, dozes while the baby sleeps and sighs with relief when a fussy spell ends. Off in Settings if you'd rather not.
+- **A little companion.** Puff the cloud, Sadie the mini golden retriever, Moon, Bunny or Duckling. They sip a bottle when you log a feed, doze while the baby sleeps and sigh with relief when a fussy spell ends (Sadie wags). Or turn them off in Settings.
 - **Day recap.** A shareable image of any day (clock, totals, longest stretch, your note), or the day as Markdown.
 - **Backgrounds.** A soft glow by default, or one of five gentle three.js scenes (night sky, fireflies, bubbles, crib mobile, snow), loaded only if you pick one and slower while the baby sleeps.
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.

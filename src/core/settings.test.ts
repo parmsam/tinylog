@@ -23,3 +23,16 @@ describe('settings', () => {
     expect(loadSettings()).toMatchObject({ gridMarks: 'dots', tipsSeen: [], dayStartHour: 0 });
   });
 });
+
+describe('companion setting', () => {
+  it('migrates the old on/off boolean', () => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: true }));
+    expect(loadSettings().companion).toBe('puff');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: false }));
+    expect(loadSettings().companion).toBe('off');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'sadie' }));
+    expect(loadSettings().companion).toBe('sadie');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'dragon' }));
+    expect(loadSettings().companion).toBe('puff');
+  });
+});

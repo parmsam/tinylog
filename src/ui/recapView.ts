@@ -5,7 +5,31 @@ import { toMarkdown } from '../core/markdown';
 import { recap } from '../core/recap';
 import { drawRecap } from '../recap/draw';
 import { copyText } from './clipboard';
+import { companionElement } from './companion';
 import { toast } from './toast';
+
+const STYLE_PROPS = ['fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'opacity', 'display', 'font-size', 'font-weight', 'font-family'];
+
+/**
+ * A self-contained copy of the live companion: every element gets its computed colors inlined,
+ * so it draws the same inside an <img> (which can't see the page's CSS). Moving parts are left at rest.
+ */
+function companionSnapshot(): string | null {
+  const svg = companionElement();
+  if (!svg) return null;
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+  const from = [svg, ...svg.querySelectorAll('*')];
+  const to = [clone, ...clone.querySelectorAll('*')];
+  from.forEach((el, i) => {
+    const cs = getComputedStyle(el);
+    (to[i] as SVGElement).setAttribute('style', STYLE_PROPS.map((p) => `${p}:${cs.getPropertyValue(p)}`).join(';'));
+  });
+  clone.querySelectorAll('.p-prop').forEach((el) => el.remove());
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', '240');
+  clone.setAttribute('height', '192');
+  return new XMLSerializer().serializeToString(clone);
+}
 
 /** The day recap: a shareable card for the selected day, as PNG, plus the day as Markdown. */
 export async function openRecap() {
@@ -42,7 +66,7 @@ export async function openRecap() {
   if (!dialog.open) dialog.showModal();
 
   const canvas = document.createElement('canvas');
-  await drawRecap(canvas, r, prefs, now);
+  await drawRecap(canvas, r, prefs, now, companionSnapshot());
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
   if (!blob) {
     toast("Couldn't draw the recap on this device.");

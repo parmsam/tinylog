@@ -184,12 +184,13 @@ Settings → Background is a picker with small static previews: Glow (default), 
 - Tried and dropped: aurora, clouds (muddy, especially on the light theme) and rain (gloomy). Five is enough.
 
 #### More companions
-Puff's code is already a swappable module (`src/companion/`) with one interface: states (idle, sleeping, fussy, tummy, pump) and one-shot reactions to logs. More companions plug into the same interface and a picker in Settings, like the background scenes. Keep it to a few, each with the same rules: decoration only, never sad about anything missed, quiet at night, static under reduced motion.
-- [ ] Companion picker in Settings (with Puff as the default), small static previews
-- [ ] **Moon**: a sleepy crescent in a nightcap that rocks while the baby sleeps
-- [ ] **Bunny**: ears perk up for feeds, flop down for naps, nose twitches
-- [ ] **Duckling**: splashes for baths, waddles for tummy time
-- [ ] Recap card draws the chosen companion
+Companions live in `src/companion/`: `characters.ts` holds each character's SVG, all following one contract (shared eyes/mouth/prop positions and class names), and `companion.ts` runs the shared states and reactions. Each character adds its own touches in CSS under `[data-companion=…]`. Same rules for all: decoration only, never sad about anything missed, quiet at night, static under reduced motion.
+- [x] Companion picker in Settings (Puff by default, or Off), with still previews
+- [x] **Sadie**: a mini golden retriever pup with fluffy wavy ears, a top-knot and a red collar. Her tail wags, faster when you log a feed; ears lift when excited
+- [x] **Moon**: a sleepy moon in a nightcap that rocks while the baby sleeps
+- [x] **Bunny**: ears perk up when excited and flop down for naps; the nose twitches
+- [x] **Duckling**: flaps for baths, feeds and tummy time
+- [x] The recap card draws whichever companion is chosen (a snapshot of the live SVG with colors inlined)
 
 ### Phase 5 — Links & shortcuts
 - [ ] Link actions: `?do=log&type=diaper&kind=wet`, `?do=start&type=sleep`, `?do=end&type=sleep`
@@ -232,3 +233,4 @@ Puff's code is already a swappable module (`src/companion/`) with one interface:
 - 2026-09-30 — Planned more background scenes (fireflies, aurora, rain from pomotimer2, plus clouds, bubbles, crib mobile, snow) as a lazy scene registry with a preview picker. Not built yet.
 - 2026-09-30 — Background scenes capped at five (night sky, fireflies, bubbles, crib mobile, snow). three.js color management is off for scenes (colors stay exactly as the theme defines them) and shader materials declare premultiplied alpha; both bugs made scenes far too dark or invisible.
 - 2026-09-30 — Planned a few more companions (moon, bunny, duckling) on Puff's interface with a Settings picker. Not built yet.
+- 2026-09-30 — Companions: Puff, Sadie (a mini golden retriever), Moon, Bunny and Duckling. The `companion` setting became a character id or 'off' (the old boolean migrates). The recap snapshots the live companion SVG with computed colors inlined, so new characters show up there without extra work.

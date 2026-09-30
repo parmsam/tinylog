@@ -6,6 +6,7 @@ import { downloadText } from './clipboard';
 import { storageStatus } from './persist';
 import { isIos, isTouchDevice } from '../core/haptics';
 import { PREVIEWS } from './scenePreviews';
+import { CHARACTERS, characterSvg } from '../companion/characters';
 import { resetTips } from './tips';
 import type { Background } from '../core/types';
 
@@ -95,7 +96,9 @@ export function openSettings() {
       ([id, label]) =>
         `<label class="scene-tile"><input type="radio" name="background" value="${id}" ${id === s.background ? 'checked' : ''} />${PREVIEWS[id]}<span>${label}</span></label>`,
     ).join('')}</div></fieldset>
-    <label class="check"><input type="checkbox" name="companion" ${s.companion ? 'checked' : ''} /> Show Puff, the little companion</label>
+    <fieldset class="field"><legend>Companion</legend><div class="scene-picker buddy-picker">${[...CHARACTERS.map((c) => [c.id, c.label, characterSvg(c.id, { preview: true })]), ['off', 'Off', '<svg viewBox="0 0 120 96" aria-hidden="true"></svg>']]
+      .map(([id, label, art]) => `<label class="scene-tile"><input type="radio" name="companion" value="${id}" ${id === s.companion ? 'checked' : ''} />${art}<span>${label}</span></label>`)
+      .join('')}</div></fieldset>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
