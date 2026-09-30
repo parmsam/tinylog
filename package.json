@@ -1,0 +1,37 @@
+{
+  "name": "tinylog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An absurdly beautiful, local-only baby tracker. One tap to log; lovely ways to see the day.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "tsc && vitest run && playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parmsam/tinylog.git"
+  },
+  "homepage": "https://parmsam.github.io/tinylog/",
+  "license": "MIT",
+  "dependencies": {
+    "animejs": "^4.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^5.0.3",
+    "workbox-window": "^7.4.1"
+  }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="dusk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="One-tap baby tracker: feeds, diapers, sleep, tummy time. All data stays on your phone." />
+    <meta name="theme-color" content="#1b1726" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>tinylog</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <div class="glow g1"></div>
+      <div class="glow g2"></div>
+      <div class="glow g3"></div>
+    </div>
+
+    <div class="app">
+      <header class="topbar">
+        <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span id="brand-name">tinylog</span></div>
+        <button id="settings-open" class="icon-btn" type="button" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+      </header>
+
+      <nav class="daynav" aria-label="Day">
+        <button id="day-prev" class="icon-btn" type="button" aria-label="Previous day" title="Previous day (←)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+        </button>
+        <div class="daynav-title">
+          <h1 id="day-title">Today</h1>
+          <button id="day-today" class="link-btn" type="button" hidden>Back to today</button>
+        </div>
+        <button id="day-next" class="icon-btn" type="button" aria-label="Next day" title="Next day (→)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+        </button>
+      </nav>
+
+      <div id="banner" class="banner" hidden></div>
+
+      <main>
+        <section id="cards" class="cards" aria-label="Log something"></section>
+
+        <section class="daylog" aria-labelledby="log-title">
+          <div class="section-head">
+            <h2 id="log-title">Today's log</h2>
+            <button id="add-entry" class="chip" type="button">+ Add entry</button>
+          </div>
+          <ol id="entries" class="entries"></ol>
+          <p id="entries-empty" class="empty">Nothing logged yet.</p>
+
+          <label class="daynote">
+            <span class="daynote-label">📝 Day note</span>
+            <textarea id="day-note" rows="2" placeholder="Anything special about today?"></textarea>
+          </label>
+        </section>
+      </main>
+
+      <footer class="foot">Your log stays on this device. Not medical advice.</footer>
+    </div>
+
+    <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+    <dialog id="sheet" class="sheet" aria-labelledby="sheet-title"></dialog>
+    <dialog id="settings" class="sheet" aria-labelledby="settings-title"></dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

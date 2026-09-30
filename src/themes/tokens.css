@@ -1,0 +1,110 @@
+/* Registered so theme switches (day → dusk → night) fade instead of snapping. */
+@property --bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1b1726;
+}
+@property --bg2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2a2140;
+}
+@property --text {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f7f0ff;
+}
+
+:root {
+  /* Dusk: the default dark theme. */
+  --bg: #1b1726;
+  --bg2: #2a2140;
+  --text: #f7f0ff;
+  --glow1: #ff9f8a;
+  --glow2: #8b6cf0;
+  --glow3: #5fc9c2;
+  --glow-opacity: 0.32;
+
+  /* One color per kind of event, used by cards, the log and (later) charts. */
+  --c-feed: #ffab91;
+  --c-wet: #7cc8ee;
+  --c-dirty: #d6ac6f;
+  --c-nap: #b3a4ff;
+  --c-night: #7d8cf0;
+  --c-tummy: #8fdb9f;
+  --c-pump: #f6a8cf;
+  --c-bath: #69d7d0;
+  --c-doctor: #f5cd6a;
+
+  --muted: color-mix(in oklab, var(--text) 64%, transparent);
+  --faint: color-mix(in oklab, var(--text) 12%, transparent);
+  --surface: color-mix(in oklab, var(--bg) 60%, transparent);
+  --surface-strong: color-mix(in oklab, var(--bg) 93%, var(--text));
+  --border: color-mix(in oklab, var(--text) 11%, transparent);
+  --danger: #ff8a8a;
+
+  --radius: 22px;
+  --font: 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: dark;
+  transition:
+    --bg 1.2s var(--ease),
+    --bg2 1.2s var(--ease),
+    --text 0.8s var(--ease);
+}
+
+:root[data-theme='day'] {
+  --bg: #fff8f1;
+  --bg2: #f4ecff;
+  --text: #2b2340;
+  --glow1: #ffc2b0;
+  --glow2: #cbbcff;
+  --glow3: #a8e8e2;
+  --glow-opacity: 0.55;
+
+  --c-feed: #e8785a;
+  --c-wet: #3b9fd4;
+  --c-dirty: #a8773a;
+  --c-nap: #7c67e6;
+  --c-night: #4f5fcf;
+  --c-tummy: #3fae5a;
+  --c-pump: #d8649f;
+  --c-bath: #22a79f;
+  --c-doctor: #c9971a;
+
+  --surface: color-mix(in oklab, #ffffff 72%, transparent);
+  --surface-strong: #ffffff;
+  --border: color-mix(in oklab, var(--text) 10%, transparent);
+  --danger: #c93c3c;
+  color-scheme: light;
+}
+
+/* Night: for 3 AM. Very dim, warm, low contrast, no blue glare. */
+:root[data-theme='night'] {
+  --bg: #0b0806;
+  --bg2: #120c08;
+  --text: #d9a98a;
+  --glow1: #6b2f1c;
+  --glow2: #3a1c14;
+  --glow3: #4a2a12;
+  --glow-opacity: 0.25;
+
+  --c-feed: #d99070;
+  --c-wet: #b99a78;
+  --c-dirty: #b08058;
+  --c-nap: #c49a86;
+  --c-night: #a88070;
+  --c-tummy: #b8a070;
+  --c-pump: #c98a80;
+  --c-bath: #b0a080;
+  --c-doctor: #c9a060;
+  --muted: color-mix(in oklab, var(--text) 58%, transparent);
+  --danger: #d77b5f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+}

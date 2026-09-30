@@ -1,0 +1,195 @@
+# tinylog — Plan
+
+An absurdly beautiful baby tracker. One tap to log a feed, diaper, nap, sleep, tummy time, pump, bath or doctor visit; an over-engineered, lovely way to see the day.
+Static site on GitHub Pages, installable PWA, **all data stays on the device**.
+
+Sibling project to [pomotimer2](https://github.com/parmsam/pomotimer2): same stack, conventions and "pomo aesthetic", reused wherever it fits.
+
+## Principles
+1. **One tap, one hand, 3 AM.** The home screen is big buttons. Logging never needs a form. Everything else is optional detail you can add later.
+2. **Logging late is normal.** Most entries happen after the fact ("she ate at 3:10, I'm logging at 3:25"), so adjusting the time is one gesture, not a dialog.
+3. **Night-safe.** Dim, warm, low-contrast night mode; no bright flashes or loud sounds after dark. Animations calm down at night.
+4. **Patterns, not predictions.** Show what happened (averages, windows, totals). Never say what *should* happen or give medical guidance. A short "not medical advice" note lives in About.
+5. **Private by design.** No backend, no analytics, no accounts. The baby's name and data never leave the browser unless you export them.
+
+## Stack
+- Vite + TypeScript (strict), no UI framework, plain DOM modules (same as pomo)
+- anime.js v4 for all UI motion (card taps, SVG arc drawing, character, transitions)
+- three.js only for optional, lazy-loaded scenes (e.g. a night-sky backdrop for the day recap)
+- SVG for all charts, hand-written (radial clock, arcs, sparklines). No chart library unless one earns its bundle size
+- vite-plugin-pwa (`registerType: 'prompt'`, never auto-reload mid-timer)
+- Vitest (jsdom, `TZ=America/New_York` for DST) + Playwright (Chromium, WebKit, mobile)
+- GitHub Actions: CI on every push, deploy to Pages (`base: '/tinylog/'`) only when it passes
+
+## Core technical decisions
+1. **Event log is the source of truth.** Everything (cards, timeline, stats, recap) is derived from one list of events; no separate counters to drift (the pomo streak lesson).
+   ```ts
+   type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'bath' | 'doctor' | 'note'
+   interface LogEvent {
+     id: string            // crypto.randomUUID()
+     type: EventType
+     at: number            // epoch ms, start time
+     endAt?: number        // sleep / tummy / pump; undefined while ongoing
+     detail?: {            // all optional, never required to log
+       method?: 'breast' | 'bottle'           // feed
+       side?: 'L' | 'R' | 'both'              // breast feed, pump
+       milk?: 'breast' | 'formula'            // bottle
+       amount?: number                         // ml (bottle, pump); displayed in the user's unit
+       diaper?: 'wet' | 'dirty' | 'both'
+       sleep?: 'nap' | 'night'
+       note?: string                           // any event, and the whole of a doctor visit
+     }
+     createdAt: number     // when it was logged
+     updatedAt: number     // last-write-wins when merging two phones' exports
+     deleted?: boolean     // soft delete, so undo and merging work
+   }
+   interface DayNote { day: string /* YYYY-MM-DD */; text: string; updatedAt: number }
+   ```
+2. **Ongoing things are timestamps, not timers.** A running sleep or tummy-time session is just an event with `at` and no `endAt`; the UI derives "asleep 42m" from `Date.now()` in rAF. Survives reload, background tabs and phone lock (pomo's `endsAt` rule).
+3. **Storage: IndexedDB is primary** (events + day notes), **mirrored to localStorage** as a second on-device copy (`tinylog:v1:mirror`); settings live in localStorage. On load, if IndexedDB is empty or unavailable (private mode, eviction, a bug) but the mirror has data, the app restores from it. A few years of logs is well under localStorage's ~5 MB; if the mirror ever fails to write, the app says so and suggests an export. JSON export/import is the backup. Cloud sync (e.g. iCloud) is a later, optional feature. All access goes through `core/db.ts` / `core/settings.ts`, versioned, with migrations.
+4. **Two phones, no server (for now).** Each phone keeps its own log. "Share with partner" sends a JSON export through the share sheet (AirDrop, Messages); importing it on the other phone **merges** by event `id`, newest `updatedAt` wins, deletes included. Importing the same file twice is harmless.
+5. **Data durability is a first-class feature.** Local-only means the browser *is* the database:
+   - Call `navigator.storage.persist()` on first log.
+   - **iOS Safari can evict data for sites not used in ~7 days unless installed to the home screen.** Nudge to install (one-time tip), and show the storage status in Settings.
+   - Automatic backup reminder (e.g. weekly) with one-tap JSON export; JSON import merges by `id`.
+6. **Days are local days, with a configurable "day starts at".** The radial clock is midnight-at-top, but the recap and daily stats can use e.g. 7 AM → 7 AM so a night isn't split in half. All bucketing lives in one tested module (DST-aware).
+7. **Units and formats are settings**: ml/oz, 12h/24h, week start.
+8. **Accessibility**: every visualization has a text equivalent (a list or table the screen reader gets); `prefers-reduced-motion` disables three.js and big animations; keyboard shortcuts for everything.
+
+## Home screen: the day view
+The input view is **one day at a time**: ‹ Today › with arrows (and swipe/keys) to step back through days. Today is where almost all logging happens; past days are for fixing and filling in.
+
+```
+‹  Today · Wed Sep 30  ›                      ⚙
+
+🍼 Feed          1h 38m ago · 8:32 · L breast
+💧 Wet           42m ago
+💩 Dirty         3h 11m ago
+😴 Nap           awake 54m          [tap: start]
+🌙 Night sleep   last: 7h 10m
+🤸 Tummy time    today 12m
+🫗 Pump          4h ago · 120 ml
+🛁 Bath          2 days ago
+🩺 Doctor        in 3 days · 2-month checkup
+
+Today's log                      (timeline, newest first; tap to edit)
+📝 Day note: "first real smile at the park"
+```
+
+- **Tap** a card = log it now. A toast appears with **Undo** and quick time chips (**−5m −15m −30m · pick time**) so late logging is one more tap.
+- **Timed types** (nap, night sleep, tummy, pump) toggle: tap to start, tap again to end (ending a pump asks side and volume, both skippable). The card shows a live elapsed timer and a gentle breathing animation while running.
+- **Long press** = open the detail sheet first (side, amount, time, note) instead of logging instantly.
+- **The day's log** lists every entry for the selected day; tap one to edit time, end time, details or delete it. Sleeps that cross midnight show on both days.
+- **Past days**: cards show that day's counts and tapping one opens the sheet with the time to fill in (it never logs "now" on a past day). Editing old entries is always possible.
+- **Day note**: a free-text note per day for anything special.
+- **Doctor visits** can be in the future; the card shows "in 3 days" until then.
+- Card order and which cards appear are configurable; the feed card hints which breast side is next.
+- Ambient mode (later): when idle, the page can dim to a big "last feed / awake for" display, readable from across the room, with Wake Lock optional.
+
+## Visualizations (the over-engineered part)
+- **24-hour radial clock**: today's events around a circle. Sleep = thick arcs, feeds = dots/ticks (sized by amount if known), diapers = small glyphs. "Now" hand sweeps slowly. Arcs draw in with anime.js on load.
+- **Week of rings**: 7 concentric 24h rings (today outermost), so sleep patterns line up visually as the week goes on. Tap a ring = that day.
+- **Day strip**: a horizontal 24h bar per day, stacked for 2–4 weeks (the classic "sleep log" chart), as the precise, accessible alternative to the rings.
+- **Feeding streaks & intervals**: a spark-strip of gaps between feeds for today.
+- **Tummy-time meter**: daily progress toward an optional goal; weekly totals.
+- Chart design follows one palette per event type, working in light, dark and night modes.
+
+## Patterns (lightweight analytics)
+Descriptive only, computed from the log, each with "based on N days" shown. Hidden until there's enough data (e.g. ≥3 days); never phrased as advice.
+- Average nap length, naps per day, and longest stretch of night sleep
+- Common bedtime window (e.g. the middle 50% of "last sleep start before night")
+- Feed intervals: average and typical range, today vs. last 7 days
+- Feeds and diapers per day (7-day)
+- "Fussier parts of the day": derived from short/broken sleeps and frequent feeds by hour, *or* from an optional "fussy" quick-tag. (Needs the tag to be honest; decide in Phase 3)
+- Weekly tummy-time totals
+- Pump output per day and per side
+- All time windows respect "day starts at" and the 7/14/30-day selector
+
+## "<name>'s day" recap (later)
+An end-of-day card, animated and shareable-as-image (on device): the day's radial clock, totals (feeds, diapers, sleep hours, tummy time), longest sleep, a small highlight ("first 4h stretch!"), and the character. Optional three.js night-sky scene behind it, lazy-loaded. Export as PNG or Markdown.
+
+## The character
+A little companion that reacts as you log, like pomo's Tamagotchi / Plant / Robot faces: yawns and curls up when sleep starts, sips a tiny bottle on a feed, wiggles on tummy time, winces-then-smiles on a dirty diaper. It's decoration, never a status indicator (it doesn't look sad if you "missed" something). Faces are swappable modules like pomo's `src/faces`.
+
+## Structure
+```
+src/
+  core/    types.ts, store.ts, storage.ts (IndexedDB + settings), events.ts (log/edit/undo),
+           days.ts (day bucketing, DST), stats.ts, markdown.ts, backup.ts, format.ts, units.ts
+  ui/      cards.ts, toast.ts, eventSheet.ts, history.ts, settings.ts, ambient.ts, shortcuts.ts
+  viz/     radialClock.ts, weekRings.ts, dayStrip.ts, sparks.ts
+  faces/   companion characters (swappable)
+  fx/      anims.ts, scenes/ (three.js, lazy)
+  themes/  tokens.css, presets.ts (day / dusk / night)
+public/
+.github/workflows/ci.yml, deploy.yml
+```
+
+## Phases & status
+Keep this checklist current: tick items as they land, add new ones as scope changes.
+
+### Phase 0 — Scaffold
+- [x] Vite + TS + Vitest + Playwright, copying pomo's config patterns (TZ in tests, e2e helpers that seed state and fail on page errors)
+- [x] CI + GitHub Pages deploy workflow
+- [x] AGENTS.md, README skeleton, MIT license
+
+### Phase 1 — Day view MVP
+- [x] Event model, IndexedDB storage, store, soft delete
+- [x] Cards: feed (breast/bottle), wet, dirty, nap, night sleep, tummy time, pump, bath, doctor
+- [x] Tap to log, Undo toast with −5/−15/−30m and pick-time; long press opens the sheet first
+- [x] Timed events (nap, night, tummy, pump) with live elapsed display that survives reload
+- [x] Detail sheet: edit type-specific details, start/end time, note, delete
+- [x] Day navigation (‹ ›, keys), day log list, add/edit entries on past days
+- [x] Day note per day
+- [x] Settings: baby name, ml/oz, 12/24h, day start
+- [x] Night mode (auto by time or manual), light/dark themes
+- [x] JSON export/import that merges (last write wins), "Share with partner" via the share sheet
+- [x] `storage.persist()`, backup reminder, storage status in settings
+- [x] PWA: offline, installable, update prompt, iOS "install to keep your data" tip
+- [ ] First deploy
+
+### Phase 2 — Timeline & keyboard
+- [ ] 24h radial clock for today, with anime.js arc drawing and "now" hand
+- [ ] Day view: scroll back through days (radial + list)
+- [ ] Day strip chart (multi-day)
+- [ ] Week of rings
+- [ ] Markdown export (per-day headings, events with times, daily totals), copy + download
+- [ ] Keyboard shortcuts: letter keys and ←/→ shipped in Phase 1; still to do: `U` undo, `?` cheat sheet (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet), plus Cmd/Ctrl+K palette later
+- [ ] Ambient "last event" display with optional Wake Lock
+
+### Phase 3 — Patterns
+- [ ] Stats module with minimum-data thresholds and "based on N days"
+- [ ] Nap length, night stretch, bedtime window, feed intervals, daily counts, weekly tummy time, pump output
+- [ ] Decide how "fussy" is measured (derived vs. quick-tag)
+- [ ] Patterns page with 7/14/30-day selector
+
+### Phase 4 — Delight
+- [ ] Companion character reacting to logs (one face first)
+- [ ] "<name>'s day" recap card, PNG + Markdown export
+- [ ] Optional three.js night-sky scene (lazy, off under reduced motion)
+- [ ] Haptics (reuse pomo's approach, including the iOS switch trick)
+
+### Phase 5 — Links & shortcuts
+- [ ] Link actions: `?do=log&type=diaper&kind=wet`, `?do=start&type=sleep`, `?do=end&type=sleep`
+- [ ] PWA icon shortcuts (log feed, wet diaper, start/end nap)
+- [ ] iOS Shortcuts / Siri recipe in the README ("Hey Siri, log a wet diaper" opens the link action)
+- [ ] `window.tinylog` API + `llms.txt`, like pomo
+
+## Later / not now
+- **Cloud sync** (iCloud or similar) for the two phones, so merging isn't manual. The `updatedAt` + soft-delete model is already sync-ready.
+- Medicines, growth (weight/length/head) and milestones: out of scope for now.
+- Pump volume per side (currently one amount per session).
+
+## Decisions log
+- 2026-09-30 — Same stack and conventions as pomotimer2 (Vite + vanilla TS, anime.js, lazy three.js, vite-plugin-pwa, Vitest + Playwright, Pages).
+- 2026-09-30 — Event log is the single source of truth; every view and stat is derived from it.
+- 2026-09-30 — Phase 1 is the "When did we last…?" card screen; visualizations come after it's useful day to day.
+- 2026-09-30 — Patterns are descriptive only, with data thresholds and no medical framing.
+- 2026-09-30 — Two caregivers on two phones: each phone logs locally; sharing is a JSON export sent via the share sheet and merged on import (by id, last write wins, soft deletes). Cloud sync later.
+- 2026-09-30 — IndexedDB is primary storage, JSON export/import is the backup.
+- 2026-09-30 — Event types: feed (breast or bottle), diaper, sleep (nap or night), tummy, pump (side + volume), bath, doctor, plus a per-day note. No medicines, growth or milestones for now.
+- 2026-09-30 — The input view is per day, with navigation to past days for filling in and correcting entries.
+- 2026-09-30 — localStorage also keeps a mirror of the full log, as a fallback if IndexedDB is empty or unavailable.
+- 2026-09-30 — Phase 1 built. Past days: a card tap opens the sheet at the same clock time on that day (never logs "now"). Tapping Night sleep during a nap (or the reverse) switches the running sleep instead of starting a second one. Stopping a pump opens the sheet for side and volume.
+- 2026-09-30 — Auto theme: night 9 PM–6 AM, otherwise follows the system light/dark setting. Night also dims emoji and stops background motion.
+- 2026-09-30 — E2E tests reset storage from `favicon.svg` (same origin, not the app) so no open IndexedDB connection blocks the delete.
