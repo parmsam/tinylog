@@ -19,12 +19,17 @@ import { createAgentApi } from './ui/agentApi';
 import { copyMarkdown, openTrends } from './ui/trendsView';
 import { renderDayGrid } from './viz/dayGridView';
 import { mountCompanion, renderCompanion } from './ui/companion';
-import { setHapticTriggersEnabled } from './core/haptics';
+import { isIos, setHapticTriggersEnabled } from './core/haptics';
 import { renderRadialClock } from './viz/radialClock';
 
 const cardsEl = document.getElementById('cards')!;
 
 setupPersistence();
+
+// Zoom is page-level only (Safari's aA, browser zoom, OS text size and Zoom), not pinch or the
+// automatic zoom into focused fields. The viewport meta handles Android; iOS ignores it for pinch,
+// so Safari's gesture events are cancelled there. Double-tap zoom is off via touch-action in CSS.
+if (isIos()) document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
 applyTheme(settings.get().theme);
 applyBackground(settings.get().background);
 mountCards(cardsEl);

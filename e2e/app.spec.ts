@@ -308,3 +308,9 @@ test('a timed entry added after the fact starts with an end time, not an empty f
   await expect(sheet).toBeHidden();
   await expect(page.locator('#entries .entry')).toHaveCount(1);
 });
+
+test('zoom is page-level only: the viewport turns off pinch and focus zoom', async ({ page }) => {
+  await open(page);
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1, user-scalable=no/);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).touchAction)).toBe('manipulation');
+});

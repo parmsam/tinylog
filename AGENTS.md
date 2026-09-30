@@ -32,7 +32,7 @@ Baby tracker: one-tap logging plus beautiful visualizations. Static site on GitH
 - **Logging rules** live in `src/core/ops.ts` (log/start/stop/toggle, the nap↔night switch). Card taps, `?do=` links (`core/linkActions.ts`) and `window.tinylog` (`ui/agentApi.ts`) all go through it; keep it that way. When adding a name or option to links, add it to `llms.txt` and the API help too.
 - **Stats**: descriptive only. Show "based on N days", hide below a minimum, never phrase as advice or prediction.
 - **Privacy**: no analytics, no network calls besides fonts. Never commit real logs or the real baby's name; demo data uses a fake baby.
-- **Forms on iPhone**: check new sheet fields with `npx playwright test --project=iphone` (WebKit + iPhone viewport; `e2e/layout.spec.ts` checks for overlaps, spills and squeezed date fields). Keep inputs at 16px so iOS doesn't zoom on focus.
+- **Forms on iPhone**: check new sheet fields with `npx playwright test --project=iphone` (WebKit + iPhone viewport; `e2e/layout.spec.ts` checks for overlaps, spills and squeezed date fields). Keep inputs at 16px or more. Zoom is page-level only (no pinch or focus zoom; see `main.ts` and the viewport meta), so layouts must hold up under browser/page zoom and larger OS text.
 - New behavior needs tests; every bug fix needs a regression test.
 
 ## Deployment

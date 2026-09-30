@@ -68,3 +68,28 @@ test('settings and a past-day sheet fit on iPhone', async ({ page }) => {
   await card(page, 'night').click();
   await assertClean(sheet(page), 'night sleep on a past day');
 });
+
+test('text fields are at least 16px, so iPhone Safari does not zoom in on focus', async ({ page }) => {
+  await open(page);
+  const sizes = async () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('input:not([type=radio]):not([type=checkbox]):not([type=file]):not([hidden]), textarea, select')]
+        .filter((el) => el.offsetParent !== null)
+        .map((el) => ({ field: el.id || el.getAttribute('name') || el.tagName, px: parseFloat(getComputedStyle(el).fontSize) })),
+    );
+  const small = (list: { field: string; px: number }[]) => list.filter((f) => f.px < 16);
+  expect(small(await sizes()), 'main page').toEqual([]);
+  await page.getByRole('button', { name: '+ Add entry' }).click();
+  await page.locator('#sheet').getByText('Bottle', { exact: true }).click();
+  expect(small(await sizes()), 'entry sheet').toEqual([]);
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  expect(small(await sizes()), 'settings').toEqual([]);
+});
+
+test('iPhone: no pinch or focus zoom (page zoom only)', async ({ page }) => {
+  await open(page);
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1, user-scalable=no/);
+  await page.getByLabel('📝 Day note').focus();
+  expect(await page.evaluate(() => window.visualViewport?.scale ?? 1)).toBe(1);
+});
