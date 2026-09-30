@@ -87,9 +87,11 @@ test('text fields are at least 16px, so iPhone Safari does not zoom in on focus'
   expect(small(await sizes()), 'settings').toEqual([]);
 });
 
-test('iPhone: no pinch or focus zoom (page zoom only)', async ({ page }) => {
+test('iPhone: tapping a text field does not zoom (maximum-scale=1 on iOS only; pinch still works there)', async ({ page }, info) => {
+  test.skip(info.project.name !== 'iphone', 'iOS-only behavior');
   await open(page);
-  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1, user-scalable=no/);
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1/);
+  await expect(page.locator('meta[name="viewport"]')).not.toHaveAttribute('content', /user-scalable=no/);
   await page.getByLabel('📝 Day note').focus();
   expect(await page.evaluate(() => window.visualViewport?.scale ?? 1)).toBe(1);
 });

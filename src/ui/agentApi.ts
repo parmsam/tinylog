@@ -95,7 +95,7 @@ tinylog.start(what, opts?)             start nap / night / tummy / pump / fussy
 tinylog.stop(what, opts?)              stop it (pump: pass ml)
 tinylog.toggle(what, opts?)            start or stop
 tinylog.entries(day?)                  a day's entries ('YYYY-MM-DD', default today)
-tinylog.undo()                         undo the last change made in the app (within 2 minutes)
+tinylog.undo()                         undo the last change made in the app (within 5 minutes)
 tinylog.markdown(days = 1)             the last N days as Markdown
 tinylog.patterns(days = 7)             typical naps, bedtime, feeds… (descriptive, not advice)
 

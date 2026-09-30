@@ -26,16 +26,20 @@ const cardsEl = document.getElementById('cards')!;
 
 setupPersistence();
 
-// Zoom is page-level only (Safari's aA, browser zoom, OS text size and Zoom), not pinch or the
-// automatic zoom into focused fields. The viewport meta handles Android; iOS ignores it for pinch,
-// so Safari's gesture events are cancelled there. Double-tap zoom is off via touch-action in CSS.
-if (isIos()) document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+// Pinch-zoom stays. Two zooms go: double-tap zoom (touch-action: manipulation in CSS) and iPhone
+// Safari's automatic zoom into a focused text field. maximum-scale=1 stops the latter on iOS, which
+// still allows pinch with it; other browsers read it as "no pinch", so it's added on iOS only.
+if (isIos()) {
+  const vp = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+  if (vp && !vp.content.includes('maximum-scale')) vp.content += ', maximum-scale=1';
+}
 applyTheme(settings.get().theme);
 applyBackground(settings.get().background);
 mountCards(cardsEl);
 mountCompanion();
 setHapticTriggersEnabled(settings.get().haptics);
 mountDayView();
+document.getElementById('app-version')!.textContent = `v${__APP_VERSION__}`;
 document.getElementById('settings-open')!.addEventListener('click', openSettings);
 document.getElementById('trends-open')!.addEventListener('click', openTrends);
 document.getElementById('ambient-open')!.addEventListener('click', openAmbient);

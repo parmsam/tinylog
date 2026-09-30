@@ -28,7 +28,7 @@ When you control the page (Playwright `page.evaluate`, DevTools, a browser agent
 - `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, bath }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
 - `tinylog.log(what, opts?)`, `tinylog.start(what, opts?)`, `tinylog.stop(what, opts?)`, `tinylog.toggle(what, opts?)`: opts are `{ minutesAgo, side, ml, oz, method, milk, diaper, note }`. Returns `{ result: 'logged' | 'started' | 'stopped' | 'switched', entry }` or `{ result: 'nothing-to-do', reason }`
 - `tinylog.entries(day?)`: a day's entries (`'YYYY-MM-DD'`, default today) as `{ id, what, label, start, end, minutes, ongoing, summary, note }`
-- `tinylog.undo()`: undo the last change made in the app (within 2 minutes)
+- `tinylog.undo()`: undo the last change made in the app (within 5 minutes)
 - `tinylog.markdown(days = 1)`: the last N days as Markdown, with totals and day notes
 - `tinylog.patterns(days = 7)`: typical nap length, bedtime and wake windows, feeds, diapers, tummy time. Each value says what it's based on, or what it still needs
 

@@ -309,8 +309,16 @@ test('a timed entry added after the fact starts with an end time, not an empty f
   await expect(page.locator('#entries .entry')).toHaveCount(1);
 });
 
-test('zoom is page-level only: the viewport turns off pinch and focus zoom', async ({ page }) => {
+test('pinch-zoom stays allowed; only double-tap zoom is off', async ({ page }) => {
   await open(page);
-  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1, user-scalable=no/);
+  await expect(page.locator('meta[name="viewport"]')).not.toHaveAttribute('content', /maximum-scale|user-scalable/);
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).touchAction)).toBe('manipulation');
+});
+
+test('the footer links to GitHub and shows the version', async ({ page }) => {
+  await open(page);
+  const pkg = JSON.parse(await (await import('node:fs/promises')).readFile('package.json', 'utf8')) as { version: string };
+  const foot = page.locator('footer.foot');
+  await expect(foot.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/parmsam/tinylog');
+  await expect(foot).toContainText(`v${pkg.version}`);
 });

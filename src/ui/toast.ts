@@ -15,7 +15,7 @@ let current: { el: HTMLElement; timer: number | undefined } | null = null;
 
 /** The latest Undo on offer, so the U key can use it even after its toast has faded. */
 let lastUndo: { run: () => void; at: number } | null = null;
-const UNDO_WINDOW = 2 * 60_000;
+const UNDO_WINDOW = 5 * 60_000;
 
 export function undoLast(): boolean {
   if (!lastUndo || Date.now() - lastUndo.at > UNDO_WINDOW) return false;
@@ -39,7 +39,8 @@ export function toast(msg: string, opts: { actions?: ToastAction[]; duration?: n
   row.className = 'toast-actions';
   el.append(text, row);
 
-  const duration = opts.duration ?? (opts.actions?.length ? 8000 : 3500);
+  // Toasts with an Undo (or other actions) stay long enough to reach for, one-handed.
+  const duration = opts.duration ?? (opts.actions?.length ? 12_000 : 3500);
   const entry = { el, timer: undefined as number | undefined };
   const arm = () => {
     clearTimeout(entry.timer);

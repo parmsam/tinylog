@@ -12,7 +12,7 @@ body {
   min-height: 100%;
 }
 html {
-  /* No double-tap zoom; zooming is page-level (see main.ts). */
+  /* No double-tap zoom (pinch still works). iPhone's focus zoom is handled in main.ts. */
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -460,6 +460,35 @@ input[type='datetime-local']:disabled {
   text-align: center;
   color: var(--muted);
   font-size: 0.78rem;
+}
+.foot p {
+  margin: 0 0 6px;
+}
+.foot-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.foot-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+.foot-meta a:hover {
+  color: var(--text);
+}
+.foot-meta svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+#app-version {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Toasts ---------- */
