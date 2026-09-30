@@ -1858,3 +1858,37 @@ table.daygrid {
     transition: none !important;
   }
 }
+
+/* Settings → Shortcuts & Siri */
+.link-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.link-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.link-list code {
+  grid-column: 1;
+  font-size: 0.72rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.link-list .chip {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.settings-section code {
+  font-size: 0.8em;
+}

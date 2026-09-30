@@ -2,7 +2,7 @@ import { backupFilename, BackupError, parseBackup, toBackup } from '../core/back
 import { shortDate } from '../core/format';
 import { app, importData, settings, snapshot } from '../core/log';
 import type { Settings } from '../core/types';
-import { downloadText } from './clipboard';
+import { copyText, downloadText } from './clipboard';
 import { storageStatus } from './persist';
 import { isIos, isTouchDevice } from '../core/haptics';
 import { PREVIEWS } from './scenePreviews';
@@ -20,6 +20,16 @@ const BACKGROUNDS: [Background, string][] = [
   ['none', 'Plain'],
 ];
 import { toast } from './toast';
+
+/** Ready-made link actions for the Shortcuts & Siri section (relative to the app's own URL). */
+const LINKS = (units: Settings['units']): [string, string][] => [
+  ['💧 Wet diaper', '?do=log&what=wet'],
+  ['💩 Dirty diaper', '?do=log&what=dirty'],
+  ['🍼 Feed (the other breast)', '?do=log&what=feed'],
+  ['🍼 Bottle', units === 'oz' ? '?do=log&what=bottle&oz=3' : '?do=log&what=bottle&ml=90'],
+  ['😴 Sleep (start / stop)', '?do=toggle&what=sleep'],
+  ['🤸 Tummy time (start / stop)', '?do=toggle&what=tummy'],
+];
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -115,6 +125,15 @@ export function openSettings() {
       <p class="hint">Two phones? Share an export and import it on the other phone. Importing merges: nothing is lost, the newest edit wins, and importing the same file twice is safe.</p>
     </section>
 
+    <section class="settings-section" aria-labelledby="links-h">
+      <h3 id="links-h">Shortcuts &amp; Siri</h3>
+      <p class="hint">Each link logs something when opened. In the iPhone <b>Shortcuts</b> app: New Shortcut → <b>Open URLs</b> → paste a link → name it (say, “Wet diaper”). Then: “Hey Siri, wet diaper.” Add <code>&amp;ago=15</code> to log it 15 minutes ago.</p>
+      <ul class="link-list">${LINKS(s.units)
+        .map(([label, q]) => `<li><span>${label}</span><code>${esc(q)}</code><button type="button" class="chip" data-copy-link="${esc(q)}">Copy</button></li>`)
+        .join('')}</ul>
+      <p class="hint"><b>iPhone note:</b> links open in Safari, and iOS keeps a Home Screen app's data separate from Safari's. If you log with Siri, use tinylog in Safari for that phone (and back up), or merge the two with Share with partner.</p>
+    </section>
+
     <section class="settings-section">
       <h3>Tips</h3>
       <div class="btn-row"><button type="button" class="btn" data-tips-reset>Show tips again</button></div>
@@ -143,7 +162,10 @@ export function openSettings() {
       exportDownload();
       void refreshStatus(dialog);
     } else if (t.closest('[data-share]')) void shareWithPartner().then(() => refreshStatus(dialog));
-    else if (t.closest('[data-tips-reset]')) {
+    else if (t.closest('[data-copy-link]')) {
+      const q = t.closest<HTMLElement>('[data-copy-link]')!.dataset.copyLink!;
+      void copyText(new URL(q, location.origin + import.meta.env.BASE_URL).href).then((ok) => toast(ok ? 'Link copied' : "Couldn't copy"));
+    } else if (t.closest('[data-tips-reset]')) {
       resetTips();
       dialog.close();
       toast('Tips will show again, starting now');

@@ -193,10 +193,10 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] The recap card draws whichever companion is chosen (a snapshot of the live SVG with colors inlined)
 
 ### Phase 5 — Links & shortcuts
-- [ ] Link actions: `?do=log&type=diaper&kind=wet`, `?do=start&type=sleep`, `?do=end&type=sleep`
-- [ ] PWA icon shortcuts (log feed, wet diaper, start/end nap)
-- [ ] iOS Shortcuts / Siri recipe in the README ("Hey Siri, log a wet diaper" opens the link action)
-- [ ] `window.tinylog` API + `llms.txt`, like pomo
+- [x] Link actions: `?do=log|start|stop|toggle&what=…` with `ago`, `side`, `ml`/`oz`, `milk`, `method`, `note`; friendly names (bottle, poop, both, sleep…); params stripped after running; a repeat within 8 s is ignored; bad links explain themselves
+- [x] PWA icon shortcuts (log feed, wet diaper, dirty diaper, start/stop sleep) built on link actions
+- [x] iOS Shortcuts / Siri: Settings → Shortcuts & Siri lists ready-made links with Copy buttons and setup steps; README has the same
+- [x] `window.tinylog` API (state, log/start/stop/toggle, entries, undo, markdown, patterns) + `public/llms.txt`, with recipes an e2e test runs
 
 ## Later / not now
 - **Cloud sync** (iCloud or similar) for the two phones, so merging isn't manual. The `updatedAt` + soft-delete model is already sync-ready.
@@ -234,3 +234,4 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-09-30 — Background scenes capped at five (night sky, fireflies, bubbles, crib mobile, snow). three.js color management is off for scenes (colors stay exactly as the theme defines them) and shader materials declare premultiplied alpha; both bugs made scenes far too dark or invisible.
 - 2026-09-30 — Planned a few more companions (moon, bunny, duckling) on Puff's interface with a Settings picker. Not built yet.
 - 2026-09-30 — Companions: Puff, Sadie (a mini golden retriever), Moon, Bunny and Duckling. The `companion` setting became a character id or 'off' (the old boolean migrates). The recap snapshots the live companion SVG with computed colors inlined, so new characters show up there without extra work.
+- 2026-09-30 — Phase 5. Taps, link actions and `window.tinylog` share one set of operations (`core/ops.ts`), and the API builds a link query and runs it through the same parser, so names, aliases and validation can't drift apart. Links show the usual toast (prefixed "Via shortcut") with Undo; the API is silent and returns JSON. On iPhone, links open in Safari, whose storage iOS keeps separate from a Home Screen web app, so the app says so where the links are offered.

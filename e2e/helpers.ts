@@ -29,7 +29,7 @@ interface Seed {
  * Loads the app from a known state. Storage is reset from a same-origin page that isn't the app,
  * so no open IndexedDB connection blocks the delete.
  */
-export async function open(page: Page, seed: Seed = {}) {
+export async function open(page: Page, seed: Seed = {}, path = './') {
   await page.goto('./favicon.svg');
   await page.evaluate(async (seed) => {
     localStorage.clear();
@@ -64,7 +64,7 @@ export async function open(page: Page, seed: Seed = {}) {
       };
     });
   }, seed);
-  await page.goto('./');
+  await page.goto(path);
   await expect(page.locator('html[data-ready]')).toBeAttached();
 }
 

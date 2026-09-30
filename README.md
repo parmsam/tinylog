@@ -20,6 +20,14 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `,` settings, `?` all shortcuts.
 - **Works offline** as an installable PWA.
 
+## Siri, Shortcuts and links
+Any link like `https://parmsam.github.io/tinylog/?do=log&what=wet` logs something when opened, with the usual Undo. Settings → **Shortcuts & Siri** lists ready-made ones to copy.
+
+- **iPhone:** in the Shortcuts app, New Shortcut → *Open URLs* → paste a link → name it "Wet diaper". Then say "Hey Siri, wet diaper". Links open in Safari, and iOS keeps a Home Screen web app's data separate from Safari's, so if you log by Siri, use tinylog in Safari on that phone (and back up), or merge the two with Share with partner.
+- **Android / desktop:** long-press the installed app icon for Feed, Wet, Dirty and Sleep.
+- Handy links: `?do=log&what=dirty`, `?do=log&what=bottle&ml=90`, `?do=toggle&what=sleep` (a nap by day, night sleep in the evening), `?do=log&what=wet&ago=15` (15 minutes ago).
+- For AI agents and automation: `window.tinylog` in the page, described in [`llms.txt`](public/llms.txt).
+
 ## Privacy
 Everything stays in your browser: IndexedDB, with a second copy in localStorage. No accounts, no servers, no analytics. Export a backup now and then: the app reminds you every 50 new entries, or after a week. On iPhone, add it to your Home Screen: Safari can clear data for sites that aren't installed.
 

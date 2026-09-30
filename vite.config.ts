@@ -30,6 +30,13 @@ export default defineConfig({
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Long-press the installed app icon (Android, desktop). These use the ?do= link actions.
+        shortcuts: [
+          { name: 'Log a feed', short_name: 'Feed', url: '/tinylog/?do=log&what=feed' },
+          { name: 'Wet diaper', short_name: 'Wet', url: '/tinylog/?do=log&what=wet' },
+          { name: 'Dirty diaper', short_name: 'Dirty', url: '/tinylog/?do=log&what=dirty' },
+          { name: 'Start or stop sleep', short_name: 'Sleep', url: '/tinylog/?do=toggle&what=sleep' },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],

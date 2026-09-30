@@ -1,8 +1,8 @@
 import { cardById, feedDefaults, ongoingFor, type CardDef, type CardId } from '../core/cards';
 import { dayRange } from '../core/days';
-import { createEvent } from '../core/events';
 import { clockTime, duration } from '../core/format';
-import { addEvent, app, deleteEvent, getEvent, revertTo, settings, today, updateEvent } from '../core/log';
+import { app, deleteEvent, getEvent, revertTo, settings, today, updateEvent } from '../core/log';
+import { logCard, toggleCard, type OpResult } from '../core/ops';
 import type { LogEvent } from '../core/types';
 import { companionReact } from './companion';
 import { requestPersistence } from './persist';
@@ -32,9 +32,9 @@ function shiftChips(id: string, field: 'at', base: number, onShift: (ts: number)
   }));
 }
 
-function logged(card: CardDef, e: LogEvent, verb: string) {
+function logged(card: CardDef, e: LogEvent, verb: string, prefix = '') {
   const t = (ts: number) => clockTime(ts, settings.get().clock);
-  const label = (ts: number) => `${card.emoji} ${card.label} ${verb} · ${t(ts)}`;
+  const label = (ts: number) => `${prefix}${card.emoji} ${card.label} ${verb} · ${t(ts)}`;
   const handle = toast(label(e.at), {
     actions: [
       { label: 'Undo', primary: true, run: () => deleteEvent(e.id) },
@@ -44,55 +44,55 @@ function logged(card: CardDef, e: LogEvent, verb: string) {
   });
 }
 
+/**
+ * Shows what an operation did: toast with Undo, the companion's reaction, and for a pump that
+ * just stopped without a volume, the sheet to add one. Shared by taps and link actions.
+ */
+export function present(r: OpResult, opts: { prefix?: string } = {}) {
+  const card = cardById(r.card);
+  const prefix = opts.prefix ?? '';
+  switch (r.kind) {
+    case 'noop':
+      toast(`${prefix}${card.emoji} ${r.reason}`);
+      return;
+    case 'logged':
+      companionReact(r.card, 'log');
+      logged(card, r.event, 'logged', prefix);
+      return;
+    case 'started':
+      companionReact(r.card, 'start');
+      logged(card, r.event, 'started', prefix);
+      return;
+    case 'switched': {
+      const prev = r.prev;
+      companionReact(r.card, 'start');
+      toast(`${prefix}${card.emoji} Now counting as ${card.label.toLowerCase()}`, { actions: [{ label: 'Undo', primary: true, run: () => revertTo(prev) }] });
+      return;
+    }
+    case 'stopped': {
+      const prev = r.prev;
+      companionReact(r.card, 'stop');
+      // Ending a pump is when you know the volume: ask (skippable), unless it came with one.
+      if (r.card === 'pump' && !r.event.detail?.amount) return openSheet({ event: r.event });
+      toast(`${prefix}${card.emoji} ${card.label} · ${duration((r.event.endAt ?? r.event.at) - r.event.at)}`, {
+        actions: [
+          { label: 'Undo', primary: true, run: () => revertTo(prev) },
+          { label: 'Details', run: () => openSheet({ event: getEvent(r.event.id)! }) },
+        ],
+      });
+      return;
+    }
+  }
+}
+
 /** Tap on a card. Today: log (or start/stop) right now. Past days: open the sheet at that day. */
 export function tapCard(id: CardId, now = Date.now()) {
   const card = cardById(id);
   const s = app.get();
   if (s.day !== today(now)) return openSheet({ cardId: id, at: sameTimeOn(s.day, now) });
   if (card.sheetFirst) return openSheet({ cardId: id, at: now });
-
   requestPersistence();
-
-  if (card.timed) {
-    const on = ongoingFor(s.events, card);
-    if (on) return stop(card, on, now);
-    // Nap ran into bedtime (or the other way round): switch the running sleep instead of starting another.
-    const otherSleep = card.type === 'sleep' ? s.events.find((e) => !e.deleted && e.type === 'sleep' && e.endAt === undefined) : undefined;
-    if (otherSleep) {
-      const prev = otherSleep;
-      updateEvent(otherSleep.id, { detail: { ...otherSleep.detail, sleep: card.preset?.sleep } }, now);
-      companionReact(card.id, 'start');
-      toast(`${card.emoji} Now counting as ${card.label.toLowerCase()}`, {
-        actions: [{ label: 'Undo', primary: true, run: () => revertTo(prev) }],
-      });
-      return;
-    }
-    const e = addEvent(createEvent(card.type, now, card.preset, now));
-    companionReact(card.id, 'start');
-    return logged(card, e, 'started');
-  }
-
-  const detail = card.id === 'feed' ? feedDefaults(s.events, now) : card.preset;
-  const e = addEvent(createEvent(card.type, now, detail, now));
-  companionReact(card.id, 'log');
-  logged(card, e, 'logged');
-}
-
-function stop(card: CardDef, on: LogEvent, now: number) {
-  const prev = on;
-  const done = updateEvent(on.id, { endAt: now }, now)!;
-  companionReact(card.id, 'stop');
-  if (card.id === 'pump') {
-    // Ending a pump is when you know the volume: ask (skippable).
-    openSheet({ event: done });
-    return;
-  }
-  toast(`${card.emoji} ${card.label} · ${duration(now - on.at)}`, {
-    actions: [
-      { label: 'Undo', primary: true, run: () => revertTo(prev) },
-      { label: 'Details', run: () => openSheet({ event: getEvent(on.id)! }) },
-    ],
-  });
+  present(card.timed ? toggleCard(id, { at: now }) : logCard(id, { at: now }));
 }
 
 /** Long press: straight to the sheet, prefilled like a tap would be. */

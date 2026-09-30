@@ -1,0 +1,52 @@
+# tinylog
+
+> A local-only baby tracker that runs entirely in the browser (static site, no account, no server). The log lives in the browser's IndexedDB (with a copy in localStorage), so an agent can only read or change it by driving a browser with the app open.
+
+App: https://parmsam.github.io/tinylog/
+Source: https://github.com/parmsam/tinylog
+
+## Link actions
+
+Open the app with a `do` query parameter to log something. The parameters are removed from the URL once it has run, and the app shows what it did with an Undo button. Settings never travel in the URL.
+
+- `?do=log&what=wet`: log it now. `what` is one of feed, bottle, breast, wet, dirty, both, bath, doctor (and for timed things below, `log` toggles)
+- `?do=start&what=nap` / `?do=stop&what=nap` / `?do=toggle&what=nap`: timed things are nap, night, sleep, tummy, pump, fussy. `sleep` means night sleep from 7 PM to 6 AM and a nap otherwise
+- `&ago=15`: it happened 15 minutes ago (0–1440)
+- Feeds: `&side=L|R|both`, `&method=breast|bottle`, `&milk=breast|formula`, `&ml=90` or `&oz=3` (an amount means a bottle). A plain feed picks the other breast, or the same kind of bottle as last time
+- Pump: `?do=stop&what=pump&ml=120&side=both`
+- `&note=…` on anything (e.g. a doctor visit)
+
+Examples: `?do=log&what=bottle&ml=90&milk=formula`, `?do=toggle&what=sleep`, `?do=log&what=both&ago=10`.
+
+On iPhone, links open in Safari, and iOS keeps a Home Screen web app's data separate from Safari's. On Android, installed-app links open in the app.
+
+## Scripting API (in the page)
+
+When you control the page (Playwright `page.evaluate`, DevTools, a browser agent), use `window.tinylog`. Calls are synchronous, return plain JSON-safe data, and throw an Error with a readable message on bad input. Names and options are the same as the link actions.
+
+- `tinylog.help()`: this reference as text
+- `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, bath }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
+- `tinylog.log(what, opts?)`, `tinylog.start(what, opts?)`, `tinylog.stop(what, opts?)`, `tinylog.toggle(what, opts?)`: opts are `{ minutesAgo, side, ml, oz, method, milk, diaper, note }`. Returns `{ result: 'logged' | 'started' | 'stopped' | 'switched', entry }` or `{ result: 'nothing-to-do', reason }`
+- `tinylog.entries(day?)`: a day's entries (`'YYYY-MM-DD'`, default today) as `{ id, what, label, start, end, minutes, ongoing, summary, note }`
+- `tinylog.undo()`: undo the last change made in the app (within 2 minutes)
+- `tinylog.markdown(days = 1)`: the last N days as Markdown, with totals and day notes
+- `tinylog.patterns(days = 7)`: typical nap length, bedtime and wake windows, feeds, diapers, tummy time. Each value says what it's based on, or what it still needs
+
+## Common agent recipes
+
+- When did the baby last eat?
+  `tinylog.state().last.feed`, then report `minutesAgo` and `summary`.
+- Log a wet diaper from 10 minutes ago
+  `tinylog.log('wet', { minutesAgo: 10 })`, or open `?do=log&what=wet&ago=10`.
+- Log a 90 ml bottle of formula
+  `tinylog.log('bottle', { ml: 90, milk: 'formula' })`.
+- The baby fell asleep / woke up
+  `tinylog.toggle('sleep')`.
+- How has sleep been this week?
+  `tinylog.patterns(7)`. These describe the log; don't present them as medical advice.
+- Summarize today
+  `tinylog.markdown(1)`.
+
+## What the app will not do
+
+tinylog describes what was logged. It doesn't predict, score or give medical advice, and agents using it shouldn't either.

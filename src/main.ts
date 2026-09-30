@@ -14,6 +14,8 @@ import { toast, undoLast } from './ui/toast';
 import { openAmbient } from './ui/ambient';
 import { openShortcuts } from './ui/shortcuts';
 import { openRecap } from './ui/recapView';
+import { runLinkAction } from './ui/linkRunner';
+import { createAgentApi } from './ui/agentApi';
 import { copyMarkdown, openTrends } from './ui/trendsView';
 import { renderDayGrid } from './viz/dayGridView';
 import { mountCompanion, renderCompanion } from './ui/companion';
@@ -139,7 +141,9 @@ render();
 void init().then(({ restored }) => {
   if (restored) toast(`Recovered ${restored} entr${restored === 1 ? 'y' : 'ies'} from the on-device backup copy`);
   document.documentElement.dataset.ready = '';
+  runLinkAction();
   showBanner();
   render();
 });
 setupPwa();
+window.tinylog = createAgentApi();
