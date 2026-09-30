@@ -5,7 +5,19 @@ import type { Settings } from '../core/types';
 import { downloadText } from './clipboard';
 import { storageStatus } from './persist';
 import { isIos, isTouchDevice } from '../core/haptics';
+import { PREVIEWS } from './scenePreviews';
 import { resetTips } from './tips';
+import type { Background } from '../core/types';
+
+const BACKGROUNDS: [Background, string][] = [
+  ['glow', 'Glow'],
+  ['sky', 'Night sky'],
+  ['fireflies', 'Fireflies'],
+  ['bubbles', 'Bubbles'],
+  ['mobile', 'Crib mobile'],
+  ['snow', 'Snow'],
+  ['none', 'Plain'],
+];
 import { toast } from './toast';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -79,7 +91,10 @@ export function openSettings() {
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>
     ${seg('gridMarks', [['dots', '● Dots'], ['checks', '✓ Checks'], ['crosses', '✕ Crosses']], s.gridMarks, 'Grid marks (feeds and diapers)')}
-    ${seg('background', [['glow', 'Glow'], ['sky', 'Night sky'], ['none', 'Plain']], s.background, 'Background')}
+    <fieldset class="field"><legend>Background</legend><div class="scene-picker">${BACKGROUNDS.map(
+      ([id, label]) =>
+        `<label class="scene-tile"><input type="radio" name="background" value="${id}" ${id === s.background ? 'checked' : ''} />${PREVIEWS[id]}<span>${label}</span></label>`,
+    ).join('')}</div></fieldset>
     <label class="check"><input type="checkbox" name="companion" ${s.companion ? 'checked' : ''} /> Show Puff, the little companion</label>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="field"><span class="field-label">A day starts at</span>

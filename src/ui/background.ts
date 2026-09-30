@@ -1,48 +1,63 @@
 import type { Background } from '../core/types';
-import type { Sky } from '../fx/sky';
+import type { SceneRunner } from '../fx/scenes';
 
 /**
- * Page background: the soft glow blobs (default), a three.js night sky (lazy-loaded), or plain.
- * The sky is created on demand and torn down when you switch away, so it costs nothing otherwise.
+ * Page background: the soft glow (default), a three.js scene (lazy-loaded), or plain.
+ * A scene is created on demand and torn down when you switch away, so it costs nothing otherwise.
  */
-let sky: Sky | null = null;
-let loading: Promise<void> | null = null;
+let runner: SceneRunner | null = null;
 let current: Background | null = null;
+let token = 0;
+let calm = false;
 
-function starColor(): string {
-  const probe = document.createElement('span');
-  probe.style.color = 'var(--text)';
-  document.body.append(probe);
-  const c = getComputedStyle(probe).color;
-  probe.remove();
-  // three.js wants a plain color; rgb() from getComputedStyle is fine.
-  return c.startsWith('rgb') ? c : '#f7f0ff';
-}
+const isSceneId = (bg: Background) => bg !== 'glow' && bg !== 'none';
 
 export function applyBackground(bg: Background) {
   const host = document.querySelector<HTMLElement>('.bg')!;
   host.dataset.bg = bg;
   if (bg === current) {
-    sky?.setColor(starColor());
+    // Same scene, new theme: recolor.
+    if (runner) void import('../fx/scenes').then(({ readSceneColors }) => runner?.setColors(readSceneColors()));
     return;
   }
   current = bg;
-  if (bg !== 'sky') {
-    sky?.dispose();
-    sky = null;
-    return;
-  }
+  runner?.stop();
+  runner = null;
+  host.querySelector('canvas.scene-canvas')?.remove();
+  if (!isSceneId(bg)) return;
+
+  const mine = ++token;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'scene-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  host.append(canvas);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const dim = document.documentElement.dataset.theme === 'night';
-  loading ??= import('../fx/sky')
-    .then(({ createSky }) => {
-      if (current !== 'sky') return;
-      sky = createSky(host, { color: starColor(), still, dim });
+  void import('../fx/scenes')
+    .then(({ runScene }) => runScene(bg, canvas, { still }))
+    .then((r) => {
+      if (mine !== token) return r?.stop();
+      if (!r) {
+        canvas.remove();
+        host.dataset.bg = 'glow'; // no WebGL: fall back quietly
+        return;
+      }
+      runner = r;
+      r.setCalm(calm);
     })
     .catch(() => {
-      host.dataset.bg = 'glow'; // no WebGL: fall back quietly
-    })
-    .finally(() => {
-      loading = null;
+      canvas.remove();
+      host.dataset.bg = 'glow';
     });
+}
+
+/** A soft flash when something is logged. */
+export function backgroundPulse() {
+  runner?.pulse();
+}
+
+/** Slower while the baby sleeps. */
+export function backgroundCalm(on: boolean) {
+  if (on === calm) return;
+  calm = on;
+  runner?.setCalm(on);
 }

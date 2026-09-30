@@ -61,18 +61,25 @@ test.describe('day recap', () => {
 });
 
 test.describe('backgrounds', () => {
-  test('plain hides the glow; night sky loads lazily (or falls back without WebGL)', async ({ page }) => {
+  test('plain hides the glow; every scene loads lazily (or falls back without WebGL) and switching cleans up', async ({ page }) => {
     await open(page);
-    await expect(page.locator('.bg')).toHaveAttribute('data-bg', 'glow');
+    const bg = page.locator('.bg');
+    await expect(bg).toHaveAttribute('data-bg', 'glow');
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.locator('#settings').getByText('Plain', { exact: true }).click();
-    await expect(page.locator('.bg')).toHaveAttribute('data-bg', 'none');
+    const picker = page.locator('#settings .scene-picker');
+    await picker.getByText('Plain', { exact: true }).click();
+    await expect(bg).toHaveAttribute('data-bg', 'none');
     await expect(page.locator('.glow').first()).toBeHidden();
 
-    await page.locator('#settings').getByText('Night sky', { exact: true }).click();
-    // Either the sky canvas appears, or (no WebGL here) it falls back to the glow quietly.
-    await expect.poll(async () => (await page.locator('.sky-canvas').count()) > 0 || (await page.locator('.bg').getAttribute('data-bg')) === 'glow').toBe(true);
-    await page.locator('#settings').getByText('Glow', { exact: true }).click();
-    await expect(page.locator('.sky-canvas')).toHaveCount(0);
+    for (const name of ['Night sky', 'Fireflies', 'Bubbles', 'Crib mobile', 'Snow']) {
+      await picker.getByText(name, { exact: true }).click();
+      // Either the scene canvas is up, or (no WebGL here) it fell back to the glow quietly.
+      await expect
+        .poll(async () => (await page.locator('canvas.scene-canvas').count()) === 1 || (await bg.getAttribute('data-bg')) === 'glow')
+        .toBe(true);
+      expect(await page.locator('canvas.scene-canvas').count()).toBeLessThanOrEqual(1);
+    }
+    await picker.getByText('Glow', { exact: true }).click();
+    await expect(page.locator('canvas.scene-canvas')).toHaveCount(0);
   });
 });

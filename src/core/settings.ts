@@ -29,7 +29,7 @@ export function loadSettings(): Settings {
     delete (s as { installTipSeen?: boolean }).installTipSeen;
     if (!['dots', 'checks', 'crosses'].includes(s.gridMarks)) s.gridMarks = 'dots';
     if (!Number.isInteger(s.backupSnoozedAt) || s.backupSnoozedAt < 0) s.backupSnoozedAt = 0;
-    if (!['glow', 'sky', 'none'].includes(s.background)) s.background = 'glow';
+    if (!['glow', 'none', 'sky', 'fireflies', 'bubbles', 'mobile', 'snow'].includes(s.background)) s.background = 'glow';
     s.haptics = s.haptics !== false;
     s.companion = s.companion !== false;
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;

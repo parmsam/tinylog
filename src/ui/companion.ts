@@ -2,6 +2,7 @@ import { cardById, lastFor, lastWake, ongoingFor, type CardId } from '../core/ca
 import { ago, duration, stopwatch } from '../core/format';
 import { app, settings, today } from '../core/log';
 import { Cloud, type CompanionState, type Reaction } from '../companion/cloud';
+import { backgroundCalm, backgroundPulse } from './background';
 
 /**
  * The companion row under the date: Puff plus one line about right now
@@ -34,6 +35,8 @@ function stateAndLine(now: number): { state: CompanionState; line: string } {
 }
 
 export function renderCompanion(now = Date.now()) {
+  const { events } = app.get();
+  backgroundCalm(!!(ongoingFor(events, cardById('nap')) ?? ongoingFor(events, cardById('night'))));
   const host = document.getElementById('companion');
   if (!host || !cloud) return;
   const show = settings.get().companion && app.get().day === today(now);
@@ -60,6 +63,7 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
 
 /** Something was logged: let Puff react (only when visible). */
 export function companionReact(card: CardId, what: 'log' | 'start' | 'stop') {
+  backgroundPulse();
   if (!cloud || !settings.get().companion) return;
   const r = REACTIONS[card][what] ?? REACTIONS[card].log;
   if (r) cloud.react(r);

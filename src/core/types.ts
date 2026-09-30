@@ -44,7 +44,7 @@ export type Units = 'ml' | 'oz';
 export type ClockFormat = 'auto' | '12h' | '24h';
 export type ThemeChoice = 'auto' | 'day' | 'dusk' | 'night';
 export type GridMarks = 'dots' | 'checks' | 'crosses';
-export type Background = 'glow' | 'sky' | 'none';
+export type Background = 'glow' | 'none' | 'sky' | 'fireflies' | 'bubbles' | 'mobile' | 'snow';
 
 export interface Settings {
   babyName: string;

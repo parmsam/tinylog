@@ -13,7 +13,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
 - **Puff.** A little cloud companion that sips a bottle when you log a feed, dozes while the baby sleeps and sighs with relief when a fussy spell ends. Off in Settings if you'd rather not.
 - **Day recap.** A shareable image of any day (clock, totals, longest stretch, your note), or the day as Markdown.
-- **Night sky.** An optional three.js starfield background, loaded only if you pick it.
+- **Backgrounds.** A soft glow by default, or one of five gentle three.js scenes (night sky, fireflies, bubbles, crib mobile, snow), loaded only if you pick one and slower while the baby sleeps.
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
 - **Two phones.** Share an export from one phone (AirDrop, Messages) and import it on the other: entries merge, the newest edit wins, and importing twice is harmless.

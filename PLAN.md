@@ -173,17 +173,23 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Haptics (pomo's module as-is: `navigator.vibrate` on Android, the iOS switch trick on iPhone), Settings toggle on touch devices
 
 #### More background scenes
-Settings → Background grows from Glow / Night sky / Plain into a picker with small live previews. Each scene is a lazy module in `src/fx/scenes/` sharing one three.js chunk and the same rules as the night sky (~30 fps, paused when hidden, a still frame under reduced motion, glow fallback without WebGL, dimmer in the night theme).
-- [ ] Scene registry (`src/fx/scenes/index.ts`, like pomo's) with the night sky moved into it; picker with previews
-- [ ] **Fireflies**: warm drifting points that pulse softly (port from pomotimer2)
-- [ ] **Aurora**: slow shader ribbons of color (port from pomotimer2)
-- [ ] **Rain**: gentle streaks on glass (port from pomotimer2)
-- [ ] **Clouds**: soft clouds drifting past, Puff's relatives
-- [ ] **Bubbles**: slow rising bath bubbles that catch the light
-- [ ] **Crib mobile**: a few paper shapes (moon, stars, cloud) turning slowly at the top of the screen
-- [ ] **Snow**: light flakes for winter
-- [ ] Scenes follow the day, gently: calmer while the baby is sleeping, a soft pulse when something is logged. Never busier at night.
-- [ ] Optional per-scene intensity (density/speed) if people ask
+Settings → Background is a picker with small static previews: Glow (default), five three.js scenes, and Plain. Each scene is a lazy module in `src/fx/scenes/` (pomotimer2's `Scene` interface) sharing one three.js chunk: ~30 fps, paused when hidden, a still frame under reduced motion, glow fallback without WebGL, dimmer in the night theme.
+- [x] Scene registry (`src/fx/scenes/index.ts`, like pomo's) with the night sky moved into it; picker with previews
+- [x] **Night sky**: twinkling stars and the odd shooting star
+- [x] **Fireflies**: warm drifting points that pulse softly (ported from pomotimer2)
+- [x] **Bubbles**: slow rising bath bubbles with an iridescent rim
+- [x] **Crib mobile**: paper moon, stars, cloud and heart turning slowly at the top of the screen
+- [x] **Snow**: light flakes at different depths
+- [x] Scenes follow the day, gently: slower while the baby is sleeping, a soft pulse when something is logged
+- Tried and dropped: aurora, clouds (muddy, especially on the light theme) and rain (gloomy). Five is enough.
+
+#### More companions
+Puff's code is already a swappable module (`src/companion/`) with one interface: states (idle, sleeping, fussy, tummy, pump) and one-shot reactions to logs. More companions plug into the same interface and a picker in Settings, like the background scenes. Keep it to a few, each with the same rules: decoration only, never sad about anything missed, quiet at night, static under reduced motion.
+- [ ] Companion picker in Settings (with Puff as the default), small static previews
+- [ ] **Moon**: a sleepy crescent in a nightcap that rocks while the baby sleeps
+- [ ] **Bunny**: ears perk up for feeds, flop down for naps, nose twitches
+- [ ] **Duckling**: splashes for baths, waddles for tummy time
+- [ ] Recap card draws the chosen companion
 
 ### Phase 5 — Links & shortcuts
 - [ ] Link actions: `?do=log&type=diaper&kind=wet`, `?do=start&type=sleep`, `?do=end&type=sleep`
@@ -224,3 +230,5 @@ Settings → Background grows from Glow / Night sky / Plain into a picker with s
 - 2026-09-30 — Phase 4. Puff the cloud lives in a row under the date (today only, can be turned off) with one line about right now ("Pip is sleeping · 42m", "Awake 1h 10m · fed 38m ago"). States mirror ongoing events (sleeping, fussy, tummy, pump); reactions are one-shot anime.js on groups that pivot with `transform-box: fill-box`. It never looks sad about anything missed. Quieter in the night theme, static under reduced motion.
 - 2026-09-30 — The recap is drawn with Canvas 2D rather than an HTML/SVG screenshot: no dependency, and iOS Safari refuses to export SVG `<foreignObject>` to an image. Theme colors (including color-mix and oklab) are resolved to rgba through a 1×1 canvas. Highlights stay descriptive: the longest stretch, and "longest this week" only with at least 2 other days to compare.
 - 2026-09-30 — Planned more background scenes (fireflies, aurora, rain from pomotimer2, plus clouds, bubbles, crib mobile, snow) as a lazy scene registry with a preview picker. Not built yet.
+- 2026-09-30 — Background scenes capped at five (night sky, fireflies, bubbles, crib mobile, snow). three.js color management is off for scenes (colors stay exactly as the theme defines them) and shader materials declare premultiplied alpha; both bugs made scenes far too dark or invisible.
+- 2026-09-30 — Planned a few more companions (moon, bunny, duckling) on Puff's interface with a Settings picker. Not built yet.
