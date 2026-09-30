@@ -1112,3 +1112,98 @@ kbd {
     animation: none;
   }
 }
+
+/* Heatmap (time of day × category). One hue per column, five steps from faint to full. */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.seg.small span {
+  min-height: 32px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+.hm-box {
+  overflow-x: auto;
+}
+table.heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px 2px;
+  table-layout: fixed;
+}
+table.heatmap thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding-bottom: 4px;
+  text-align: center;
+}
+table.heatmap thead th:first-child {
+  width: 2.6rem;
+}
+.hm-col {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.68rem;
+}
+table.heatmap tbody th {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--muted) 60%, transparent);
+  text-align: right;
+  padding-right: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+table.heatmap tbody th.major {
+  color: var(--muted);
+}
+.hm-cell {
+  height: 15px;
+  border-radius: 4px;
+  background: var(--v-track);
+  cursor: pointer;
+}
+.hm-cell.l1 {
+  background: color-mix(in oklab, var(--c) 22%, var(--v-track));
+}
+.hm-cell.l2 {
+  background: color-mix(in oklab, var(--c) 40%, var(--v-track));
+}
+.hm-cell.l3 {
+  background: color-mix(in oklab, var(--c) 60%, var(--v-track));
+}
+.hm-cell.l4 {
+  background: color-mix(in oklab, var(--c) 80%, var(--v-track));
+}
+.hm-cell.l5 {
+  background: var(--c);
+}
+.hm-legend {
+  --c: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.hm-legend i {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+}
+.hm-legend span {
+  margin: 0 4px;
+}
+:root[data-theme='night'] .hm-box {
+  filter: sepia(0.45) saturate(0.7) brightness(0.8);
+}

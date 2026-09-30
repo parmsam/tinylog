@@ -153,6 +153,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Day view: scroll back through days (radial + list)
 - [x] Day strip chart (multi-day)
 - [x] Week of rings
+- [x] Heatmap view (Trends → Timeline | Heatmap): rows are hours of the day, columns are feeds, wet, dirty, sleep, tummy, pump; darker = more often at that hour over the range
 - [x] Markdown export (per-day headings, events with times, daily totals), copy + download
 - [x] Keyboard shortcuts (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet, `.` today, `G` trends, `A` bedside, `M` copy today as Markdown, `?` cheat sheet). Cmd/Ctrl+K palette: backburner
 - [x] Ambient "last event" display with optional Wake Lock
@@ -197,3 +198,4 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - 2026-09-30 — Chart palette: the card colors failed the validator as a 9-color categorical set, so charts use 5 re-stepped series colors (`--v-*` tokens) in a validated order; the cards keep their pastel identity colors.
 - 2026-09-30 — Arcs draw in with anime.js `createDrawable` when a day opens; afterwards only new entries animate. Dots only fade (no SVG scale transforms, per the Safari pivot rule). No animation in the night theme.
 - 2026-09-30 — Fixed before shipping: a full-day arc collapsed to nothing (start = end), and hour marks skipped the repeated hour when clocks fall back.
+- 2026-09-30 — Heatmap added as a view option next to the day-by-day timeline. Rows start at the day-start hour (12 AM by default) and cover all 24 hours. Counts are per day; sleep/tummy/pump are minutes of the hour. Each column is scaled on its own (sleep against the full 60 minutes) and quantized into 5 steps of its series hue. Days before the first entry, and today's hours that haven't happened yet, don't dilute the averages. It's a real <table>, so it's its own text equivalent.

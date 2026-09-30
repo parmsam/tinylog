@@ -3,7 +3,9 @@ import { dayTotals } from '../core/daily';
 import { amount, dayTitle, duration } from '../core/format';
 import { app, settings, today } from '../core/log';
 import { toMarkdown } from '../core/markdown';
+import { hourHeatmap } from '../core/heatmap';
 import { dayStripSvg } from '../viz/dayStrip';
+import { heatmapTableHtml } from '../viz/heatmapTable';
 import { attachTips, hideTip } from '../viz/tooltip';
 import { weekRingsSvg } from '../viz/weekRings';
 import { copyText, downloadText } from './clipboard';
@@ -11,12 +13,40 @@ import { toast } from './toast';
 
 const RANGES = [7, 14, 28] as const;
 let range: (typeof RANGES)[number] = 7;
+type View = 'timeline' | 'heatmap';
+let view: View = 'timeline';
 
 try {
   const saved = Number(localStorage.getItem('tinylog:trends-range'));
   if ((RANGES as readonly number[]).includes(saved)) range = saved as typeof range;
+  if (localStorage.getItem('tinylog:trends-view') === 'heatmap') view = 'heatmap';
 } catch {
   /* per-viewer convenience only */
+}
+
+function remember(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
+
+function timelineCard(last: string, now: number): string {
+  const s = app.get();
+  const prefs = settings.get();
+  return `<p class="hint">Each row is a day, ${prefs.dayStartHour ? `from ${prefs.dayStartHour}:00` : 'midnight to midnight'}. Tap a mark for details.</p>
+      <div class="viz-box">${dayStripSvg(s.events, last, range, now, prefs)}</div>
+      <ul class="viz-legend" aria-hidden="true">
+        <li><span class="sw sleep"></span>Sleep</li><li><span class="sw feed tick"></span>Feed</li><li><span class="sw diaper"></span>Diaper <small>○ wet ● dirty</small></li>
+      </ul>`;
+}
+
+function heatmapCard(last: string, now: number): string {
+  const prefs = settings.get();
+  const hm = hourHeatmap(app.get().events, last, range, prefs.dayStartHour, now);
+  return `<p class="hint">Each row is an hour of the day; darker means it happens more at that hour, averaged over ${hm.days} day${hm.days === 1 ? '' : 's'}. Each column is scaled on its own; sleep shows how much of the hour was spent asleep.</p>
+      <div class="viz-box hm-box">${heatmapTableHtml(hm, prefs.clock)}</div>`;
 }
 
 function table(lastDay: string, days: number, now: number): string {
@@ -72,12 +102,14 @@ function render(dialog: HTMLDialogElement) {
     ).join('')}</div>
 
     <section class="viz-card">
-      <h3>Day by day</h3>
-      <p class="hint">Each row is a day, midnight to midnight${prefs.dayStartHour ? ` (from ${prefs.dayStartHour}:00)` : ''}. Tap a mark for details.</p>
-      <div class="viz-box">${dayStripSvg(s.events, last, range, now, prefs)}</div>
-      <ul class="viz-legend" aria-hidden="true">
-        <li><span class="sw sleep"></span>Sleep</li><li><span class="sw feed tick"></span>Feed</li><li><span class="sw diaper"></span>Diaper <small>○ wet ● dirty</small></li>
-      </ul>
+      <div class="card-head">
+        <h3>${view === 'heatmap' ? 'By time of day' : 'Day by day'}</h3>
+        <div class="seg small" role="radiogroup" aria-label="View">
+          <label><input type="radio" name="view" value="timeline" ${view === 'timeline' ? 'checked' : ''} /><span>Timeline</span></label>
+          <label><input type="radio" name="view" value="heatmap" ${view === 'heatmap' ? 'checked' : ''} /><span>Heatmap</span></label>
+        </div>
+      </div>
+      ${view === 'heatmap' ? heatmapCard(last, now) : timelineCard(last, now)}
     </section>
 
     <section class="viz-card">
@@ -106,17 +138,17 @@ export function openTrends() {
   render(dialog);
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
-    if (t.name !== 'range') return;
-    range = Number(t.value) as typeof range;
-    try {
-      localStorage.setItem('tinylog:trends-range', String(range));
-    } catch {
-      /* ignore */
-    }
+    if (t.name === 'range') {
+      range = Number(t.value) as typeof range;
+      remember('tinylog:trends-range', String(range));
+    } else if (t.name === 'view') {
+      view = t.value as View;
+      remember('tinylog:trends-view', view);
+    } else return;
     const scroll = dialog.scrollTop;
     render(dialog);
     dialog.scrollTop = scroll;
-    dialog.querySelector<HTMLInputElement>(`input[name="range"][value="${range}"]`)?.focus();
+    dialog.querySelector<HTMLInputElement>(`input[name="${t.name}"][value="${t.value}"]`)?.focus();
   };
   dialog.onclick = (e) => {
     const t = e.target as HTMLElement;

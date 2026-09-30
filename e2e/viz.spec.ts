@@ -48,6 +48,26 @@ test.describe('trends', () => {
     await expect(trends.locator('table.totals tbody tr')).toHaveCount(14);
   });
 
+  test('heatmap view: a row per hour, a column per category, remembered', async ({ page }) => {
+    await open(page, { events: demoDays(7) });
+    await page.keyboard.press('g');
+    const trends = page.locator('#trends');
+    await trends.getByText('Heatmap').click();
+    await expect(trends.getByRole('heading', { name: 'By time of day' })).toBeVisible();
+    const table = trends.locator('table.heatmap');
+    await expect(table.locator('tbody tr')).toHaveCount(24);
+    await expect(table.locator('thead th')).toHaveCount(7);
+    await expect(table.locator('tbody th').first()).toHaveText(/12a|00/);
+    // Night sleep in the demo data fills the small hours.
+    await expect(table.locator('tbody tr').nth(3).locator('td').nth(3)).toHaveClass(/l[45]/);
+    await table.locator('tbody tr').nth(3).locator('td').nth(3).click();
+    await expect(page.locator('.viz-tip')).toContainText('Sleep');
+
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('g');
+    await expect(trends.locator('table.heatmap')).toBeVisible();
+  });
+
   test('downloads the range as Markdown', async ({ page }) => {
     await open(page, { events: [ev('feed', Date.now() - 30 * MIN, { detail: { method: 'breast', side: 'L' } })], settings: { babyName: 'Pip' } });
     await page.keyboard.press('g');
