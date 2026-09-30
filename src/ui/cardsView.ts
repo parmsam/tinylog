@@ -3,6 +3,7 @@ import { dayKey } from '../core/days';
 import { app, settings } from '../core/log';
 import { cardStatus } from '../core/status';
 import { cardPop } from '../fx/anims';
+import { buzz, hapticTrigger } from '../core/haptics';
 import { holdCard, tapCard } from './actions';
 
 const HOLD_MS = 450;
@@ -20,6 +21,7 @@ export function mountCards(host: HTMLElement) {
 
   for (const btn of host.querySelectorAll<HTMLButtonElement>('.card')) {
     const id = btn.dataset.card as CardId;
+    hapticTrigger(btn);
     let timer: number | undefined;
     let held = false;
     let startX = 0;
@@ -33,7 +35,7 @@ export function mountCards(host: HTMLElement) {
       startY = e.clientY;
       timer = window.setTimeout(() => {
         held = true;
-        navigator.vibrate?.(12);
+        if (settings.get().haptics) buzz('tap');
         holdCard(id);
       }, HOLD_MS);
     });
@@ -58,6 +60,7 @@ export function mountCards(host: HTMLElement) {
         return;
       }
       cancel();
+      if (settings.get().haptics) buzz('tap');
       cardPop(btn);
       tapCard(id);
     });

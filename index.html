@@ -53,6 +53,11 @@
         </button>
       </nav>
 
+      <div id="companion" class="companion" hidden>
+        <div class="puff-host"></div>
+        <p class="companion-line"></p>
+      </div>
+
       <div id="banner" class="banner" hidden></div>
 
       <main>
@@ -72,7 +77,10 @@
         <section class="daylog" aria-labelledby="log-title">
           <div class="section-head">
             <h2 id="log-title">Today's log</h2>
-            <button id="add-entry" class="chip" type="button">+ Add entry</button>
+            <div class="head-actions">
+              <button id="recap-open" class="chip" type="button" title="Day recap (R)">✨ Recap</button>
+              <button id="add-entry" class="chip" type="button">+ Add entry</button>
+            </div>
           </div>
           <ol id="entries" class="entries"></ol>
           <p id="entries-empty" class="empty">Nothing logged yet.</p>
@@ -93,6 +101,7 @@
     <dialog id="trends" class="sheet tall" aria-labelledby="trends-title"></dialog>
     <dialog id="shortcuts" class="sheet" aria-labelledby="shortcuts-title"></dialog>
     <dialog id="ambient" class="ambient" aria-label="Bedside display"></dialog>
+    <dialog id="recap" class="sheet tall" aria-labelledby="recap-title"></dialog>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

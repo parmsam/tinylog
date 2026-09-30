@@ -4,6 +4,7 @@ import { createEvent } from '../core/events';
 import { clockTime, duration } from '../core/format';
 import { addEvent, app, deleteEvent, getEvent, revertTo, settings, today, updateEvent } from '../core/log';
 import type { LogEvent } from '../core/types';
+import { companionReact } from './companion';
 import { requestPersistence } from './persist';
 import { openSheet } from './sheet';
 import { toast, type ToastAction } from './toast';
@@ -60,23 +61,27 @@ export function tapCard(id: CardId, now = Date.now()) {
     if (otherSleep) {
       const prev = otherSleep;
       updateEvent(otherSleep.id, { detail: { ...otherSleep.detail, sleep: card.preset?.sleep } }, now);
+      companionReact(card.id, 'start');
       toast(`${card.emoji} Now counting as ${card.label.toLowerCase()}`, {
         actions: [{ label: 'Undo', primary: true, run: () => revertTo(prev) }],
       });
       return;
     }
     const e = addEvent(createEvent(card.type, now, card.preset, now));
+    companionReact(card.id, 'start');
     return logged(card, e, 'started');
   }
 
   const detail = card.id === 'feed' ? feedDefaults(s.events, now) : card.preset;
   const e = addEvent(createEvent(card.type, now, detail, now));
+  companionReact(card.id, 'log');
   logged(card, e, 'logged');
 }
 
 function stop(card: CardDef, on: LogEvent, now: number) {
   const prev = on;
   const done = updateEvent(on.id, { endAt: now }, now)!;
+  companionReact(card.id, 'stop');
   if (card.id === 'pump') {
     // Ending a pump is when you know the volume: ask (skippable).
     openSheet({ event: done });

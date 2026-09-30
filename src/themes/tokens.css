@@ -45,6 +45,10 @@
   --v-diaper: #3b93e0;
   --v-pump: #d55181;
   --v-fussy: #c98500;
+  --puff: #efe8ff;
+  --puff-ink: #2b2340;
+  --puff-cheek: #ff9fb3;
+  --puff-prop: #f5cd6a;
   --v-track: color-mix(in oklab, var(--text) 7%, transparent);
   --v-grid: color-mix(in oklab, var(--text) 16%, transparent);
   --v-ink: var(--text);
@@ -88,6 +92,10 @@
   --c-doctor: #c9971a;
 
   /* Chart series, light surface #fffaf5 (validated). */
+  --puff: #ffffff;
+  --puff-ink: #2b2340;
+  --puff-cheek: #ff9fb3;
+  --puff-prop: #e0a92a;
   --v-feed: #e2622f;
   --v-sleep: #6a55d8;
   --v-tummy: #1f8f4e;
@@ -112,6 +120,10 @@
   --glow3: #4a2a12;
   --glow-opacity: 0.25;
 
+  --puff: #5a3e30;
+  --puff-ink: #140d09;
+  --puff-cheek: #7a4535;
+  --puff-prop: #a07850;
   --c-feed: #d99070;
   --c-wet: #b99a78;
   --c-dirty: #b08058;

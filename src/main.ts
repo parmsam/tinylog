@@ -9,23 +9,31 @@ import { setupPwa } from './ui/pwa';
 import { openSettings } from './ui/settingsView';
 import { showBanner } from './ui/tips';
 import { applyTheme } from './ui/theme';
+import { applyBackground } from './ui/background';
 import { toast, undoLast } from './ui/toast';
 import { openAmbient } from './ui/ambient';
 import { openShortcuts } from './ui/shortcuts';
+import { openRecap } from './ui/recapView';
 import { copyMarkdown, openTrends } from './ui/trendsView';
 import { renderDayGrid } from './viz/dayGridView';
+import { mountCompanion, renderCompanion } from './ui/companion';
+import { setHapticTriggersEnabled } from './core/haptics';
 import { renderRadialClock } from './viz/radialClock';
 
 const cardsEl = document.getElementById('cards')!;
 
 setupPersistence();
 applyTheme(settings.get().theme);
+applyBackground(settings.get().background);
 mountCards(cardsEl);
+mountCompanion();
+setHapticTriggersEnabled(settings.get().haptics);
 mountDayView();
 document.getElementById('settings-open')!.addEventListener('click', openSettings);
 document.getElementById('trends-open')!.addEventListener('click', openTrends);
 document.getElementById('ambient-open')!.addEventListener('click', openAmbient);
 document.getElementById('shortcuts-open')!.addEventListener('click', openShortcuts);
+document.getElementById('recap-open')!.addEventListener('click', () => void openRecap());
 const clockEl = document.getElementById('day-clock')!;
 
 // Clock or grid for the selected day; remembered per device.
@@ -57,6 +65,7 @@ function render() {
     const now = Date.now();
     renderCards(cardsEl, now);
     renderDayView(now);
+    renderCompanion(now);
     const s = app.get();
     if (s.loaded) {
       clockEl.classList.toggle('grid-box', dayView === 'grid');
@@ -75,7 +84,12 @@ app.subscribe((s, prev) => {
   if (s.loaded && s.events.length !== prev.events.length) showBanner();
 });
 settings.subscribe((s, prev) => {
-  if (s.theme !== prev.theme) applyTheme(s.theme);
+  if (s.theme !== prev.theme) {
+    applyTheme(s.theme);
+    applyBackground(s.background);
+  }
+  if (s.background !== prev.background) applyBackground(s.background);
+  if (s.haptics !== prev.haptics) setHapticTriggersEnabled(s.haptics);
   if (s.dayStartHour !== prev.dayStartHour) app.set({ day: dayKey(Date.now(), s.dayStartHour) });
   render();
 });
@@ -109,6 +123,7 @@ document.addEventListener('keydown', (e) => {
   else if (key === 'g') openTrends();
   else if (key === 'a') openAmbient();
   else if (key === 'm') void copyMarkdown(1);
+  else if (key === 'r') void openRecap();
   else if (key === 'u') {
     if (!undoLast()) toast('Nothing to undo');
   } else {

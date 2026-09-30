@@ -21,11 +21,13 @@
   "homepage": "https://parmsam.github.io/tinylog/",
   "license": "MIT",
   "dependencies": {
-    "animejs": "^4.5.0"
+    "animejs": "^4.5.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.3",
+    "@types/three": "^0.186.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
     "typescript": "^7.0.2",

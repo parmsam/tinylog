@@ -4,6 +4,7 @@ import { app, importData, settings, snapshot } from '../core/log';
 import type { Settings } from '../core/types';
 import { downloadText } from './clipboard';
 import { storageStatus } from './persist';
+import { isIos, isTouchDevice } from '../core/haptics';
 import { resetTips } from './tips';
 import { toast } from './toast';
 
@@ -78,6 +79,9 @@ export function openSettings() {
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>
     ${seg('gridMarks', [['dots', '● Dots'], ['checks', '✓ Checks'], ['crosses', '✕ Crosses']], s.gridMarks, 'Grid marks (feeds and diapers)')}
+    ${seg('background', [['glow', 'Glow'], ['sky', 'Night sky'], ['none', 'Plain']], s.background, 'Background')}
+    <label class="check"><input type="checkbox" name="companion" ${s.companion ? 'checked' : ''} /> Show Puff, the little companion</label>
+    ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
 
@@ -111,7 +115,7 @@ export function openSettings() {
     const name = t.name as keyof Settings;
     if (!name || t.type === 'file') return;
     if (t.type === 'radio' && !t.checked) return;
-    const value = name === 'dayStartHour' ? Number(t.value) : t.value;
+    const value = name === 'dayStartHour' ? Number(t.value) : t.type === 'checkbox' ? t.checked : t.value;
     settings.set({ [name]: value } as Partial<Settings>);
   };
   dialog.onclick = (e) => {

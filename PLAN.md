@@ -167,10 +167,23 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Patterns section at the top of Trends, sharing its 7/14/28-day selector
 
 ### Phase 4 — Delight
-- [ ] Companion character reacting to logs (one face first)
-- [ ] "<name>'s day" recap card, PNG + Markdown export
-- [ ] Optional three.js night-sky scene (lazy, off under reduced motion)
-- [ ] Haptics (reuse pomo's approach, including the iOS switch trick)
+- [x] Companion character reacting to logs (one face first): Puff, a little cloud (`src/companion/cloud.ts`)
+- [x] "<name>'s day" recap card (✨ Recap / `R`), PNG via Canvas 2D + Markdown copy, share sheet where supported
+- [x] Optional three.js night sky (Settings → Background): lazy chunk, ~30 fps, paused when hidden, a still frame under reduced motion, falls back to the glow without WebGL
+- [x] Haptics (pomo's module as-is: `navigator.vibrate` on Android, the iOS switch trick on iPhone), Settings toggle on touch devices
+
+#### More background scenes
+Settings → Background grows from Glow / Night sky / Plain into a picker with small live previews. Each scene is a lazy module in `src/fx/scenes/` sharing one three.js chunk and the same rules as the night sky (~30 fps, paused when hidden, a still frame under reduced motion, glow fallback without WebGL, dimmer in the night theme).
+- [ ] Scene registry (`src/fx/scenes/index.ts`, like pomo's) with the night sky moved into it; picker with previews
+- [ ] **Fireflies**: warm drifting points that pulse softly (port from pomotimer2)
+- [ ] **Aurora**: slow shader ribbons of color (port from pomotimer2)
+- [ ] **Rain**: gentle streaks on glass (port from pomotimer2)
+- [ ] **Clouds**: soft clouds drifting past, Puff's relatives
+- [ ] **Bubbles**: slow rising bath bubbles that catch the light
+- [ ] **Crib mobile**: a few paper shapes (moon, stars, cloud) turning slowly at the top of the screen
+- [ ] **Snow**: light flakes for winter
+- [ ] Scenes follow the day, gently: calmer while the baby is sleeping, a soft pulse when something is logged. Never busier at night.
+- [ ] Optional per-scene intensity (density/speed) if people ask
 
 ### Phase 5 — Links & shortcuts
 - [ ] Link actions: `?do=log&type=diaper&kind=wet`, `?do=start&type=sleep`, `?do=end&type=sleep`
@@ -208,3 +221,6 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - 2026-09-30 — Phase 3 Patterns: per-day averages use completed days only (today is left out until it's over) and skip days before logging began; "usually" ranges are the median and middle half; minimums are 3 full days, 3 nights, 5 naps/feed gaps, and tiles below them say what they still need. Bedtime/wake are grouped by night (a 12:30 AM bedtime belongs to the evening before). Feed gaps over 8h are treated as missed logs. No up/down deltas: they read as judgments. Sparklines are anchored at zero.
 - 2026-09-30 — Fussy is logged, not derived: guessing it from short naps or frequent feeds would be a guess dressed up as data. Timed like tummy time. Sixth chart color is amber (`--v-fussy`), validated at the end of the order so the other five stay put. The pattern tile shows the busiest 3-hour window once there are 3+ spells.
 - 2026-09-30 — iPhone form layout: two-column rows collapse to one column under 520px (iOS date-time fields need the full width), and date/number inputs get consistent Safari styling. An `iphone` Playwright project (WebKit + iPhone 14) runs `layout.spec.ts`, which fails if any form control overlaps another, spills out of the sheet, or a date field is squeezed. Timed entries added after the fact now start with an end time (start + 30 min, never past now) instead of an empty field, which iOS renders as a real-looking placeholder date.
+- 2026-09-30 — Phase 4. Puff the cloud lives in a row under the date (today only, can be turned off) with one line about right now ("Pip is sleeping · 42m", "Awake 1h 10m · fed 38m ago"). States mirror ongoing events (sleeping, fussy, tummy, pump); reactions are one-shot anime.js on groups that pivot with `transform-box: fill-box`. It never looks sad about anything missed. Quieter in the night theme, static under reduced motion.
+- 2026-09-30 — The recap is drawn with Canvas 2D rather than an HTML/SVG screenshot: no dependency, and iOS Safari refuses to export SVG `<foreignObject>` to an image. Theme colors (including color-mix and oklab) are resolved to rgba through a 1×1 canvas. Highlights stay descriptive: the longest stretch, and "longest this week" only with at least 2 other days to compare.
+- 2026-09-30 — Planned more background scenes (fireflies, aurora, rain from pomotimer2, plus clouds, bubbles, crib mobile, snow) as a lazy scene registry with a preview picker. Not built yet.

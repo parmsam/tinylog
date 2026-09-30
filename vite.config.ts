@@ -9,6 +9,8 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  // three.js (~530 kB raw, ~130 kB gz) is its own lazy chunk, loaded only for the night-sky background.
+  build: { chunkSizeWarningLimit: 600 },
   plugins: [
     VitePWA({
       // Ask before updating: silently reloading could interrupt someone mid-entry.

@@ -11,10 +11,13 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Patterns, not predictions.** Typical nap length, bedtime and wake-up windows, longest stretch, feeds and diapers per day, time between feeds, weekly tummy time and pump output. Each says what it's based on, and waits until there's enough data.
 - **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
+- **Puff.** A little cloud companion that sips a bottle when you log a feed, dozes while the baby sleeps and sighs with relief when a fussy spell ends. Off in Settings if you'd rather not.
+- **Day recap.** A shareable image of any day (clock, totals, longest stretch, your note), or the day as Markdown.
+- **Night sky.** An optional three.js starfield background, loaded only if you pick it.
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
 - **Two phones.** Share an export from one phone (AirDrop, Messages) and import it on the other: entries merge, the newest edit wins, and importing twice is harmless.
-- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `,` settings, `?` all shortcuts.
+- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `,` settings, `?` all shortcuts.
 - **Works offline** as an installable PWA.
 
 ## Privacy

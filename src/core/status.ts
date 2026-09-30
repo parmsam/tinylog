@@ -85,7 +85,7 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
     case 'nap': {
       const wake = lastWake(events, now);
       const napTotal = totalIn(events, card, start, end, now);
-      const secondary = inDay.length ? `${plural(inDay.length, 'nap')} · ${duration(napTotal)} today` : 'tap to start';
+      const secondary = inDay.length ? `${plural(inDay.length, 'nap')} · ${duration(napTotal)} today` : wake !== undefined ? 'tap to start' : '';
       return { primary: wake !== undefined ? `awake ${duration(now - wake)}` : 'Tap to start', secondary, ongoing: false };
     }
     case 'night':

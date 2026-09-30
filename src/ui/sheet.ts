@@ -4,6 +4,7 @@ import { fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
 import { addEvent, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
 import type { Detail, LogEvent } from '../core/types';
 import { toast } from './toast';
+import { companionReact } from './companion';
 import { requestPersistence } from './persist';
 
 export interface SheetOpts {
@@ -236,6 +237,7 @@ export function openSheet(opts: SheetOpts) {
       if (endAt !== undefined) ev.endAt = endAt;
       addEvent(ev);
       requestPersistence();
+      companionReact(chosen.id, ev.endAt === undefined && chosen.timed ? 'start' : 'log');
       toast(`${chosen.emoji} ${chosen.label} added`, {
         actions: [{ label: 'Undo', run: () => deleteEvent(ev.id), primary: true }],
       });

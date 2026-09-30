@@ -8,6 +8,7 @@ export const SHORTCUTS: [keys: string, what: string][] = [
   ['.', 'Back to today'],
   ['G', 'Trends'],
   ['A', 'Bedside display'],
+  ['R', 'Day recap (shareable image)'],
   ['M', 'Copy today as Markdown'],
   [',', 'Settings'],
   ['?', 'This list'],
