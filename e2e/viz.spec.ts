@@ -56,7 +56,7 @@ test.describe('trends', () => {
     await expect(trends.getByRole('heading', { name: 'By time of day' })).toBeVisible();
     const table = trends.locator('table.heatmap');
     await expect(table.locator('tbody tr')).toHaveCount(24);
-    await expect(table.locator('thead th')).toHaveCount(7);
+    await expect(table.locator('thead th')).toHaveCount(8); // hour + 7 categories
     await expect(table.locator('tbody th').first()).toHaveText(/12a|00/);
     // Night sleep in the demo data fills the small hours.
     await expect(table.locator('tbody tr').nth(3).locator('td').nth(3)).toHaveClass(/l[45]/);
@@ -172,5 +172,29 @@ test.describe('tips', () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('button', { name: 'Show tips again' }).click();
     await expect(banner).toContainText('Tap a card');
+  });
+});
+
+test.describe('patterns', () => {
+  test('shows typical values once there are enough full days', async ({ page }) => {
+    await open(page, { events: demoDays(10) });
+    await page.keyboard.press('g');
+    const card = page.locator('#trends').locator('section', { has: page.getByRole('heading', { name: 'Patterns' }) });
+    // A 7-day range has 6 full days: today is left out until it's over.
+    await expect(card).toContainText('6 full days');
+    await expect(card.locator('.stat:not(.pending)')).toHaveCount(10); // incl. Fussy and Pumping (both in the demo data)
+    const tile = (label: string) => card.locator('.stat', { has: page.getByRole('heading', { name: label, exact: true }) });
+    await expect(tile('Bedtime')).toContainText(/usually .*[0-9]/);
+    await expect(tile('Naps')).toContainText(/a day/);
+    await expect(card).toContainText('not advice');
+  });
+
+  test('says what it still needs on a new log', async ({ page }) => {
+    await open(page, { events: [ev('feed', Date.now() - 30 * MIN)] });
+    await page.keyboard.press('g');
+    const card = page.locator('#trends').locator('section', { has: page.getByRole('heading', { name: 'Patterns' }) });
+    await expect(card).toContainText('no full days yet');
+    await expect(card.locator('.stat.pending').first()).toContainText('Needs 3 full days of logs (0 so far)');
+    await expect(card.locator('.stat', { hasText: 'Pumping' })).toHaveCount(0);
   });
 });

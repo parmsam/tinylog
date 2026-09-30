@@ -13,7 +13,7 @@ type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'>;
 
 const C = 160;
 /** One lane per series, outside in. Sleep and diaper (and tummy and pump) never share a lane: too close in color. */
-const LANE = { sleep: 140, feed: 117, diaper: 99, tummy: 83, pump: 70, other: 56 } as const;
+const LANE = { sleep: 142, feed: 121, diaper: 104, tummy: 90, pump: 79, fussy: 68, other: 164 } as const;
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const f1 = (v: number) => Math.round(v * 10) / 10;
@@ -45,7 +45,7 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
   parts.push(
     `<g class="rc-tracks" fill="none">${Object.entries(LANE)
       .filter(([k]) => k !== 'other')
-      .map(([k, r]) => `<circle cx="${C}" cy="${C}" r="${r}" stroke-width="${k === 'sleep' ? 18 : k === 'tummy' || k === 'pump' ? 8 : 12}" />`)
+      .map(([k, r]) => `<circle cx="${C}" cy="${C}" r="${r}" stroke-width="${k === 'sleep' ? 18 : k === 'tummy' || k === 'pump' || k === 'fussy' ? 8 : 12}" />`)
       .join('')}</g>`,
   );
 
@@ -79,7 +79,8 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
         break;
       }
       case 'tummy':
-      case 'pump': {
+      case 'pump':
+      case 'fussy': {
         const d = arcPath(C, C, LANE[e.type], a0, Math.max(a1, a0 + 0.006));
         arcs.push(`<g ${tipAttr(e)} class="rc-mark"><path d="${d}" class="rc-hit" /><path d="${d}" class="rc-${e.type}" /></g>`);
         break;
@@ -115,7 +116,7 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
 
   if (isToday) {
     const [hx, hy] = polar(C, C, 150, f(now));
-    const [bx, by] = polar(C, C, 48, f(now));
+    const [bx, by] = polar(C, C, 62, f(now));
     parts.push(
       `<g class="rc-now"><line x1="${f1(bx)}" y1="${f1(by)}" x2="${f1(hx)}" y2="${f1(hy)}" /><circle cx="${f1(hx)}" cy="${f1(hy)}" r="3.5" /></g>`,
     );
@@ -125,9 +126,9 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
   const t = dayTotals(events, day, prefs.dayStartHour, now);
   const diapers = list.filter((e) => e.type === 'diaper').length;
   parts.push(`<g class="rc-center" text-anchor="middle">
-    <text x="${C}" y="${C - 8}" class="rc-hero">${t.sleepMs ? duration(t.sleepMs) : '—'}</text>
+    <text x="${C}" y="${C - 6}" class="rc-hero">${t.sleepMs ? duration(t.sleepMs) : '—'}</text>
     <text x="${C}" y="${C + 12}" class="rc-sub">asleep</text>
-    <text x="${C}" y="${C + 30}" class="rc-sub">${t.feeds} feed${t.feeds === 1 ? '' : 's'} · ${diapers} diaper${diapers === 1 ? '' : 's'}</text>
+    <text x="${C}" y="${C + 27}" class="rc-sub">${t.feeds} feed${t.feeds === 1 ? '' : 's'} · ${diapers} diaper${diapers === 1 ? '' : 's'}</text>
   </g>`);
 
   const label = `Day clock. ${t.sleepMs ? `Asleep ${duration(t.sleepMs)}` : 'No sleep logged'}, ${t.feeds} feeds${t.bottleMl ? ` (${amount(t.bottleMl, prefs.units)} by bottle)` : ''}, ${t.wet} wet and ${t.dirty} dirty diapers. Every entry is also in the log below.`;
@@ -140,6 +141,7 @@ const LEGEND = `<ul class="viz-legend" aria-hidden="true">
   <li><span class="sw diaper"></span>Diaper <small>○ wet ● dirty</small></li>
   <li><span class="sw tummy"></span>Tummy</li>
   <li><span class="sw pump"></span>Pump</li>
+  <li><span class="sw fussy"></span>Fussy</li>
 </ul>`;
 
 let lastKey = '';

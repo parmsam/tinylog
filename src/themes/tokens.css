@@ -33,16 +33,18 @@
   --c-night: #7d8cf0;
   --c-tummy: #8fdb9f;
   --c-pump: #f6a8cf;
+  --c-fussy: #f0a35e;
   --c-bath: #69d7d0;
   --c-doctor: #f5cd6a;
 
-  /* Chart series: fewer, validated colors (dataviz validator, dark surface #221c30, adjacent order feed → sleep → tummy → diaper → pump).
+  /* Chart series: fewer, validated colors (dataviz validator, dark surface #221c30, adjacent order feed → sleep → tummy → diaper → pump → fussy).
      Charts give every series its own lane and a distinct mark shape, since sleep/diaper and tummy/pump are too close all-pairs. */
   --v-feed: #d96a40;
   --v-sleep: #9085e9;
   --v-tummy: #2fa36b;
   --v-diaper: #3b93e0;
   --v-pump: #d55181;
+  --v-fussy: #c98500;
   --v-track: color-mix(in oklab, var(--text) 7%, transparent);
   --v-grid: color-mix(in oklab, var(--text) 16%, transparent);
   --v-ink: var(--text);
@@ -81,6 +83,7 @@
   --c-night: #4f5fcf;
   --c-tummy: #3fae5a;
   --c-pump: #d8649f;
+  --c-fussy: #c07318;
   --c-bath: #22a79f;
   --c-doctor: #c9971a;
 
@@ -90,6 +93,7 @@
   --v-tummy: #1f8f4e;
   --v-diaper: #2a78d6;
   --v-pump: #d0457c;
+  --v-fussy: #b07a00;
 
   --surface: color-mix(in oklab, #ffffff 72%, transparent);
   --surface-strong: #ffffff;
@@ -115,6 +119,7 @@
   --c-night: #a88070;
   --c-tummy: #b8a070;
   --c-pump: #c98a80;
+  --c-fussy: #c08a5a;
   --c-bath: #b0a080;
   --c-doctor: #c9a060;
   --muted: color-mix(in oklab, var(--text) 58%, transparent);

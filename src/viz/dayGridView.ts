@@ -16,6 +16,7 @@ const COLOR: Record<HeatColumn, string> = {
   sleep: '--v-sleep',
   tummy: '--v-tummy',
   pump: '--v-pump',
+  fussy: '--v-fussy',
 };
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);

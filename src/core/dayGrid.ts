@@ -27,7 +27,7 @@ export interface GridRow {
   future: boolean;
 }
 
-const COLS: HeatColumn[] = ['feed', 'wet', 'dirty', 'sleep', 'tummy', 'pump'];
+const COLS: HeatColumn[] = ['feed', 'wet', 'dirty', 'sleep', 'tummy', 'pump', 'fussy'];
 
 function empty(): Record<HeatColumn, GridCell> {
   return Object.fromEntries(COLS.map((c) => [c, { segments: [], marks: [] }])) as unknown as Record<HeatColumn, GridCell>;
@@ -64,7 +64,7 @@ export function dayGrid(events: LogEvent[], day: string, dayStartHour: number, n
         if (d !== 'dirty') row.cells.wet.marks.push(mark);
         if (d === 'dirty' || d === 'both') row.cells.dirty.marks.push(mark);
       }
-    } else if (e.type === 'sleep' || e.type === 'tummy' || e.type === 'pump') {
+    } else if (e.type === 'sleep' || e.type === 'tummy' || e.type === 'pump' || e.type === 'fussy') {
       const a = Math.max(e.at, start);
       const b = Math.min(spanEnd(e, now), end);
       for (const row of rows) {

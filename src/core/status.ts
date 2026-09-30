@@ -113,6 +113,15 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
         ongoing: false,
       };
     }
+    case 'fussy': {
+      const total = totalIn(events, card, start, end, now);
+      if (!last) return { primary: 'Tap when fussy', secondary: 'tap again when settled', ongoing: false };
+      return {
+        primary: ago(last.endAt ?? last.at, now),
+        secondary: total ? `${duration(total)} today` : `last ${duration((last.endAt ?? last.at) - last.at)}`,
+        ongoing: false,
+      };
+    }
     case 'bath':
       return last ? { primary: ago(last.at, now), secondary: t(last.at), ongoing: false } : { primary: 'Tap to log', secondary: '', ongoing: false };
     case 'doctor': {
@@ -146,10 +155,12 @@ function pastStatus(
       return n ? { primary: plural(n, 'diaper'), secondary: '', ongoing: false } : none;
     case 'nap':
     case 'night':
-    case 'tummy': {
+    case 'tummy':
+    case 'fussy': {
       const total = totalIn(events, card, start, end, now);
       if (!total && !n) return none;
-      return { primary: duration(total), secondary: card.id === 'nap' ? plural(n, 'nap') : '', ongoing: false };
+      const secondary = card.id === 'nap' ? plural(n, 'nap') : card.id === 'fussy' ? plural(n, 'spell') : '';
+      return { primary: duration(total), secondary, ongoing: false };
     }
     case 'pump': {
       if (!n) return none;

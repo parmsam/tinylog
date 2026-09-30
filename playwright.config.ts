@@ -15,10 +15,12 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /pwa\.spec/ },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /pwa\.spec|layout\.spec/ },
     // WebKit catches Safari-only rendering issues (e.g. SVG transform quirks).
-    { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: /pwa\.spec/ },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, testIgnore: /pwa\.spec|layout\.spec/ },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testIgnore: /pwa\.spec/ },
+    // iPhone Safari layout (WebKit + iPhone viewport): form fields must not overlap or clip.
+    { name: 'iphone', use: { ...devices['iPhone 14'] }, testMatch: /layout\.spec/ },
     {
       name: 'pwa',
       testMatch: /pwa\.spec/,

@@ -164,6 +164,17 @@ function detailFor(card: CardDef, d: Detail): Detail {
   return out;
 }
 
+/**
+ * A timed entry that isn't still going always shows an end time: an empty date field on iPhone
+ * displays a placeholder date that looks like a real (and wrong) value.
+ */
+function withEnd(d: Draft): Draft {
+  if (!cardById(d.cardId).timed || d.ongoing || d.endAt) return d;
+  const at = fromLocalInput(d.at) ?? Date.now();
+  const end = Math.max(at, Math.min(at + 30 * 60_000, Math.max(Date.now(), at)));
+  return { ...d, endAt: toLocalInput(end) };
+}
+
 export function openSheet(opts: SheetOpts) {
   const dialog = document.getElementById('sheet') as HTMLDialogElement;
   const existing = opts.event;
@@ -176,6 +187,7 @@ export function openSheet(opts: SheetOpts) {
     ongoing: existing ? existing.endAt === undefined : !!opts.ongoing,
     detail: { ...card.preset, ...(existing?.detail ?? opts.detail) },
   };
+  draft = withEnd(draft);
   render(dialog, draft, existing);
 
   const form = () => dialog.querySelector('form')!;
@@ -183,8 +195,7 @@ export function openSheet(opts: SheetOpts) {
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
     if (['card', 'method', 'ongoing'].includes(t.name)) {
-      draft = read(form(), draft);
-      if (t.name === 'ongoing' && !draft.ongoing && !draft.endAt) draft.endAt = toLocalInput(Math.max(Date.now(), fromLocalInput(draft.at) ?? 0));
+      draft = withEnd(read(form(), draft));
       render(dialog, draft, existing);
       form().querySelector<HTMLElement>(`[name="${t.name}"]:checked, [name="${t.name}"]`)?.focus();
     }

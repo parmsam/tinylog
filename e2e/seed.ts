@@ -70,6 +70,7 @@ export function demoDays(days: number, now = Date.now()): LogEvent[] {
     mk('tummy', h(10.2), h(10.2 + 0.1 + r() * 0.15));
     mk('tummy', h(16.4), h(16.4 + 0.08 + r() * 0.15));
     if (r() > 0.4) mk('pump', h(13), h(13.3), { side: 'both', amount: 80 + Math.round(r() * 8) * 10 });
+    if (r() > 0.35) mk('fussy', h(17 + r() * 1.5), h(17.6 + r() * 1.5));
     if (d % 3 === 0) mk('bath', h(19.2));
   }
   return out;

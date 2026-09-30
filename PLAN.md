@@ -100,7 +100,7 @@ Descriptive only, computed from the log, each with "based on N days" shown. Hidd
 - Common bedtime window (e.g. the middle 50% of "last sleep start before night")
 - Feed intervals: average and typical range, today vs. last 7 days
 - Feeds and diapers per day (7-day)
-- "Fussier parts of the day": derived from short/broken sleeps and frequent feeds by hour, *or* from an optional "fussy" quick-tag. (Needs the tag to be honest; decide in Phase 3)
+- "Fussier parts of the day": from the 😣 Fussy card (logged, not derived), shown as the busiest 3-hour window
 - Weekly tummy-time totals
 - Pump output per day and per side
 - All time windows respect "day starts at" and the 7/14/30-day selector
@@ -161,10 +161,10 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Ambient "last event" display with optional Wake Lock
 
 ### Phase 3 — Patterns
-- [ ] Stats module with minimum-data thresholds and "based on N days"
-- [ ] Nap length, night stretch, bedtime window, feed intervals, daily counts, weekly tummy time, pump output
-- [ ] Decide how "fussy" is measured (derived vs. quick-tag)
-- [ ] Patterns page with 7/14/30-day selector
+- [x] Stats module with minimum-data thresholds and "based on N days"
+- [x] Nap length, night stretch, bedtime window, feed intervals, daily counts, weekly tummy time, pump output
+- [x] Fussy is a quick-tag: a 😣 Fussy card (tap to start, tap to stop, key `C`), with its own heatmap/grid column, clock lane, totals column and a "most often 4–7 PM" pattern tile
+- [x] Patterns section at the top of Trends, sharing its 7/14/28-day selector
 
 ### Phase 4 — Delight
 - [ ] Companion character reacting to logs (one face first)
@@ -205,3 +205,6 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - 2026-09-30 — Grid marks are a setting: dots (wet hollow, dirty filled), ✓ or ✕. Wet and dirty have their own columns, so glyphs lose nothing.
 - 2026-09-30 — Tips: `tipsSeen: string[]` replaces `installTipSeen` (migrated on load). One tip at a time in the banner; the backup reminder is a reminder, not a tip, so it isn't reset by "Show tips again".
 - 2026-09-30 — Backup reminder also counts: every 50 entries created since the last backup (50, 100, 150…), checked as you log, not just at launch. "Not now" snoozes to the next 50 (and the weekly reminder to the next session); Export or Share resets both. The weekly rule now only fires if something new was logged since the last backup. Logic is pure in `core/backupReminder.ts`.
+- 2026-09-30 — Phase 3 Patterns: per-day averages use completed days only (today is left out until it's over) and skip days before logging began; "usually" ranges are the median and middle half; minimums are 3 full days, 3 nights, 5 naps/feed gaps, and tiles below them say what they still need. Bedtime/wake are grouped by night (a 12:30 AM bedtime belongs to the evening before). Feed gaps over 8h are treated as missed logs. No up/down deltas: they read as judgments. Sparklines are anchored at zero.
+- 2026-09-30 — Fussy is logged, not derived: guessing it from short naps or frequent feeds would be a guess dressed up as data. Timed like tummy time. Sixth chart color is amber (`--v-fussy`), validated at the end of the order so the other five stay put. The pattern tile shows the busiest 3-hour window once there are 3+ spells.
+- 2026-09-30 — iPhone form layout: two-column rows collapse to one column under 520px (iOS date-time fields need the full width), and date/number inputs get consistent Safari styling. An `iphone` Playwright project (WebKit + iPhone 14) runs `layout.spec.ts`, which fails if any form control overlaps another, spills out of the sheet, or a date field is squeezed. Timed entries added after the fact now start with an end time (start + 30 min, never past now) instead of an empty field, which iOS renders as a real-looking placeholder date.

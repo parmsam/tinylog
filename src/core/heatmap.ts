@@ -3,7 +3,7 @@ import type { LogEvent } from './types';
 
 const HOUR = 3_600_000;
 
-export type HeatColumn = 'feed' | 'wet' | 'dirty' | 'sleep' | 'tummy' | 'pump';
+export type HeatColumn = 'feed' | 'wet' | 'dirty' | 'sleep' | 'tummy' | 'pump' | 'fussy';
 
 export const HEAT_COLUMNS: { id: HeatColumn; label: string; emoji: string; kind: 'count' | 'minutes' }[] = [
   { id: 'feed', label: 'Feeds', emoji: '🍼', kind: 'count' },
@@ -12,6 +12,7 @@ export const HEAT_COLUMNS: { id: HeatColumn; label: string; emoji: string; kind:
   { id: 'sleep', label: 'Sleep', emoji: '😴', kind: 'minutes' },
   { id: 'tummy', label: 'Tummy', emoji: '🤸', kind: 'minutes' },
   { id: 'pump', label: 'Pump', emoji: '🫗', kind: 'minutes' },
+  { id: 'fussy', label: 'Fussy', emoji: '😣', kind: 'minutes' },
 ];
 
 export interface HeatCell {
@@ -43,6 +44,7 @@ function columnsFor(e: LogEvent): HeatColumn[] {
     case 'sleep':
     case 'tummy':
     case 'pump':
+    case 'fussy':
       return [e.type];
     default:
       return [];

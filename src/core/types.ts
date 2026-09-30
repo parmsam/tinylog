@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'bath' | 'doctor' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'bath' | 'doctor' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 

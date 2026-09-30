@@ -4,6 +4,8 @@ import { amount, dayTitle, duration } from '../core/format';
 import { app, settings, today } from '../core/log';
 import { toMarkdown } from '../core/markdown';
 import { hourHeatmap } from '../core/heatmap';
+import { patterns } from '../core/stats';
+import { patternsHtml } from '../viz/patternsView';
 import { dayStripSvg } from '../viz/dayStrip';
 import { heatmapTableHtml } from '../viz/heatmapTable';
 import { attachTips, hideTip } from '../viz/tooltip';
@@ -65,12 +67,13 @@ function table(lastDay: string, days: number, now: number): string {
       <td>${dash(t.wet)}</td>
       <td>${dash(t.dirty)}</td>
       <td>${t.tummyMs ? duration(t.tummyMs) : '—'}</td>
+      <td>${t.fussyMs ? duration(t.fussyMs) : '—'}</td>
       <td>${t.pumpMl ? amount(t.pumpMl, prefs.units) : t.pumps ? `${t.pumps}×` : '—'}</td>
     </tr>`;
   }).join('');
   return `<div class="table-wrap"><table class="totals">
     <caption>Daily totals</caption>
-    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Pump</th></tr></thead>
+    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Fussy</th><th scope="col">Pump</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
 
@@ -100,6 +103,11 @@ function render(dialog: HTMLDialogElement) {
     <div class="seg" role="radiogroup" aria-label="Range">${RANGES.map(
       (r) => `<label><input type="radio" name="range" value="${r}" ${r === range ? 'checked' : ''} /><span>${r} days</span></label>`,
     ).join('')}</div>
+
+    <section class="viz-card" aria-labelledby="patterns-title">
+      <h3 id="patterns-title">Patterns</h3>
+      ${patternsHtml(patterns(s.events, last, range, prefs.dayStartHour, now), prefs)}
+    </section>
 
     <section class="viz-card">
       <div class="card-head">

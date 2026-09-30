@@ -15,6 +15,9 @@ export interface DayTotals {
   naps: number;
   nightMs: number;
   tummyMs: number;
+  /** Time logged as fussy, and how many spells started in the day. */
+  fussyMs: number;
+  fussies: number;
   pumps: number;
   pumpMl: number;
   baths: number;
@@ -35,6 +38,8 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
     naps: 0,
     nightMs: 0,
     tummyMs: 0,
+    fussyMs: 0,
+    fussies: 0,
     pumps: 0,
     pumpMl: 0,
     baths: 0,
@@ -68,6 +73,10 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
       }
       case 'tummy':
         t.tummyMs += overlap(e, start, end, now);
+        break;
+      case 'fussy':
+        t.fussyMs += overlap(e, start, end, now);
+        if (starts) t.fussies++;
         break;
       case 'pump':
         if (!starts) break;

@@ -71,6 +71,16 @@ test.describe('timed things', () => {
     await expect(entries(page)).toHaveCount(1);
   });
 
+  test('fussy is tap to start, tap to stop, and shows today’s total', async ({ page }) => {
+    await open(page, { events: [ev('fussy', Date.now() - 50 * MIN, { endAt: Date.now() - 30 * MIN })] });
+    await expect(card(page, 'fussy')).toContainText('20m today');
+    await page.keyboard.press('c');
+    await expect(card(page, 'fussy')).toHaveClass(/is-ongoing/);
+    await card(page, 'fussy').click();
+    await expect(card(page, 'fussy')).not.toHaveClass(/is-ongoing/);
+    await expect(entries(page)).toHaveCount(2);
+  });
+
   test('stopping a pump asks for side and volume', async ({ page }) => {
     const now = Date.now();
     await open(page, { events: [ev('pump', now - 18 * MIN)] });
@@ -282,4 +292,19 @@ test.describe('backup reminders', () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await expect(page.locator('#data-status')).not.toContainText('never');
   });
+});
+
+test('a timed entry added after the fact starts with an end time, not an empty field', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: '+ Add entry' }).click();
+  const sheet = page.locator('#sheet');
+  await sheet.getByText('😴 Nap', { exact: true }).click();
+  await expect(sheet.getByLabel('Still going')).not.toBeChecked();
+  const start = await sheet.getByLabel('Started').inputValue();
+  const end = await sheet.getByLabel('Ended').inputValue();
+  expect(end).not.toBe('');
+  expect(end >= start).toBe(true);
+  await sheet.getByRole('button', { name: 'Save' }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.locator('#entries .entry')).toHaveCount(1);
 });

@@ -9,6 +9,7 @@ const COLOR: Record<HeatColumn, string> = {
   sleep: '--v-sleep',
   tummy: '--v-tummy',
   pump: '--v-pump',
+  fussy: '--v-fussy',
 };
 
 function hourRange(h: number): string {

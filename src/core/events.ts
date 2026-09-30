@@ -1,7 +1,7 @@
 import type { Detail, EventType, LogData, LogEvent } from './types';
 
 /** Types that run from a start to an end (tap to start, tap to stop). */
-export const TIMED: ReadonlySet<EventType> = new Set(['sleep', 'tummy', 'pump']);
+export const TIMED: ReadonlySet<EventType> = new Set(['sleep', 'tummy', 'pump', 'fussy']);
 
 export const isOngoing = (e: LogEvent) => !e.deleted && TIMED.has(e.type) && e.endAt === undefined;
 

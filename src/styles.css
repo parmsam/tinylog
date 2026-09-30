@@ -426,6 +426,28 @@ textarea {
   resize: vertical;
   min-height: 3.2em;
 }
+/* Safari (iOS and macOS) gives date/time and number inputs their own intrinsic sizes and centred text;
+   make them behave like the other fields. Font stays 16px so iOS doesn't zoom in on focus. */
+input[type='datetime-local'],
+input[type='number'] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 46px;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+}
+input[type='datetime-local']::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+input[type='datetime-local']:disabled {
+  opacity: 0.45;
+}
+.check {
+  min-height: 32px;
+}
 
 .foot {
   margin-top: 28px;
@@ -554,7 +576,19 @@ fieldset.field {
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 10px;
+}
+/* Phones: one field per row. iOS date-time fields need the full width to show "09/30/2026, 3:06 PM". */
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+.row > *,
+.field {
+  min-width: 0;
 }
 .hint {
   font-size: 0.8rem;
@@ -766,6 +800,11 @@ fieldset.field {
   stroke-width: 8;
   stroke-linecap: round;
 }
+.rc-fussy {
+  stroke: var(--v-fussy);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
 /* Wider invisible strokes make thin marks easy to hit. */
 .rc-hit,
 .ds-hit {
@@ -818,13 +857,13 @@ fieldset.field {
 }
 .rc-hero {
   fill: var(--text);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 .rc-sub {
   fill: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 @keyframes pulse-op {
@@ -882,6 +921,9 @@ fieldset.field {
 }
 .sw.pump {
   background: var(--v-pump);
+}
+.sw.fussy {
+  background: var(--v-fussy);
 }
 
 .viz-tip {
@@ -1285,4 +1327,94 @@ table.daygrid {
   line-height: 1;
   cursor: pointer;
   text-shadow: 0 0 3px var(--surface-strong);
+}
+
+/* Patterns: stat tiles (label · value · sub · small visual · basis). */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 620px) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.stat {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.stat-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.stat-value {
+  margin: 2px 0 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+.stat-sub {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.stat-basis {
+  margin: 4px 0 0;
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--muted) 75%, transparent);
+}
+.stat.pending .stat-value {
+  color: var(--muted);
+}
+.stat svg {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+  margin-top: 6px;
+  overflow: visible;
+}
+.spark polyline {
+  fill: none;
+  stroke: color-mix(in oklab, var(--c) 55%, var(--muted));
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.spark circle {
+  fill: var(--c);
+}
+.window .w-track {
+  fill: var(--v-track);
+}
+.window .w-band {
+  fill: color-mix(in oklab, var(--v-sleep) 55%, transparent);
+}
+.window .w-tick {
+  fill: var(--v-sleep);
+}
+.window text {
+  fill: var(--muted);
+  font: 700 7px var(--font);
+}
+.weekbars rect {
+  fill: color-mix(in oklab, var(--v-tummy) 45%, var(--v-track));
+}
+.weekbars rect.now {
+  fill: var(--v-tummy);
+}
+.weekbars line {
+  stroke: var(--v-grid);
+  stroke-width: 0.6;
 }

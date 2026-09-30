@@ -16,7 +16,7 @@ export interface CardDef {
   key: string;
 }
 
-export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'bath' | 'doctor';
+export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'bath' | 'doctor';
 
 const of = (type: EventType) => (e: LogEvent) => e.type === type;
 
@@ -64,6 +64,7 @@ export const CARDS: readonly CardDef[] = [
   },
   { id: 'tummy', label: 'Tummy time', emoji: '🤸', type: 'tummy', timed: true, matches: of('tummy'), key: 't' },
   { id: 'pump', label: 'Pump', emoji: '🫗', type: 'pump', timed: true, matches: of('pump'), key: 'p' },
+  { id: 'fussy', label: 'Fussy', emoji: '😣', type: 'fussy', timed: true, matches: of('fussy'), key: 'c' },
   { id: 'bath', label: 'Bath', emoji: '🛁', type: 'bath', timed: false, matches: of('bath'), key: 'b' },
   { id: 'doctor', label: 'Doctor', emoji: '🩺', type: 'doctor', timed: false, sheetFirst: true, matches: of('doctor'), key: 'o' },
 ];
