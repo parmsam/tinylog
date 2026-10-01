@@ -43,10 +43,11 @@ function hourLabel(h: number) {
   return new Date(2026, 0, 1, h).toLocaleTimeString(undefined, { hour: 'numeric' });
 }
 
-export function exportFile(): File {
+export function exportFile(type = 'application/json'): File {
   const now = Date.now();
   const text = JSON.stringify(toBackup(snapshot(), now), null, 1);
-  return new File([text], backupFilename(now), { type: 'application/json' });
+  const name = backupFilename(now);
+  return new File([text], type === 'text/plain' ? name.replace(/\.json$/, '.txt') : name, { type });
 }
 
 function markBackedUp() {
@@ -60,10 +61,22 @@ export function exportDownload() {
   toast('Exported. Keep the file somewhere safe (Files, iCloud Drive…)');
 }
 
+/**
+ * The export as a file the share sheet will take. iPhone shares the .json as is; Android Chrome
+ * only shares allowlisted types (no JSON), so there it goes as plain text with a .txt name.
+ */
+function shareableExport(): File | null {
+  for (const type of ['application/json', 'text/plain']) {
+    const file = exportFile(type);
+    if (navigator.canShare?.({ files: [file] })) return file;
+  }
+  return null;
+}
+
 /** Sends the export through the share sheet (AirDrop, Messages…) so the other phone can import it. */
 async function shareWithPartner() {
-  const file = exportFile();
-  if (navigator.canShare?.({ files: [file] })) {
+  const file = shareableExport();
+  if (file) {
     try {
       await navigator.share({ files: [file], title: 'tinylog export', text: 'Open in tinylog → Settings → Import to merge.' });
       markBackedUp();
@@ -120,7 +133,7 @@ export function openSettings() {
       <div class="btn-row">
         ${canShare ? '<button type="button" class="btn primary" data-share>Share with partner</button>' : ''}
         <button type="button" class="btn" data-export>Export backup</button>
-        <label class="btn" role="button" tabindex="0">Import…<input type="file" accept="application/json,.json" data-import hidden /></label>
+        <label class="btn" role="button" tabindex="0">Import…<input type="file" accept="application/json,.json,text/plain,.txt" data-import hidden /></label>
       </div>
       <p class="hint">Two phones? Share an export and import it on the other phone. Importing merges: nothing is lost, the newest edit wins, and importing the same file twice is safe.</p>
     </section>

@@ -228,6 +228,39 @@ test.describe('data', () => {
     await expect(toastEl(page)).toContainText('Already up to date');
   });
 
+  test('share with partner opens the share sheet where JSON files can’t be shared (Android)', async ({ page }) => {
+    // Android Chrome's share allowlist has text/plain but not application/json.
+    await page.addInitScript(() => {
+      const shared: { name: string; type: string; text: string }[] = [];
+      (window as unknown as { shared: typeof shared }).shared = shared;
+      navigator.canShare = (data?: ShareData) => !!data?.files?.every((f) => f.type === 'text/plain' && f.name.endsWith('.txt'));
+      navigator.share = async (data?: ShareData) => {
+        for (const f of data?.files ?? []) shared.push({ name: f.name, type: f.type, text: await f.text() });
+      };
+    });
+    await open(page, { events: [ev('bath', Date.now() - 60 * MIN)] });
+    await page.getByRole('button', { name: 'Settings' }).click();
+    let downloaded = false;
+    page.on('download', () => (downloaded = true));
+    await page.getByRole('button', { name: 'Share with partner' }).click();
+    await expect(page.locator('#data-status')).not.toContainText('never');
+    const shared = await page.evaluate(() => (window as unknown as { shared: { name: string; type: string; text: string }[] }).shared);
+    expect(shared).toHaveLength(1);
+    expect(shared[0].name).toMatch(/^tinylog-.*\.txt$/);
+    expect(shared[0].type).toBe('text/plain');
+    expect(JSON.parse(shared[0].text).app).toBe('tinylog');
+    expect(downloaded).toBe(false);
+  });
+
+  test('an export shared as .txt imports like the .json', async ({ page }) => {
+    const now = Date.now();
+    await open(page);
+    const file = { app: 'tinylog', version: 1, exportedAt: now, events: [ev('bath', now - 20 * MIN)], notes: [] };
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('[data-import]').setInputFiles({ name: 'tinylog.txt', mimeType: 'text/plain', buffer: Buffer.from(JSON.stringify(file)) });
+    await expect(toastEl(page)).toContainText('Merged: 1 new');
+  });
+
   test('a file that is not an export is rejected politely', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
