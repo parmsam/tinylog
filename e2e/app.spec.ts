@@ -208,6 +208,12 @@ test.describe('data', () => {
       buffer: Buffer.from(JSON.stringify(file)),
     });
     await expect(toastEl(page)).toContainText('Merged: 1 new, 1 updated');
+    // The confirmation must sit above the open Settings sheet, not behind it.
+    const onTop = await toastEl(page).evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+    });
+    expect(onTop).toBe(true);
     await page.keyboard.press('Escape');
     await expect(entries(page)).toHaveCount(2);
     await expect(entries(page).last()).toContainText('Breast · R');

@@ -12,6 +12,29 @@ export interface ToastHandle {
 }
 
 let current: { el: HTMLElement; timer: number | undefined } | null = null;
+let host: HTMLElement | null = null;
+
+/**
+ * Where toasts go. An open sheet is a modal dialog: it covers the page and makes the rest inert,
+ * so a toast outside it (like an import's "Merged: …") would land hidden behind it. While a sheet
+ * is open the host lives inside it; otherwise on the page. Kept by reference, since sheets rebuild
+ * their contents with innerHTML.
+ */
+const isModal = (d: HTMLDialogElement) => {
+  try {
+    return d.matches(':modal');
+  } catch {
+    return false; // No :modal support (old Safari, jsdom): leave toasts where they are.
+  }
+};
+
+function toastHost(): HTMLElement {
+  host ??= document.getElementById('toasts')!;
+  const sheets = [...document.querySelectorAll<HTMLDialogElement>('dialog[open]')].filter(isModal);
+  const parent = sheets.at(-1) ?? document.body;
+  if (host.parentElement !== parent) parent.append(host);
+  return host;
+}
 
 /** The latest Undo on offer, so the U key can use it even after its toast has faded. */
 let lastUndo: { run: () => void; at: number } | null = null;
@@ -28,7 +51,7 @@ export function undoLast(): boolean {
 
 /** Shows one toast at a time; a new one replaces the last, so Undo always refers to the latest action. */
 export function toast(msg: string, opts: { actions?: ToastAction[]; duration?: number } = {}): ToastHandle {
-  const host = document.getElementById('toasts')!;
+  const host = toastHost();
   dismiss();
   const el = document.createElement('div');
   el.className = 'toast';
