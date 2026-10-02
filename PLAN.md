@@ -191,7 +191,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] **Bunny**: ears perk up when excited and flop down for naps; the nose twitches
 - [x] **Duckling**: flaps for baths, feeds and tummy time
 - [x] The recap card draws whichever companion is chosen (a snapshot of the live SVG with colors inlined)
-- [x] Coins: one for every entry, today's in a chip by the companion (a "+1" pops on each log), all time in Settings → Companion. Derived from the log, so undo takes the coin back; no streaks, nothing lost on a quiet day
+- [x] Coins: one for every entry, today's (with the all-time total under it) in a chip by the companion (a "+1" pops on each log), all time in Settings → Companion. Derived from the log, so undo takes the coin back; no streaks, nothing lost on a quiet day
 - [x] Tap the companion: a line in its own voice (each character has `tapLines`) mixed with shared ones, taking turns; five quick taps tickle it
 - [x] Coin milestones (all time: 1, 50, 100, 250, 500, 1,000, 2,500, 5,000, 10,000) get a celebration; Settings shows the next one
 - [x] Moods by time of day and moments of the day (`src/companion/mood.ts`): greetings and drowsier eyes in the evening and at night, small idle bits (morning stretch, afternoon look-around, evening yawn), and bigger reactions with a cute line for a few seconds: first entry of each part of the day, waking up for the morning, goodnight, longest sleep today, round numbers of feeds and diapers, first poop, baths, tummy time, a calm-again fussy spell and a busy hour

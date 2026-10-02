@@ -19,7 +19,7 @@ let note: { text: string; until: number } | undefined;
 /** Last time the companion did anything, so idle bits only come after a quiet spell. */
 let lastLively = Date.now();
 /** Today's coins as last shown, so a new entry pops a "+1" (undefined until the first render, and after a day change). */
-let shownCoins: { day: string; today: number } | undefined;
+let shownCoins: { day: string; today: number; total: number } | undefined;
 /** All-time coins as last shown, to notice a milestone being passed. */
 let shownTotal: number | undefined;
 /** Recent tap times, for tickling, and how many taps so far (lines take turns). */
@@ -114,18 +114,20 @@ export function renderCompanion(now = Date.now()) {
   }
   const el = host.querySelector('.companion-line')!;
   if (el.textContent !== line) el.textContent = line;
-  if (purse) renderCoins(host, purse.today, now);
+  if (purse) renderCoins(host, purse, now);
 }
 
-/** Today's coin chip; a "+1" floats up when entries are added. */
-function renderCoins(host: HTMLElement, n: number, now: number) {
+/** The coin chip: today's coins, all time underneath; a "+1" floats up when entries are added. */
+function renderCoins(host: HTMLElement, { today: n, total }: { today: number; total: number }, now: number) {
   const day = today(now);
   const prev = shownCoins?.day === day ? shownCoins.today : undefined;
-  shownCoins = { day, today: n };
-  if (prev === n) return;
+  const same = prev === n && shownCoins?.total === total;
+  shownCoins = { day, today: n, total };
+  if (same) return;
   const chip = host.querySelector<HTMLElement>('.coin-chip')!;
   chip.querySelector('.coin-n')!.textContent = String(n);
-  chip.setAttribute('aria-label', `${n} ${n === 1 ? 'coin' : 'coins'} today`);
+  chip.querySelector('.coin-all')!.textContent = `${total.toLocaleString()} total`;
+  chip.setAttribute('aria-label', `${n} ${n === 1 ? 'coin' : 'coins'} today, ${total.toLocaleString()} all time`);
   if (prev === undefined || n <= prev || quiet()) return;
   const pop = document.createElement('span');
   pop.className = 'coin-pop';

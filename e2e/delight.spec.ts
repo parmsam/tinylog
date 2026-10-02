@@ -44,21 +44,22 @@ test.describe('companions', () => {
     await expect(companion).toContainText(/(Goodnight|Nighty night|dreamland), Pip/);
   });
 
-  test('earns a coin for every entry: today by the companion, all time in Settings', async ({ page }) => {
+  test('earns a coin for every entry: today and all time by the companion, and in Settings', async ({ page }) => {
     const now = new Date(2026, 8, 30, 10, 30).getTime();
     await page.clock.setFixedTime(now);
     await open(page, {
       events: [ev('feed', now - 30 * MIN), ev('feed', now - 24 * 60 * MIN), ev('diaper', now - 26 * 60 * MIN, { detail: { diaper: 'wet' } })],
     });
     const chip = page.locator('#companion .coin-chip');
-    await expect(chip).toHaveAttribute('aria-label', '1 coin today');
+    await expect(chip).toHaveAttribute('aria-label', '1 coin today, 3 all time');
+    await expect(chip).toContainText('3 total');
     await card(page, 'wet').click();
-    await expect(chip).toHaveAttribute('aria-label', '2 coins today');
+    await expect(chip).toHaveAttribute('aria-label', '2 coins today, 4 all time');
     await expect(chip.locator('.coin-pop')).toHaveText('+1');
     await page.screenshot({ path: test.info().outputPath('coins.png') });
     // Undo takes the coin back.
     await toastEl(page).getByRole('button', { name: 'Undo' }).click();
-    await expect(chip).toHaveAttribute('aria-label', '1 coin today');
+    await expect(chip).toHaveAttribute('aria-label', '1 coin today, 3 all time');
     await page.getByRole('button', { name: 'Settings' }).click();
     await expect(page.locator('#settings .coin-total')).toContainText('3 coins all time · 1 today');
     await expect(page.locator('#settings .coin-total')).toContainText('Next milestone: 50');
