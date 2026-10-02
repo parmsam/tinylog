@@ -42,7 +42,7 @@ export function loadSettings(): Settings {
     const c = s.companion as unknown;
     if (c === true) s.companion = 'puff';
     else if (c === false) s.companion = 'off';
-    if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'off'].includes(s.companion)) s.companion = 'puff';
+    if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'peanut', 'off'].includes(s.companion)) s.companion = 'puff';
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
     return s;
   } catch {

@@ -1854,7 +1854,10 @@ table.daygrid {
 .buddy .c-ear-r,
 .buddy .c-nose,
 .buddy .c-wing,
-.buddy .c-topknot {
+.buddy .c-topknot,
+.buddy .c-arm-l,
+.buddy .c-arm-r,
+.buddy .c-curl {
   transform-box: fill-box;
 }
 /* Sadie: tail wags (faster when excited), ears lift a little when excited, droop while asleep. */
@@ -1947,6 +1950,47 @@ table.daygrid {
 @keyframes duck-flap {
   to {
     transform: rotate(-24deg);
+  }
+}
+/* Peanut (a baby peanut) waves its little arms when excited, and has a pacifier while asleep. */
+.buddy .c-paci {
+  display: none;
+}
+.buddy[data-companion='peanut'][data-state='sleeping'] .c-paci {
+  display: inline;
+}
+.buddy[data-companion='peanut'][data-state='sleeping'] .p-mouth {
+  display: none;
+}
+.buddy[data-companion='peanut'] .c-curl {
+  transform-origin: 50% 100%;
+  animation: peanut-curl 4.5s ease-in-out infinite;
+}
+@keyframes peanut-curl {
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+.buddy[data-companion='peanut'] .c-arm-l {
+  transform-origin: 100% 100%;
+}
+.buddy[data-companion='peanut'] .c-arm-r {
+  transform-origin: 0% 100%;
+}
+.buddy[data-companion='peanut'][data-excited] .c-arm-l {
+  animation: peanut-wave-l 0.3s ease-in-out infinite alternate;
+}
+.buddy[data-companion='peanut'][data-excited] .c-arm-r {
+  animation: peanut-wave-r 0.3s ease-in-out infinite alternate;
+}
+@keyframes peanut-wave-l {
+  to {
+    transform: rotate(28deg);
+  }
+}
+@keyframes peanut-wave-r {
+  to {
+    transform: rotate(-28deg);
   }
 }
 /* Characters with their own colors dim at night like the emoji do (Puff uses theme tokens instead). */

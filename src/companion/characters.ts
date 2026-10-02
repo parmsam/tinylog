@@ -7,7 +7,7 @@
  * Character-only parts use `c-` classes and are animated in styles.css under `[data-companion=…]`.
  */
 
-export type CompanionId = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck';
+export type CompanionId = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'peanut';
 
 export interface Character {
   id: CompanionId;
@@ -130,7 +130,31 @@ const DUCK: Character = {
     <path class="p-sweat" d="M84 30c2 4 4 6 4 8a4 4 0 0 1-8 0c0-2 2-4 4-8Z"/>`,
 };
 
-export const CHARACTERS: Character[] = [PUFF, SADIE, MOON, BUNNY, DUCK];
+/** Peanut: a baby peanut in a diaper, with a curl of hair on top and a pacifier while asleep. Waves its arms when excited. */
+const PEANUT: Character = {
+  id: 'peanut',
+  label: 'Peanut',
+  tapLines: ['Shell yeah!', 'Nuts about you', 'Small but mighty'],
+  body: `<g class="c-arm-l"><path d="M41 64q-6-1-9-6" fill="none" stroke="#c48d4f" stroke-width="3" stroke-linecap="round"/></g>
+    <g class="c-arm-r"><path d="M79 64q6-1 9-6" fill="none" stroke="#c48d4f" stroke-width="3" stroke-linecap="round"/></g>
+    <ellipse cx="52" cy="87" rx="6" ry="2.8" fill="#c48d4f"/><ellipse cx="68" cy="87" rx="6" ry="2.8" fill="#c48d4f"/>
+    <path d="M60 22C76 22 86 33 85 47C84 56 78 60 77 63C80 68 82 73 80 78C77 85 68 88 60 88C52 88 43 85 40 78C38 73 40 68 43 63C42 60 36 56 35 47C34 33 44 22 60 22Z" fill="#e8c084" stroke="#c48d4f" stroke-width="1.5"/>
+    <g fill="#d4a462"><ellipse cx="53" cy="29" rx="1.6" ry="1.2"/><ellipse cx="67" cy="28" rx="1.6" ry="1.2"/><ellipse cx="77" cy="37" rx="1.4" ry="1.1"/><ellipse cx="43" cy="37" rx="1.4" ry="1.1"/></g>
+    <path class="c-diaper" d="M41.5 68C49 72 71 72 78.5 68C81 73 81 77 79.5 80C76 86 68 88 60 88C52 88 44 86 40.5 80C39 77 39 73 41.5 68Z" fill="#fbf7f2" stroke="#e3d8d3" stroke-width="1.2"/>
+    <rect x="44" y="70.5" width="5" height="3.6" rx="1.2" fill="#9fd3f0"/><rect x="71" y="70.5" width="5" height="3.6" rx="1.2" fill="#9fd3f0"/>
+    <path class="c-curl" d="M60 23c-1-5 3-8 6-6s1 6-2 5" fill="none" stroke="#a8743d" stroke-width="2" stroke-linecap="round"/>
+    <ellipse class="p-cheek" cx="44" cy="55" rx="4.6" ry="2.8"/><ellipse class="p-cheek" cx="76" cy="55" rx="4.6" ry="2.8"/>
+    <g class="p-eyes"><ellipse cx="51" cy="46" rx="3.3" ry="4.2" fill="${INK}"/><ellipse cx="69" cy="46" rx="3.3" ry="4.2" fill="${INK}"/>
+      <circle cx="52.2" cy="44.4" r="1.15" fill="#fff"/><circle cx="70.2" cy="44.4" r="1.15" fill="#fff"/></g>
+    <path class="p-closed" d="M46 47q5 4 10 0M64 47q5 4 10 0"/>
+    <path class="p-mouth p-smile" d="M55 55q5 5 10 0"/>
+    <ellipse class="p-mouth p-o" cx="60" cy="57" rx="3" ry="3.5"/>
+    <path class="p-mouth p-wince" d="M53 57l3-2 4 2 4-2 3 2"/>
+    <path class="p-sweat" d="M88 30c2 4 4 6 4 8a4 4 0 0 1-8 0c0-2 2-4 4-8Z"/>
+    <g class="c-paci"><ellipse cx="60" cy="57.5" rx="6.5" ry="3.6" fill="#9fd3f0" stroke="#6fb3dc" stroke-width="1"/><circle cx="60" cy="61.5" r="2.6" fill="none" stroke="#6fb3dc" stroke-width="1.4"/></g>`,
+};
+
+export const CHARACTERS: Character[] = [PUFF, SADIE, MOON, BUNNY, DUCK, PEANUT];
 
 export const characterById = (id: CompanionId) => CHARACTERS.find((c) => c.id === id) ?? PUFF;
 

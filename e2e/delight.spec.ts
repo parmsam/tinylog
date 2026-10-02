@@ -102,7 +102,7 @@ test.describe('companions', () => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     const picker = page.locator('#settings .buddy-picker');
-    for (const [label, id] of [['Moon', 'moon'], ['Bunny', 'bunny'], ['Duckling', 'duck'], ['Sadie', 'sadie']]) {
+    for (const [label, id] of [['Moon', 'moon'], ['Bunny', 'bunny'], ['Duckling', 'duck'], ['Peanut', 'peanut'], ['Sadie', 'sadie']]) {
       await picker.getByText(label, { exact: true }).click();
       await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-companion', id);
     }

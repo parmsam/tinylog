@@ -190,6 +190,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] **Moon**: a sleepy moon in a nightcap that rocks while the baby sleeps
 - [x] **Bunny**: ears perk up when excited and flop down for naps; the nose twitches
 - [x] **Duckling**: flaps for baths, feeds and tummy time
+- [x] **Peanut**: a baby peanut in a diaper with a curl of hair; waves its arms when excited and has a pacifier while asleep
 - [x] The recap card draws whichever companion is chosen (a snapshot of the live SVG with colors inlined)
 - [x] Coins: one for every entry, today's (with the all-time total under it) in a chip by the companion (a "+1" pops on each log), all time in Settings → Companion. Derived from the log, so undo takes the coin back; no streaks, nothing lost on a quiet day
 - [x] Tap the companion: a line in its own voice (each character has `tapLines`) mixed with shared ones, taking turns; five quick taps tickle it
@@ -251,3 +252,4 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-02 — Deploys failed when CI ran shortly after midnight UTC: e2e tests seed entries relative to now, which then fell on yesterday. E2E now runs in a fixed-offset time zone where it's around midday (browser and test process), picked when the run starts.
 - 2026-10-02 — Backup reminders come more often: every 4 days by default (was 7), set in Settings → Your data (2, 4, 7 or 14 days, or only every 50 entries). Still only when something new was logged since the last backup. "Not now" puts the time reminder off for a day, saved in settings (`backupLaterAt`) instead of per session, since an installed app's session can last days. The banner's button is "Back up now": the share sheet on phones (Save to Files, iCloud Drive, Google Drive), a download elsewhere.
 - 2026-10-02 — v0.7.0: tap the companion, coin milestones, all-time coins in the chip, backup reminders every few days (a setting) with Back up now, and the e2e time zone fix.
+- 2026-10-02 — v0.7.1: Peanut, a baby peanut companion (diaper, hair curl, pacifier while asleep).
