@@ -12,6 +12,8 @@ export type CompanionId = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck';
 export interface Character {
   id: CompanionId;
   label: string;
+  /** What it says when tapped, in its own voice (mixed with a few shared lines). */
+  tapLines: string[];
   body: string;
 }
 
@@ -20,6 +22,7 @@ const INK = '#2b2340';
 const PUFF: Character = {
   id: 'puff',
   label: 'Puff',
+  tapLines: ['Poof!', 'I’m mostly fluff', 'Soft cloud, reporting for duty'],
   body: `<path class="p-fill" d="M30 70c-12 0-20-8-20-18s8-17 18-17c2-12 13-21 26-21 11 0 20 6 24 15 3-1 5-2 8-2 12 0 21 9 21 21 0 12-9 22-21 22H30Z"/>
     <ellipse class="p-cheek" cx="40" cy="58" rx="6" ry="3.5"/><ellipse class="p-cheek" cx="80" cy="58" rx="6" ry="3.5"/>
     <g class="p-eyes"><ellipse cx="47" cy="49" rx="3.6" ry="4.6"/><ellipse cx="73" cy="49" rx="3.6" ry="4.6"/>
@@ -35,6 +38,7 @@ const PUFF: Character = {
 const SADIE: Character = {
   id: 'sadie',
   label: 'Sadie',
+  tapLines: ['Woof!', 'Belly rubs later?', 'Who’s a good pup? Me!'],
   body: `<g class="c-tail"><path d="M76 80C88 80 98 72 99 59C100 53 96 49 92 51C95 57 91 67 78 71Z" fill="#e0a553"/>
       <path d="M96 55q3 1 3 4M97 62q3 1 2 4M93 69q2 2 0 5" fill="none" stroke="#f3c67e" stroke-width="1.6" stroke-linecap="round"/></g>
     <ellipse cx="60" cy="75" rx="20" ry="13.5" fill="#edb566"/>
@@ -63,6 +67,7 @@ const SADIE: Character = {
 const MOON: Character = {
   id: 'moon',
   label: 'Moon',
+  tapLines: ['Twinkle twinkle', 'Shh, I’m glowing', 'Over the moon!'],
   body: `<defs><clipPath id="moon-clip"><circle cx="60" cy="52" r="28"/></clipPath></defs>
     <circle cx="60" cy="52" r="28" fill="#f7e7a6"/>
     <circle cx="74" cy="46" r="26" fill="#e8d07c" opacity=".45" clip-path="url(#moon-clip)"/>
@@ -84,6 +89,7 @@ const MOON: Character = {
 const BUNNY: Character = {
   id: 'bunny',
   label: 'Bunny',
+  tapLines: ['Boop!', '*nose wiggle*', 'Hop hop!'],
   body: `<g class="c-ear-l"><ellipse cx="48" cy="22" rx="7" ry="20" transform="rotate(-8 48 22)" fill="#f7f2ef" stroke="#e3d8d3"/>
       <ellipse cx="48" cy="23" rx="3.4" ry="14" transform="rotate(-8 48 23)" fill="#f7b8c4"/></g>
     <g class="c-ear-r"><ellipse cx="72" cy="22" rx="7" ry="20" transform="rotate(8 72 22)" fill="#f7f2ef" stroke="#e3d8d3"/>
@@ -106,6 +112,7 @@ const BUNNY: Character = {
 const DUCK: Character = {
   id: 'duck',
   label: 'Duckling',
+  tapLines: ['Quack!', 'Puddle later?', 'Quack quack!'],
   body: `<ellipse cx="62" cy="73" rx="27" ry="16" fill="#f7d24c"/>
     <path d="M87 70q8-6 6-14q-4 8-10 8Z" fill="#f7d24c"/>
     <ellipse class="c-wing" cx="72" cy="73" rx="11" ry="7" fill="#eebd2e"/>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createEvent, patchEvent } from '../core/events';
 import type { LogEvent } from '../core/types';
-import { greeting, idleBit, momentFor, periodStart, timeOfDay } from './mood';
+import { greeting, idleBit, milestoneMoment, momentFor, periodStart, tapMoment, timeOfDay } from './mood';
 
 const at = (h: number, m = 0, d = 30) => new Date(2026, 8, d, h, m).getTime();
 const opts = { dayStartHour: 0, name: 'Pip', buddy: 'Puff' };
@@ -100,5 +100,29 @@ describe('moments', () => {
     }
     for (const l of lines) expect(l).not.toMatch(/\{|, !|,$/);
     expect([...lines].some((l) => l.includes('Puff'))).toBe(true);
+  });
+});
+
+describe('taps', () => {
+  const own = ['Woof!', 'Belly rubs later?', 'Who’s a good pup? Me!'];
+
+  it('takes turns between its own lines and shared ones, never the same twice in a row', () => {
+    const notes = Array.from({ length: 14 }, (_, n) => tapMoment(own, n, false).note);
+    expect(notes[0]).toBe('Woof!');
+    expect(new Set(notes.slice(0, 7)).size).toBe(7);
+    for (const l of own) expect(notes).toContain(l);
+    notes.slice(1).forEach((l, i) => expect(l).not.toBe(notes[i]));
+  });
+
+  it('giggles, and tickling gets its own line', () => {
+    expect(tapMoment(own, 0, false).reaction).toBe('giggle');
+    expect(tapMoment(own, 3, true)).toEqual({ reaction: 'proud', note: 'Hehe, that tickles!' });
+  });
+});
+
+describe('coin milestones', () => {
+  it('welcomes the first coin and cheers the rest', () => {
+    expect(milestoneMoment(1, 'Puff').note).toBe('Your first coin! Puff is keeping count');
+    expect(milestoneMoment(1000, 'Puff').note).toMatch(/^1,000 coins!/);
   });
 });

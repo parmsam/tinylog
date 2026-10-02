@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coins } from './coins';
+import { coins, milestonePassed, nextMilestone } from './coins';
 import { createEvent, patchEvent } from './events';
 
 const at = (h: number, d = 30) => new Date(2026, 8, d, h).getTime();
@@ -24,5 +24,24 @@ describe('coins', () => {
     // 2 AM belongs to yesterday when the day starts at 6.
     expect(coins([createEvent('feed', at(2), undefined, at(2))], at(10), 6).today).toBe(0);
     expect(coins([createEvent('feed', at(2), undefined, at(2))], at(4), 6).today).toBe(1);
+  });
+});
+
+describe('coin milestones', () => {
+  it('notices passing a milestone, once', () => {
+    expect(milestonePassed(0, 1)).toBe(1);
+    expect(milestonePassed(49, 50)).toBe(50);
+    expect(milestonePassed(50, 51)).toBeUndefined();
+    expect(milestonePassed(50, 49)).toBeUndefined(); // undo
+  });
+
+  it('celebrates the biggest one when a merge jumps past several', () => {
+    expect(milestonePassed(40, 260)).toBe(250);
+  });
+
+  it('knows the next one, and runs out eventually', () => {
+    expect(nextMilestone(0)).toBe(1);
+    expect(nextMilestone(50)).toBe(100);
+    expect(nextMilestone(10_000)).toBeUndefined();
   });
 });

@@ -27,8 +27,10 @@ test.describe('companions', () => {
   });
 
   test('follows the time of day, and greets the first entry of the morning', async ({ page }) => {
-    await page.clock.setFixedTime(new Date(2026, 8, 30, 7, 30));
-    await open(page, { settings: { babyName: 'Pip' } });
+    const now = new Date(2026, 8, 30, 7, 30).getTime();
+    await page.clock.setFixedTime(now);
+    // Last night's feed, so this isn't the very first coin (which gets its own celebration).
+    await open(page, { settings: { babyName: 'Pip' }, events: [ev('feed', now - 12 * 60 * MIN)] });
     const companion = page.locator('#companion');
     const puff = companion.locator('svg.buddy');
     await expect(puff).toHaveAttribute('data-time', 'morning');
@@ -59,6 +61,25 @@ test.describe('companions', () => {
     await expect(chip).toHaveAttribute('aria-label', '1 coin today');
     await page.getByRole('button', { name: 'Settings' }).click();
     await expect(page.locator('#settings .coin-total')).toContainText('3 coins all time · 1 today');
+    await expect(page.locator('#settings .coin-total')).toContainText('Next milestone: 50');
+  });
+
+  test('passing a coin milestone gets a celebration', async ({ page }) => {
+    const now = new Date(2026, 8, 30, 10, 30).getTime();
+    await page.clock.setFixedTime(now);
+    await open(page, { events: Array.from({ length: 49 }, (_, i) => ev('feed', now - (i + 1) * 60 * MIN)) });
+    await card(page, 'wet').click();
+    await expect(page.locator('#companion')).toContainText('50 coins!');
+  });
+
+  test('tap the companion: it says hi in its own voice, and a flurry of taps tickles', async ({ page }) => {
+    await open(page, { settings: { companion: 'sadie' } });
+    const buddy = page.getByRole('button', { name: 'Say hi to Sadie' });
+    await buddy.click();
+    await expect(page.locator('#companion .companion-line')).toHaveText('Woof!');
+    await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-face', 'o');
+    for (let i = 0; i < 4; i++) await buddy.click();
+    await expect(page.locator('#companion .companion-line')).toHaveText('Hehe, that tickles!');
   });
 
   test('only shows on today, and can be turned off', async ({ page }) => {

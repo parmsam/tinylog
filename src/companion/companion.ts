@@ -28,7 +28,8 @@ export type Reaction =
   | 'goodnight'
   | 'proud'
   | 'cheer'
-  // Idle bits, by time of day
+  // Idle bits, by time of day (and taps)
+  | 'giggle'
   | 'stretch'
   | 'look'
   | 'yawn';
@@ -174,6 +175,11 @@ export class Companion {
         this.excite(1600);
         this.prop('hearts', 1200);
         this.body({ translateY: [{ to: -7, duration: 200, ease: 'outQuad' }, { to: 0, duration: 460, ease: 'outBounce' }] });
+        break;
+      case 'giggle':
+        this.setFace('o', 700);
+        this.excite(1000);
+        this.body({ rotate: [{ to: -7, duration: 90 }, { to: 7, duration: 90 }, { to: -5, duration: 90 }, { to: 4, duration: 90 }, { to: 0, duration: 320, ease: 'outElastic(1, .6)' }] });
         break;
       case 'stretch':
         this.body({ scaleY: [{ to: 1.08, duration: 600, ease: 'outQuad' }, { to: 1, duration: 600, ease: 'outElastic(1, .6)' }] });

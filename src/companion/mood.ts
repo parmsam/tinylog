@@ -133,3 +133,25 @@ export function momentFor(
   if (!counted.some((e) => e.id !== event.id && (inPeriod(e.at) || inPeriod(e.endAt)))) return say(HELLO[tod].reaction, HELLO[tod].lines);
   return undefined;
 }
+
+const SHARED_TAP_LINES = ['Hehe', 'Hi there!', "You're doing great", 'Hello, hello!'];
+const TAP_REACTIONS: Reaction[] = ['giggle', 'cheer', 'look', 'giggle', 'stretch'];
+/** Taps this close together count as tickling. */
+export const TICKLE_TAPS = 5;
+export const TICKLE_MS = 3000;
+
+/**
+ * What the companion does on its `n`th tap (0-based): its own lines and a few shared ones, taking
+ * turns so taps don't repeat back to back. A quick flurry of taps tickles.
+ */
+export function tapMoment(own: string[], n: number, tickled: boolean): Moment {
+  if (tickled) return { reaction: 'proud', note: 'Hehe, that tickles!' };
+  const lines = own.flatMap((l, i) => [l, SHARED_TAP_LINES[i % SHARED_TAP_LINES.length]]).concat(SHARED_TAP_LINES.slice(own.length));
+  return { reaction: TAP_REACTIONS[n % TAP_REACTIONS.length], note: lines[n % lines.length] };
+}
+
+/** Coin milestones (all-time), celebrated with a line. */
+export function milestoneMoment(coins: number, buddy: string): Moment {
+  if (coins === 1) return { reaction: 'proud', note: `Your first coin! ${buddy} is keeping count` };
+  return { reaction: 'proud', note: pick([`${coins.toLocaleString()} coins! ${buddy} is so proud`, `${coins.toLocaleString()} coins! Look at you go`], coins) };
+}
