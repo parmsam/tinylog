@@ -1,5 +1,6 @@
 import { animate, type AnimationParams } from 'animejs';
 import { characterSvg, type CompanionId } from './characters';
+import type { TimeOfDay } from './mood';
 
 /**
  * A little companion who keeps you company. States mirror what's going on (asleep while the baby
@@ -9,7 +10,28 @@ import { characterSvg, type CompanionId } from './characters';
  */
 
 export type CompanionState = 'idle' | 'sleeping' | 'fussy' | 'tummy' | 'pump';
-export type Reaction = 'feed' | 'wet' | 'dirty' | 'sleep' | 'wake' | 'tummy' | 'pump' | 'fussy' | 'settled' | 'bath' | 'doctor' | 'undo';
+export type Reaction =
+  | 'feed'
+  | 'wet'
+  | 'dirty'
+  | 'sleep'
+  | 'wake'
+  | 'tummy'
+  | 'pump'
+  | 'fussy'
+  | 'settled'
+  | 'bath'
+  | 'doctor'
+  | 'undo'
+  // Moments of the day (see mood.ts)
+  | 'morning'
+  | 'goodnight'
+  | 'proud'
+  | 'cheer'
+  // Idle bits, by time of day
+  | 'stretch'
+  | 'look'
+  | 'yawn';
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const quiet = () => reduced() || document.documentElement.dataset.theme === 'night';
@@ -29,10 +51,11 @@ export class Companion {
   }
 
   private draw() {
-    const state = this.root?.dataset.state ?? 'idle';
+    const { state = 'idle', time } = this.root?.dataset ?? {};
     this.host.innerHTML = characterSvg(this.id);
     this.root = this.host.querySelector('svg.buddy')!;
     this.root.dataset.state = state;
+    if (time) this.root.dataset.time = time;
   }
 
   setCharacter(id: CompanionId) {
@@ -128,6 +151,45 @@ export class Companion {
       case 'undo':
         this.setFace('o', 600);
         break;
+      case 'morning': // a big yawn and stretch, then sparkles
+        this.setFace('o', 1100);
+        this.body({ scaleY: [{ to: 1.14, duration: 700, ease: 'outQuad' }, { to: 1, duration: 700, ease: 'outElastic(1, .5)' }] });
+        window.setTimeout(() => {
+          this.excite(1400);
+          this.prop('sparkles', 1100);
+        }, 1100);
+        break;
+      case 'goodnight':
+        this.setFace('o', 1300);
+        this.prop('hearts', 1500);
+        this.body({ scaleY: [{ to: 1.06, duration: 700 }, { to: 0.94, duration: 600 }, { to: 1, duration: 800 }] });
+        break;
+      case 'proud':
+        this.excite(2400);
+        this.prop('sparkles', 1600);
+        window.setTimeout(() => this.prop('hearts', 1200), 800);
+        this.body({ translateY: [{ to: -9, duration: 200, ease: 'outQuad' }, { to: 0, duration: 260, ease: 'inQuad' }, { to: -6, duration: 180, ease: 'outQuad' }, { to: 0, duration: 420, ease: 'outBounce' }] });
+        break;
+      case 'cheer':
+        this.excite(1600);
+        this.prop('hearts', 1200);
+        this.body({ translateY: [{ to: -7, duration: 200, ease: 'outQuad' }, { to: 0, duration: 460, ease: 'outBounce' }] });
+        break;
+      case 'stretch':
+        this.body({ scaleY: [{ to: 1.08, duration: 600, ease: 'outQuad' }, { to: 1, duration: 600, ease: 'outElastic(1, .6)' }] });
+        break;
+      case 'look':
+        this.body({ rotate: [{ to: -5, duration: 500 }, { to: 0, duration: 400, delay: 600 }, { to: 5, duration: 500 }, { to: 0, duration: 400, delay: 600 }] });
+        break;
+      case 'yawn':
+        this.setFace('o', 1200);
+        this.body({ scaleY: [{ to: 1.05, duration: 600 }, { to: 1, duration: 700 }] });
+        break;
     }
+  }
+
+  /** Time of day, for the drowsier look in the evening and at night (CSS under `[data-time]`). */
+  setTime(tod: TimeOfDay) {
+    if (this.root.dataset.time !== tod) this.root.dataset.time = tod;
   }
 }

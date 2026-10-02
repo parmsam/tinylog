@@ -56,22 +56,22 @@ export function present(r: OpResult, opts: { prefix?: string } = {}) {
       toast(`${prefix}${card.emoji} ${r.reason}`);
       return;
     case 'logged':
-      companionReact(r.card, 'log');
+      companionReact(r.card, 'log', r.event);
       logged(card, r.event, 'logged', prefix);
       return;
     case 'started':
-      companionReact(r.card, 'start');
+      companionReact(r.card, 'start', r.event);
       logged(card, r.event, 'started', prefix);
       return;
     case 'switched': {
       const prev = r.prev;
-      companionReact(r.card, 'start');
+      companionReact(r.card, 'start', r.event);
       toast(`${prefix}${card.emoji} Now counting as ${card.label.toLowerCase()}`, { actions: [{ label: 'Undo', primary: true, run: () => revertTo(prev) }] });
       return;
     }
     case 'stopped': {
       const prev = r.prev;
-      companionReact(r.card, 'stop');
+      companionReact(r.card, 'stop', r.event);
       // Ending a pump is when you know the volume: ask (skippable), unless it came with one.
       if (r.card === 'pump' && !r.event.detail?.amount) return openSheet({ event: r.event });
       toast(`${prefix}${card.emoji} ${card.label} · ${duration((r.event.endAt ?? r.event.at) - r.event.at)}`, {

@@ -35,5 +35,8 @@ Baby tracker: one-tap logging plus beautiful visualizations. Static site on GitH
 - **Forms on iPhone**: check new sheet fields with `npx playwright test --project=iphone` (WebKit + iPhone viewport; `e2e/layout.spec.ts` checks for overlaps, spills and squeezed date fields). Keep inputs at 16px or more. Pinch-zoom must keep working; only double-tap zoom and iPhone's focus zoom are off (see `main.ts`).
 - New behavior needs tests; every bug fix needs a regression test.
 
+## Versioning
+Bump `version` in `package.json` (shown in the footer) for a major group of updates, not every commit: minor while we're on 0.x (0.5.0 → 0.6.0), patch for a batch of fixes. Name the commit `vX.Y.Z: <what's in it>` and add a dated line to the `PLAN.md` decisions log.
+
 ## Deployment
 Push to `main` → GitHub Actions builds and publishes to GitHub Pages (`base: '/tinylog/'`).

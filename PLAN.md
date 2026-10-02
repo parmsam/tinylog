@@ -191,6 +191,8 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] **Bunny**: ears perk up when excited and flop down for naps; the nose twitches
 - [x] **Duckling**: flaps for baths, feeds and tummy time
 - [x] The recap card draws whichever companion is chosen (a snapshot of the live SVG with colors inlined)
+- [x] Coins: one for every entry, today's in a chip by the companion (a "+1" pops on each log), all time in Settings → Companion. Derived from the log, so undo takes the coin back; no streaks, nothing lost on a quiet day
+- [x] Moods by time of day and moments of the day (`src/companion/mood.ts`): greetings and drowsier eyes in the evening and at night, small idle bits (morning stretch, afternoon look-around, evening yawn), and bigger reactions with a cute line for a few seconds: first entry of each part of the day, waking up for the morning, goodnight, longest sleep today, round numbers of feeds and diapers, first poop, baths, tummy time, a calm-again fussy spell and a busy hour
 
 ### Phase 5 — Links & shortcuts
 - [x] Link actions: `?do=log|start|stop|toggle&what=…` with `ago`, `side`, `ml`/`oz`, `milk`, `method`, `note`; friendly names (bottle, poop, both, sleep…); params stripped after running; a repeat within 8 s is ignored; bad links explain themselves
@@ -202,6 +204,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - **Cloud sync** (iCloud or similar) for the two phones, so merging isn't manual. The `updatedAt` + soft-delete model is already sync-ready.
 - Medicines, growth (weight/length/head) and milestones: out of scope for now.
 - Pump volume per side (currently one amount per session).
+- **Companion unlocks with coins**: special companions or accessories at coin milestones (all-time total, so nothing is ever lost or spent down).
 
 ## Decisions log
 - 2026-09-30 — Same stack and conventions as pomotimer2 (Vite + vanilla TS, anime.js, lazy three.js, vite-plugin-pwa, Vitest + Playwright, Pages).
@@ -239,3 +242,6 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-09-30 — Longer undo: toasts with Undo stay 12 s (was 8 s), and `U` / `tinylog.undo()` work for 5 minutes after the last change (was 2). The footer shows the version and links to GitHub.
 - 2026-09-30 — Optional breastfeeding length, entered in the details sheet (a tap still logs instantly): minutes per side (`minL`/`minR`) or one total (`min`) when both sides weren't timed separately. Only the lengths matching the chosen side are kept. Shown as "Breast · L 12m · R 8m"; daily totals and Markdown add breastfeeding time. Links and the API take `minl`/`minr`/`min`.
 - 2026-09-30 — Share with partner on Android: Chrome's share sheet refuses JSON files, so the export goes as plain text (`tinylog-….txt`, same content) when the .json can't be shared; iPhone still gets the .json. Import accepts .txt as well as .json.
+- 2026-10-01 — Companion moods follow the clock (morning 5–12, afternoon 12–17, evening 17–21, night 21–5) and the day. Moments are worked out from the event log when something is logged (today only, never for filling in past days), and most don't need sleep tracking: the first entry of each part of the day gets a hello, so families who only log feeds or diapers still see them. Lines are cute or a little funny, picked from a few variants, and never judge or advise. Idle bits run after 90 s of quiet, never at night or under reduced motion.
+- 2026-10-01 — Coins: one per entry, counted on the day it was added (`createdAt`, through `days.ts`), derived in `core/coins.ts` rather than stored. Just a counter for now; unlocks may come later. Entries merged from the other phone bring their coins along, so it's the family's count. No streaks: a quiet day never costs anything.
+- 2026-10-01 — v0.6.0: companion moods by time of day, moments of the day, and coins. Versions now go up with a major group of updates (see AGENTS.md).

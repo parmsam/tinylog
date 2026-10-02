@@ -1,4 +1,5 @@
 import { backupFilename, BackupError, parseBackup, toBackup } from '../core/backup';
+import { coins } from '../core/coins';
 import { shortDate } from '../core/format';
 import { app, importData, settings, snapshot } from '../core/log';
 import type { Settings } from '../core/types';
@@ -104,6 +105,7 @@ export function openSettings() {
   const dialog = document.getElementById('settings') as HTMLDialogElement;
   const s = settings.get();
   const canShare = typeof navigator.canShare === 'function';
+  const purse = coins(app.get().events, Date.now(), s.dayStartHour);
   dialog.innerHTML = `<form novalidate>
     <div class="sheet-head"><h2 id="settings-title">Settings</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -121,7 +123,8 @@ export function openSettings() {
     ).join('')}</div></fieldset>
     <fieldset class="field"><legend>Companion</legend><div class="scene-picker buddy-picker">${[...CHARACTERS.map((c) => [c.id, c.label, characterSvg(c.id, { preview: true })]), ['off', 'Off', '<svg viewBox="0 0 120 96" aria-hidden="true"></svg>']]
       .map(([id, label, art]) => `<label class="scene-tile"><input type="radio" name="companion" value="${id}" ${id === s.companion ? 'checked' : ''} />${art}<span>${label}</span></label>`)
-      .join('')}</div></fieldset>
+      .join('')}</div>
+      <p class="hint coin-total"><span class="coin" aria-hidden="true"></span> <b>${purse.total.toLocaleString()}</b> ${purse.total === 1 ? 'coin' : 'coins'} all time · ${purse.today} today. One for every entry, shown next to the companion.</p></fieldset>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>

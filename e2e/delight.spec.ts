@@ -1,8 +1,11 @@
-import { card, entries, ev, expect, MIN, open, test } from './helpers';
+import { card, entries, ev, expect, MIN, open, test, toastEl } from './helpers';
 
 test.describe('companions', () => {
   test('mirrors what is happening and reacts to logs', async ({ page }) => {
-    await open(page, { settings: { babyName: 'Pip' } });
+    // Mid-morning with an earlier entry, so the first-of-the-morning hello doesn't cover the line.
+    const now = new Date(2026, 8, 30, 10, 30).getTime();
+    await page.clock.setFixedTime(now);
+    await open(page, { settings: { babyName: 'Pip' }, events: [ev('diaper', now - 30 * MIN, { detail: { diaper: 'wet' } })] });
     const companion = page.locator('#companion');
     const puff = companion.locator('svg.buddy');
     await expect(companion).toBeVisible();
@@ -21,6 +24,41 @@ test.describe('companions', () => {
 
     await card(page, 'fussy').click();
     await expect(puff).toHaveAttribute('data-state', 'fussy');
+  });
+
+  test('follows the time of day, and greets the first entry of the morning', async ({ page }) => {
+    await page.clock.setFixedTime(new Date(2026, 8, 30, 7, 30));
+    await open(page, { settings: { babyName: 'Pip' } });
+    const companion = page.locator('#companion');
+    const puff = companion.locator('svg.buddy');
+    await expect(puff).toHaveAttribute('data-time', 'morning');
+    await expect(companion).toContainText('Good morning from Puff');
+    // No sleep tracking needed: the first entry of the morning gets a hello.
+    await card(page, 'wet').click();
+    await expect(companion).toContainText(/(morning|shine), Pip/);
+    await page.clock.setFixedTime(new Date(2026, 8, 30, 19, 0));
+    await expect(puff).toHaveAttribute('data-time', 'evening');
+    await card(page, 'night').click();
+    await expect(companion).toContainText(/(Goodnight|Nighty night|dreamland), Pip/);
+  });
+
+  test('earns a coin for every entry: today by the companion, all time in Settings', async ({ page }) => {
+    const now = new Date(2026, 8, 30, 10, 30).getTime();
+    await page.clock.setFixedTime(now);
+    await open(page, {
+      events: [ev('feed', now - 30 * MIN), ev('feed', now - 24 * 60 * MIN), ev('diaper', now - 26 * 60 * MIN, { detail: { diaper: 'wet' } })],
+    });
+    const chip = page.locator('#companion .coin-chip');
+    await expect(chip).toHaveAttribute('aria-label', '1 coin today');
+    await card(page, 'wet').click();
+    await expect(chip).toHaveAttribute('aria-label', '2 coins today');
+    await expect(chip.locator('.coin-pop')).toHaveText('+1');
+    await page.screenshot({ path: test.info().outputPath('coins.png') });
+    // Undo takes the coin back.
+    await toastEl(page).getByRole('button', { name: 'Undo' }).click();
+    await expect(chip).toHaveAttribute('aria-label', '1 coin today');
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.locator('#settings .coin-total')).toContainText('3 coins all time · 1 today');
   });
 
   test('only shows on today, and can be turned off', async ({ page }) => {
@@ -44,7 +82,7 @@ test.describe('companions', () => {
       await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-companion', id);
     }
     await page.keyboard.press('Escape');
-    await expect(page.locator('#companion')).toContainText('Hi from Sadie');
+    await expect(page.locator('#companion')).toContainText(/from Sadie/);
     await card(page, 'feed').click();
     const sadie = page.locator('#companion svg.buddy');
     await expect(sadie).toHaveAttribute('data-face', 'o');

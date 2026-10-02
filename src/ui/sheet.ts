@@ -265,7 +265,7 @@ export function openSheet(opts: SheetOpts) {
       if (endAt !== undefined) ev.endAt = endAt;
       addEvent(ev);
       requestPersistence();
-      companionReact(chosen.id, ev.endAt === undefined && chosen.timed ? 'start' : 'log');
+      companionReact(chosen.id, ev.endAt === undefined && chosen.timed ? 'start' : 'log', ev);
       toast(`${chosen.emoji} ${chosen.label} added`, {
         actions: [{ label: 'Undo', run: () => deleteEvent(ev.id), primary: true }],
       });

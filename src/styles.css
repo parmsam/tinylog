@@ -1472,6 +1472,45 @@ table.daygrid {
   height: auto;
   overflow: visible;
 }
+.coin-chip {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 3px 9px 3px 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--puff-prop) 16%, transparent);
+  font-size: 0.88rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.coin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8 0 18%, transparent 19%), var(--puff-prop);
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--puff-prop) 70%, #8a5a00);
+}
+.coin-pop {
+  position: absolute;
+  right: 6px;
+  top: -4px;
+  opacity: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--puff-prop) 60%, var(--text));
+  pointer-events: none;
+}
+.coin-total .coin {
+  display: inline-block;
+  vertical-align: -3px;
+}
+:root[data-theme='night'] .coin-chip {
+  opacity: 0.75;
+}
 .companion-line {
   margin: 0;
   font-size: 0.92rem;
@@ -1648,6 +1687,25 @@ table.daygrid {
     transform: scaleY(1);
   }
   95% {
+    transform: scaleY(0.1);
+  }
+}
+/* Evening and night: heavier eyelids and a slower bob. */
+.buddy[data-time='evening'] .p-eyes,
+.buddy[data-time='night'] .p-eyes {
+  animation-name: puff-blink-drowsy;
+}
+.buddy[data-time='evening'][data-state='idle'] .p-bob,
+.buddy[data-time='night'][data-state='idle'] .p-bob {
+  animation-duration: 6.5s;
+}
+@keyframes puff-blink-drowsy {
+  0%,
+  88%,
+  100% {
+    transform: scaleY(0.72);
+  }
+  93% {
     transform: scaleY(0.1);
   }
 }
