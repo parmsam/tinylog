@@ -21,7 +21,7 @@ Baby tracker: one-tap logging plus beautiful visualizations. Static site on GitH
 ## Conventions
 - **Event log is the source of truth.** Never store derived counters; compute from events.
 - **Time**: store epoch ms. Ongoing sessions are events without `endAt`; derive elapsed from `Date.now()`. Never count with `setInterval`.
-- **Days**: all day bucketing goes through `src/core/days.ts` (respects "day starts at" and DST). Tests run in `America/New_York`.
+- **Days**: all day bucketing goes through `src/core/days.ts` (respects "day starts at" and DST). Unit tests run in `America/New_York`; e2e runs in a fixed-offset zone where it's currently midday (`playwright.config.ts`), so entries seeded "50 minutes ago" never land on yesterday. E2E tests that need a particular time pin it with `page.clock.setFixedTime(new Date(...))` (local time).
 - **Storage**: only via `src/core/db.ts` (events + day notes: IndexedDB primary, mirrored to localStorage `tinylog:v1:mirror`) and `src/core/settings.ts` (`tinylog:v1:settings`). Wrap every read/write in try/catch; bump the version and add a migration on schema changes. Deletes are soft (`deleted: true`).
 - **State**: mutate via `src/core/store.ts`; UI modules subscribe.
 - **Night mode**: no bright flashes, no sound by default, reduced animation.

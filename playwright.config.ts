@@ -4,6 +4,15 @@ const PORT = 4180;
 /** Production build + preview, for things only the built app has (service worker). */
 const PREVIEW_PORT = 4181;
 
+/**
+ * Tests seed entries relative to now ("50 minutes ago"), which land on yesterday shortly after
+ * midnight. So run in a fixed-offset zone (no DST) where it's currently around midday, in the
+ * browser and in the test process alike (tests that pin a clock build dates in local time).
+ */
+const offset = ((12 - new Date().getUTCHours() + 36) % 24) - 12; // local = UTC + offset, -12…11
+const TZ = offset === 0 ? 'Etc/UTC' : `Etc/GMT${offset > 0 ? '-' : '+'}${Math.abs(offset)}`; // Etc/ signs are inverted
+process.env.TZ = TZ;
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
@@ -13,6 +22,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}/tinylog/`,
     trace: 'on-first-retry',
+    timezoneId: TZ,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /pwa\.spec|layout\.spec/ },

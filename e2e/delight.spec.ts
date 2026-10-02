@@ -78,7 +78,10 @@ test.describe('companions', () => {
     await buddy.click();
     await expect(page.locator('#companion .companion-line')).toHaveText('Woof!');
     await expect(page.locator('#companion svg.buddy')).toHaveAttribute('data-face', 'o');
-    for (let i = 0; i < 4; i++) await buddy.click();
+    // Four more in quick succession (one click() each from Playwright can be too slow on CI to count as a flurry).
+    await buddy.evaluate((el: HTMLElement) => {
+      for (let i = 0; i < 4; i++) el.click();
+    });
     await expect(page.locator('#companion .companion-line')).toHaveText('Hehe, that tickles!');
   });
 
