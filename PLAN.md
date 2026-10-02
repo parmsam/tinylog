@@ -144,7 +144,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Settings: baby name, ml/oz, 12/24h, day start
 - [x] Night mode (auto by time or manual), light/dark themes
 - [x] JSON export/import that merges (last write wins), "Share with partner" via the share sheet
-- [x] `storage.persist()`, backup reminder (every 50 new entries, or weekly), storage status in settings
+- [x] `storage.persist()`, backup reminder (every 50 new entries, or every few days: Settings → Remind me to back up, 4 days by default) with a Back up now button, storage status in settings
 - [x] PWA: offline, installable, update prompt, iOS "install to keep your data" tip
 - [x] First deploy
 
@@ -249,3 +249,5 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-01 — v0.6.0: companion moods by time of day, moments of the day, and coins. Versions now go up with a major group of updates (see AGENTS.md).
 - 2026-10-01 — The companion is a button ("Say hi to Sadie"). Tap lines cycle rather than pick at random, so taps never repeat back to back and tests can check them. Coin milestones are worked out by comparing all-time totals between renders (only after the log has loaded), so a merge that jumps past several celebrates the biggest one. The very first coin's celebration takes over from the moment of the day.
 - 2026-10-02 — Deploys failed when CI ran shortly after midnight UTC: e2e tests seed entries relative to now, which then fell on yesterday. E2E now runs in a fixed-offset time zone where it's around midday (browser and test process), picked when the run starts.
+- 2026-10-02 — Backup reminders come more often: every 4 days by default (was 7), set in Settings → Your data (2, 4, 7 or 14 days, or only every 50 entries). Still only when something new was logged since the last backup. "Not now" puts the time reminder off for a day, saved in settings (`backupLaterAt`) instead of per session, since an installed app's session can last days. The banner's button is "Back up now": the share sheet on phones (Save to Files, iCloud Drive, Google Drive), a download elsewhere.
+- 2026-10-02 — v0.7.0: tap the companion, coin milestones, all-time coins in the chip, backup reminders every few days (a setting) with Back up now, and the e2e time zone fix.

@@ -320,12 +320,52 @@ test.describe('backup reminders', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('every few days (4 by default) a reminder offers Back up now; Not now waits a day', async ({ page }) => {
+    const DAY = 24 * 60 * MIN;
+    const old = Array.from({ length: 25 }, (_, i) => ev('diaper', now - 10 * DAY + i * MIN, { detail: { diaper: 'wet' } }));
+    const fresh = [ev('feed', now - DAY), ev('feed', now - 2 * DAY)];
+    await open(page, { events: [...old, ...fresh], settings: { lastBackupAt: now - 5 * DAY } });
+    const banner = page.locator('#banner');
+    await expect(banner).toContainText('5 days since your last backup');
+    await expect(banner.getByRole('button', { name: 'Back up now' })).toBeVisible();
+    await banner.getByRole('button', { name: 'Not now' }).click();
+    await expect(banner).toBeHidden();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(banner).toBeHidden();
+    // A day later it's back.
+    await page.clock.setFixedTime(now + DAY + MIN);
+    await page.reload();
+    await expect(banner).toContainText('6 days since your last backup');
+  });
+
+  test('the interval is a setting, and can be left to the 50-entry reminder', async ({ page }) => {
+    const DAY = 24 * 60 * MIN;
+    const old = Array.from({ length: 25 }, (_, i) => ev('diaper', now - 10 * DAY + i * MIN, { detail: { diaper: 'wet' } }));
+    await open(page, { events: [...old, ev('feed', now - DAY)], settings: { lastBackupAt: now - 3 * DAY } });
+    const banner = page.locator('#banner');
+    await expect(banner).toBeHidden();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const select = page.locator('#settings').getByLabel('Remind me to back up');
+    await expect(select).toHaveValue('4');
+    await select.selectOption({ label: 'Every 2 days' });
+    await page.keyboard.press('Escape');
+    await page.reload();
+    await expect(banner).toContainText('3 days since your last backup');
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await select.selectOption({ label: 'Only every 50 entries' });
+    await page.keyboard.press('Escape');
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(banner).toBeHidden();
+  });
+
   test('exporting from the reminder counts as a backup', async ({ page }) => {
     await open(page, { events: [...entries49(), ev('bath', now - 5 * MIN)] });
     const banner = page.locator('#banner');
     await expect(banner).toContainText('50 new entries');
     const download = page.waitForEvent('download');
-    await banner.getByRole('button', { name: 'Export' }).click();
+    await banner.getByRole('button', { name: 'Back up now' }).click();
     await download;
     await expect(banner).toBeHidden();
     await page.getByRole('button', { name: 'Settings' }).click();

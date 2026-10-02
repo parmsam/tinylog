@@ -61,6 +61,10 @@ export interface Settings {
   lastBackupAt: number | null;
   /** New-entry count at which the backup reminder was last put off ("Not now"); 0 after a backup. */
   backupSnoozedAt: number;
+  /** When the every-few-days backup reminder was last put off ("Not now"); it waits a day. 0 after a backup. */
+  backupLaterAt: number;
+  /** Remind to back up after this many days without one; 0 = only the every-50-entries reminder. */
+  backupEveryDays: number;
   /** One-time tips already dismissed ("Show tips again" clears this). */
   tipsSeen: string[];
   /** How the day grid marks feeds and diapers. */

@@ -1,5 +1,6 @@
 import { backupFilename, BackupError, parseBackup, toBackup } from '../core/backup';
 import { coins, nextMilestone } from '../core/coins';
+import { BACKUP_DAY_CHOICES, DEFAULT_SETTINGS } from '../core/settings';
 import { shortDate } from '../core/format';
 import { app, importData, settings, snapshot } from '../core/log';
 import type { Settings } from '../core/types';
@@ -52,7 +53,7 @@ export function exportFile(type = 'application/json'): File {
 }
 
 function markBackedUp() {
-  settings.set({ lastBackupAt: Date.now(), backupSnoozedAt: 0 });
+  settings.set({ lastBackupAt: Date.now(), backupSnoozedAt: 0, backupLaterAt: 0 });
 }
 
 export function exportDownload() {
@@ -75,11 +76,25 @@ function shareableExport(): File | null {
 }
 
 /** Sends the export through the share sheet (AirDrop, Messages…) so the other phone can import it. */
-async function shareWithPartner() {
+function shareWithPartner() {
+  return shareExport('tinylog export', 'Open in tinylog → Settings → Import to merge.');
+}
+
+/**
+ * A backup from the reminder: on phones, the share sheet (Save to Files, iCloud Drive, Google
+ * Drive…), which is where a phone keeps files; elsewhere a download.
+ */
+export function backUpNow() {
+  if (isTouchDevice() || isIos()) return shareExport('tinylog backup', 'A tinylog backup. To restore: tinylog → Settings → Import.');
+  exportDownload();
+  return Promise.resolve();
+}
+
+async function shareExport(title: string, text: string) {
   const file = shareableExport();
   if (file) {
     try {
-      await navigator.share({ files: [file], title: 'tinylog export', text: 'Open in tinylog → Settings → Import to merge.' });
+      await navigator.share({ files: [file], title, text });
       markBackedUp();
     } catch (err) {
       if ((err as DOMException).name !== 'AbortError') toast("Couldn't open the share sheet. Downloading instead.");
@@ -99,6 +114,12 @@ async function importFile(file: File) {
   } catch (err) {
     toast(err instanceof BackupError ? err.message : "Couldn't read that file.");
   }
+}
+
+function backupChoiceLabel(days: number): string {
+  if (!days) return 'Only every 50 entries';
+  const label = days === 7 ? 'Every week' : days === 14 ? 'Every 2 weeks' : `Every ${days} days`;
+  return days === DEFAULT_SETTINGS.backupEveryDays ? `${label} (default)` : label;
 }
 
 export function openSettings() {
@@ -140,6 +161,9 @@ export function openSettings() {
         <label class="btn" role="button" tabindex="0">Import…<input type="file" accept="application/json,.json,text/plain,.txt" data-import hidden /></label>
       </div>
       <p class="hint">Two phones? Share an export and import it on the other phone. Importing merges: nothing is lost, the newest edit wins, and importing the same file twice is safe.</p>
+      <label class="field"><span class="field-label">Remind me to back up</span>
+        <select name="backupEveryDays">${BACKUP_DAY_CHOICES.map((d) => `<option value="${d}" ${d === s.backupEveryDays ? 'selected' : ''}>${backupChoiceLabel(d)}</option>`).join('')}</select></label>
+      <p class="hint">The reminder has a <b>Back up now</b> button. It also comes every 50 new entries.</p>
     </section>
 
     <section class="settings-section" aria-labelledby="links-h">
@@ -169,7 +193,7 @@ export function openSettings() {
     const name = t.name as keyof Settings;
     if (!name || t.type === 'file') return;
     if (t.type === 'radio' && !t.checked) return;
-    const value = name === 'dayStartHour' ? Number(t.value) : t.type === 'checkbox' ? t.checked : t.value;
+    const value = name === 'dayStartHour' || name === 'backupEveryDays' ? Number(t.value) : t.type === 'checkbox' ? t.checked : t.value;
     settings.set({ [name]: value } as Partial<Settings>);
   };
   dialog.onclick = (e) => {

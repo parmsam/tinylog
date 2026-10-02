@@ -2,6 +2,9 @@ import type { Settings } from './types';
 
 export const SETTINGS_KEY = 'tinylog:v1:settings';
 
+/** Backup reminder intervals offered in Settings (0 = only every 50 entries). */
+export const BACKUP_DAY_CHOICES = [2, 4, 7, 14, 0];
+
 export const DEFAULT_SETTINGS: Settings = {
   babyName: '',
   units: 'ml',
@@ -10,6 +13,8 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   lastBackupAt: null,
   backupSnoozedAt: 0,
+  backupLaterAt: 0,
+  backupEveryDays: 4,
   tipsSeen: [],
   gridMarks: 'dots',
   haptics: true,
@@ -29,6 +34,8 @@ export function loadSettings(): Settings {
     delete (s as { installTipSeen?: boolean }).installTipSeen;
     if (!['dots', 'checks', 'crosses'].includes(s.gridMarks)) s.gridMarks = 'dots';
     if (!Number.isInteger(s.backupSnoozedAt) || s.backupSnoozedAt < 0) s.backupSnoozedAt = 0;
+    if (!Number.isFinite(s.backupLaterAt) || s.backupLaterAt < 0) s.backupLaterAt = 0;
+    if (!BACKUP_DAY_CHOICES.includes(s.backupEveryDays)) s.backupEveryDays = DEFAULT_SETTINGS.backupEveryDays;
     if (!['glow', 'none', 'sky', 'fireflies', 'bubbles', 'mobile', 'snow'].includes(s.background)) s.background = 'glow';
     s.haptics = s.haptics !== false;
     // v0.1 stored a boolean.
