@@ -2118,8 +2118,16 @@ table.daygrid {
 }
 
 /* Coins & rewards sheet */
+.rewards {
+  display: grid;
+  gap: 14px;
+  padding: 18px 18px max(18px, env(safe-area-inset-bottom));
+}
+.rewards p {
+  margin: 0;
+}
 #rewards h3 {
-  margin: 18px 0 8px;
+  margin: 8px 0 -4px;
   font-size: 0.95rem;
   font-weight: 800;
 }
@@ -2131,7 +2139,6 @@ table.daygrid {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 10px;
   font-size: 1.05rem;
   font-variant-numeric: tabular-nums;
 }
@@ -2141,9 +2148,9 @@ table.daygrid {
   height: 30px;
   box-shadow: inset 0 0 0 3px color-mix(in oklab, var(--puff-prop) 70%, #8a5a00);
 }
-.coin-next p,
-p.coin-next {
-  margin: 0 0 6px;
+.coin-next {
+  display: grid;
+  gap: 8px;
   font-size: 0.92rem;
 }
 .coin-meter {
@@ -2222,8 +2229,12 @@ p.coin-next {
   padding: 0;
   list-style: none;
 }
+.unlocks li {
+  display: flex;
+}
 .unlock-tile {
   display: grid;
+  align-content: start;
   gap: 2px;
   width: 100%;
   padding: 6px;
@@ -2243,6 +2254,7 @@ p.coin-next {
 }
 .unlock-tile span {
   font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--muted);
 }
 .unlock-tile[aria-pressed='true'] {

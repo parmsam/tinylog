@@ -95,3 +95,28 @@ test('iPhone: tapping a text field does not zoom (maximum-scale=1 on iOS only; p
   await page.getByLabel('📝 Day note').focus();
   expect(await page.evaluate(() => window.visualViewport?.scale ?? 1)).toBe(1);
 });
+
+test('Coins & rewards keeps its content off the sheet edges, and tiles never overlap', async ({ page }) => {
+  await open(page, { events: Array.from({ length: 6 }, (_, i) => ev('feed', Date.now() - 2 * 24 * 60 * MIN - i * 60 * MIN)) });
+  await page.locator('#companion .coin-chip').click();
+  const dialog = page.locator('#rewards');
+  await expect(dialog.getByRole('heading', { name: 'Coins & rewards' })).toBeVisible();
+  const problems = await dialog.evaluate((d) => {
+    const out: string[] = [];
+    const box = d.getBoundingClientRect();
+    const els = [...d.querySelectorAll<HTMLElement>('h2, h3, p, .coin-meter, .medals li, .unlock-tile')];
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      const text = `${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().slice(0, 20)}"`;
+      if (r.left - box.left < 12 || box.right - r.right < 12) out.push(`${text} is within 12px of the sheet edge`);
+    }
+    const tiles = [...d.querySelectorAll<HTMLElement>('.unlock-tile')].map((t) => t.getBoundingClientRect());
+    tiles.forEach((a, i) =>
+      tiles.slice(i + 1).forEach((b) => {
+        if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1) out.push('unlock tiles overlap');
+      }),
+    );
+    return out;
+  });
+  expect(problems).toEqual([]);
+});

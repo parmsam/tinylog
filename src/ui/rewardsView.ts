@@ -29,7 +29,7 @@ function unlockTile(r: Reward, total: number): string {
   const earned = total >= r.at;
   const s = settings.get();
   const name = unlockLabel(r);
-  const togo = `${r.at.toLocaleString()} coins · ${(r.at - total).toLocaleString()} to go`;
+  const togo = `${r.at.toLocaleString()} coins<br>${(r.at - total).toLocaleString()} to go`;
   if (u.kind === 'accessory') {
     const art = characterSvg(currentCompanion(), { preview: true, wearing: [u.id] });
     const on = s.accessories.includes(u.id);
@@ -50,7 +50,7 @@ function render(dialog: HTMLDialogElement) {
   const nextReward = REWARDS.find((r) => r.at === next);
   const earned = REWARDS.filter((r) => r.at <= total).length;
   const pct = next ? Math.round(((total - prev) / (next - prev)) * 100) : 100;
-  dialog.innerHTML = `<div class="sheet-head"><h2 id="rewards-title">Coins &amp; rewards</h2>
+  dialog.innerHTML = `<div class="rewards"><div class="sheet-head"><h2 id="rewards-title">Coins &amp; rewards</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     <p class="coin-summary"><span class="coin big" aria-hidden="true"></span>
@@ -69,7 +69,7 @@ function render(dialog: HTMLDialogElement) {
     }).join('')}</ul>
     <h3>Unlocks</h3>
     <ul class="unlocks">${REWARDS.filter((r) => r.unlock).map((r) => unlockTile(r, total)).join('')}</ul>
-    <p class="hint">Moon keeps its nightcap and Unicorn its horn, so those two skip hats.</p>`;
+    <p class="hint">Moon keeps its nightcap and Unicorn its horn, so those two skip hats.</p></div>`;
 }
 
 export function openRewards() {
