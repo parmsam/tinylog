@@ -1,9 +1,12 @@
 import { animate } from 'animejs';
 import { cardById, lastFor, lastWake, ongoingFor, type CardId } from '../core/cards';
-import { coins, milestonePassed } from '../core/coins';
+import { coins, coinsBefore, milestonePassed } from '../core/coins';
+import { dayRange } from '../core/days';
 import { ago, duration, stopwatch } from '../core/format';
 import { app, settings, today } from '../core/log';
-import { characterById } from '../companion/characters';
+import { accessoryById, wear } from '../companion/accessories';
+import { BASE_IDS, characterById, companionForDay, type CompanionId } from '../companion/characters';
+import { isUnlocked, rewardAt, REWARDS } from '../companion/rewards';
 import { Companion, type CompanionState, type Reaction } from '../companion/companion';
 import { greeting, idleBit, milestoneMoment, momentFor, tapMoment, TICKLE_MS, TICKLE_TAPS, timeOfDay, type Moment } from '../companion/mood';
 import type { LogEvent } from '../core/types';
@@ -30,12 +33,32 @@ const TAP_NOTE_MS = 4000;
 const IDLE_MS = 90_000;
 const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.theme === 'night';
 
+const allTime = () => coins(app.get().events, Date.now(), settings.get().dayStartHour).total;
+
+/**
+ * Who's out today: the chosen character (Puff if it isn't unlocked, say after an undo), or today's
+ * pick for "Surprise me" from everyone unlocked by the start of the day (so it can't swap mid-day).
+ */
+export function currentCompanion(now = Date.now()): CompanionId {
+  const { companion: choice, dayStartHour } = settings.get();
+  if (choice === 'random') {
+    const day = today(now);
+    const had = coinsBefore(app.get().events, dayRange(day, dayStartHour)[0]);
+    const specials = REWARDS.flatMap((r) => (r.unlock?.kind === 'companion' && r.at <= had ? [r.unlock.id] : []));
+    return companionForDay(day, [...BASE_IDS, ...specials]);
+  }
+  if (choice === 'off') return 'puff';
+  return isUnlocked('companion', choice, allTime()) ? choice : 'puff';
+}
+
+/** What it's wearing: the chosen accessories that are unlocked. */
+export const currentOutfit = (total = allTime()) => settings.get().accessories.filter((a) => isUnlocked('accessory', a, total));
+
 export function mountCompanion() {
   const host = document.getElementById('companion');
   if (!host) return;
-  const choice = settings.get().companion;
   const button = host.querySelector<HTMLButtonElement>('.puff-host')!;
-  buddy = new Companion(button, choice === 'off' ? 'puff' : choice);
+  buddy = new Companion(button, currentCompanion());
   button.addEventListener('click', companionTap);
 }
 
@@ -64,7 +87,12 @@ function celebrateMilestones(total: number, now: number) {
   if (!buddy) return;
   const passed = shownTotal === undefined ? undefined : milestonePassed(shownTotal, total);
   shownTotal = total;
-  if (passed) play(milestoneMoment(passed, characterById(buddy.id).label), now, NOTE_MS, 1300);
+  if (!passed) return;
+  const unlock = rewardAt(passed)?.unlock;
+  // A new accessory goes straight on (replacing whatever was in its slot), so it's seen right away.
+  if (unlock?.kind === 'accessory') settings.set({ accessories: wear(settings.get().accessories, unlock.id) });
+  const label = unlock ? (unlock.kind === 'accessory' ? accessoryById(unlock.id).label : characterById(unlock.id).label) : '';
+  play(milestoneMoment(passed, characterById(buddy.id).label, unlock && { kind: unlock.kind, label }), now, NOTE_MS, 1300);
 }
 
 function stateAndLine(now: number): { state: CompanionState; line: string } {
@@ -91,16 +119,17 @@ export function renderCompanion(now = Date.now()) {
   backgroundCalm(!!(ongoingFor(events, cardById('nap')) ?? ongoingFor(events, cardById('night'))));
   const host = document.getElementById('companion');
   if (!host || !buddy) return;
-  const choice = settings.get().companion;
-  const show = choice !== 'off' && app.get().day === today(now);
+  // Not before the log has loaded either: who's out and what they wear depend on the coins.
+  const show = settings.get().companion !== 'off' && app.get().loaded && app.get().day === today(now);
   host.hidden = !show;
   if (!show) return;
-  buddy.setCharacter(choice);
-  const label = `Say hi to ${characterById(choice).label}`;
+  const id = currentCompanion(now);
+  buddy.setCharacter(id);
+  const label = `Say hi to ${characterById(id).label}`;
   if (host.querySelector('.puff-host')!.getAttribute('aria-label') !== label) host.querySelector('.puff-host')!.setAttribute('aria-label', label);
-  // Not before the log has loaded, or the whole log would pop in as "+12" and pass milestones on launch.
-  const purse = app.get().loaded ? coins(events, now, settings.get().dayStartHour) : undefined;
-  if (purse) celebrateMilestones(purse.total, now);
+  const purse = coins(events, now, settings.get().dayStartHour);
+  celebrateMilestones(purse.total, now);
+  buddy.setOutfit(currentOutfit(purse.total));
   const { state, line: status } = stateAndLine(now);
   const line = note && now < note.until ? note.text : status;
   buddy.setState(state);
@@ -114,7 +143,7 @@ export function renderCompanion(now = Date.now()) {
   }
   const el = host.querySelector('.companion-line')!;
   if (el.textContent !== line) el.textContent = line;
-  if (purse) renderCoins(host, purse, now);
+  renderCoins(host, purse, now);
 }
 
 /** The coin chip: today's coins, all time underneath; a "+1" floats up when entries are added. */

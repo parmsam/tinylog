@@ -48,7 +48,9 @@ export type Units = 'ml' | 'oz';
 export type ClockFormat = 'auto' | '12h' | '24h';
 export type ThemeChoice = 'auto' | 'day' | 'dusk' | 'night';
 export type GridMarks = 'dots' | 'checks' | 'crosses';
-export type CompanionChoice = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'peanut' | 'off';
+export type CompanionChoice = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'peanut' | 'star' | 'unicorn' | 'bee' | 'random' | 'off';
+/** Things a companion can wear, unlocked at coin milestones (see companion/rewards.ts). */
+export type AccessoryId = 'bowtie' | 'partyhat' | 'flowers' | 'crown' | 'rainbow';
 export type Background = 'glow' | 'none' | 'sky' | 'fireflies' | 'bubbles' | 'mobile' | 'snow';
 
 export interface Settings {
@@ -71,8 +73,10 @@ export interface Settings {
   gridMarks: GridMarks;
   /** Taps buzz (Android vibration, iOS switch haptics). */
   haptics: boolean;
-  /** The little companion under the date, or 'off'. */
+  /** The little companion under the date, 'random' for a different one each day, or 'off'. */
   companion: CompanionChoice;
+  /** What the companion is wearing (one per slot); only unlocked ones show. */
+  accessories: AccessoryId[];
   /** Page background: soft glow (default), three.js night sky, or plain. */
   background: Background;
 }

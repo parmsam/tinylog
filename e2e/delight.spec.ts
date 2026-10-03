@@ -1,3 +1,4 @@
+import { companionForDay } from '../src/companion/characters';
 import { card, entries, ev, expect, MIN, open, test, toastEl } from './helpers';
 
 test.describe('companions', () => {
@@ -73,6 +74,59 @@ test.describe('companions', () => {
     await expect(page.locator('#companion')).toContainText('50 coins!');
   });
 
+  test('passing a milestone unlocks its prechosen reward: 100 coins puts on the party hat', async ({ page }) => {
+    const now = new Date(2026, 8, 30, 10, 30).getTime();
+    await page.clock.setFixedTime(now);
+    await open(page, { events: Array.from({ length: 99 }, (_, i) => ev('feed', now - (i + 1) * 60 * MIN)) });
+    const svg = page.locator('#companion svg.buddy');
+    await expect(svg.locator('[data-acc]')).toHaveCount(0);
+    await card(page, 'wet').click();
+    await expect(page.locator('#companion')).toContainText('100 coins! Puff got a party hat');
+    await expect(svg.locator('[data-acc="partyhat"]')).toBeVisible();
+    // Undo dips below 100 again: the hat comes off (it's still chosen, just not unlocked).
+    await toastEl(page).getByRole('button', { name: 'Undo' }).click();
+    await expect(svg.locator('[data-acc]')).toHaveCount(0);
+  });
+
+  test('tap the coins: coins, medals and unlocks; wear what is unlocked, pick unlocked companions', async ({ page }) => {
+    const now = new Date(2026, 8, 30, 10, 30).getTime();
+    await page.clock.setFixedTime(now);
+    await open(page, { events: Array.from({ length: 260 }, (_, i) => ev('feed', now - 2 * 24 * 60 * MIN - i * 30 * MIN)) });
+    await page.locator('#companion .coin-chip').click();
+    const sheet = page.locator('#rewards');
+    await expect(sheet.getByRole('heading', { name: 'Coins & rewards' })).toBeVisible();
+    await expect(sheet).toContainText('0 today · 260 all time');
+    await expect(sheet).toContainText('Next: 500 coins · Flower crown · 240 to go');
+    await expect(sheet.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '260');
+    await expect(sheet.getByRole('heading', { name: /Medals/ })).toContainText('4 of 9');
+    await expect(sheet.getByLabel('250 coins: silver medal, earned')).toBeVisible();
+    await expect(sheet.getByLabel('500 coins: silver medal, not yet')).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath('rewards.png') });
+
+    const bowtie = sheet.locator('[data-wear="bowtie"]');
+    await expect(sheet.locator('[data-wear="crown"]')).toBeDisabled();
+    await expect(sheet.locator('[data-buddy="unicorn"]')).toBeDisabled();
+    await bowtie.click();
+    await expect(bowtie).toHaveAttribute('aria-pressed', 'true');
+    await sheet.locator('[data-buddy="star"]').click();
+    await expect(sheet.locator('[data-buddy="star"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Escape');
+    const svg = page.locator('#companion svg.buddy');
+    await expect(svg).toHaveAttribute('data-companion', 'star');
+    await expect(svg.locator('[data-acc="bowtie"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Say hi to Star' })).toBeVisible();
+
+    // Settings: Star is choosable, Unicorn still locked; the keyboard shortcut opens the sheet too.
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.locator('#settings input[name="companion"][value="unicorn"]')).toBeDisabled();
+    await expect(page.locator('#settings input[name="companion"][value="star"]')).toBeChecked();
+    await page.locator('#settings').getByRole('button', { name: 'Medals & unlocks' }).click();
+    await expect(sheet).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('k');
+    await expect(sheet).toBeVisible();
+  });
+
   test('tap the companion: it says hi in its own voice, and a flurry of taps tickles', async ({ page }) => {
     await open(page, { settings: { companion: 'sadie' } });
     const buddy = page.getByRole('button', { name: 'Say hi to Sadie' });
@@ -84,6 +138,23 @@ test.describe('companions', () => {
       for (let i = 0; i < 4; i++) el.click();
     });
     await expect(page.locator('#companion .companion-line')).toHaveText('Hehe, that tickles!');
+  });
+
+  test('Surprise me: a different companion each day, the same one all day', async ({ page }) => {
+    await page.clock.setFixedTime(new Date(2026, 9, 3, 10, 0));
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings .buddy-picker').getByText('Surprise me', { exact: true }).click();
+    await page.keyboard.press('Escape');
+    const svg = page.locator('#companion svg.buddy');
+    const [today, tomorrow] = [companionForDay('2026-10-03'), companionForDay('2026-10-04')];
+    expect(today).not.toBe(tomorrow);
+    await expect(svg).toHaveAttribute('data-companion', today);
+    await page.reload();
+    await expect(svg).toHaveAttribute('data-companion', today);
+    await page.clock.setFixedTime(new Date(2026, 9, 4, 10, 0));
+    await page.reload();
+    await expect(svg).toHaveAttribute('data-companion', tomorrow);
   });
 
   test('only shows on today, and can be turned off', async ({ page }) => {

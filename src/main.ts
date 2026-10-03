@@ -13,6 +13,7 @@ import { applyBackground } from './ui/background';
 import { toast, undoLast } from './ui/toast';
 import { openAmbient } from './ui/ambient';
 import { openShortcuts } from './ui/shortcuts';
+import { openRewards } from './ui/rewardsView';
 import { openRecap } from './ui/recapView';
 import { runLinkAction } from './ui/linkRunner';
 import { createAgentApi } from './ui/agentApi';
@@ -44,6 +45,7 @@ document.getElementById('settings-open')!.addEventListener('click', openSettings
 document.getElementById('trends-open')!.addEventListener('click', openTrends);
 document.getElementById('ambient-open')!.addEventListener('click', openAmbient);
 document.getElementById('shortcuts-open')!.addEventListener('click', openShortcuts);
+document.querySelector('#companion .coin-chip')!.addEventListener('click', openRewards);
 document.getElementById('recap-open')!.addEventListener('click', () => void openRecap());
 const clockEl = document.getElementById('day-clock')!;
 
@@ -135,6 +137,7 @@ document.addEventListener('keydown', (e) => {
   else if (key === 'a') openAmbient();
   else if (key === 'm') void copyMarkdown(1);
   else if (key === 'r') void openRecap();
+  else if (key === 'k') openRewards();
   else if (key === 'u') {
     if (!undoLast()) toast('Nothing to undo');
   } else {

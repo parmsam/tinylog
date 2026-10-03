@@ -173,6 +173,35 @@ test.describe('tips', () => {
     await page.getByRole('button', { name: 'Show tips again' }).click();
     await expect(banner).toContainText('Tap a card');
   });
+
+  test('Next tip steps through every tip without waiting; only Got it marks one seen', async ({ page }) => {
+    await open(page, { settings: { tipsSeen: [] } });
+    const banner = page.locator('#banner');
+    const next = banner.getByRole('button', { name: 'Next tip' });
+    await expect(banner).toContainText('Tap a card');
+    await expect(banner.locator('.tip-count')).toHaveText('1/8');
+    await next.click();
+    // Not due yet (needs 10 entries), but browsing shows it anyway.
+    await expect(banner).toContainText('Share with partner');
+    await expect(banner.locator('.tip-count')).toHaveText('2/8');
+    await page.screenshot({ path: test.info().outputPath('tips.png') });
+    for (let i = 0; i < 6; i++) await next.click();
+    await expect(banner).toContainText('Shortcuts & Siri');
+    await next.click();
+    await expect(banner).toContainText('Tap a card');
+    await next.click();
+    await banner.getByRole('button', { name: 'Got it' }).click();
+    await expect(banner).toBeHidden();
+    // The welcome tip was only browsed past, so it's still there next time.
+    await page.reload();
+    await expect(banner).toContainText('Tap a card');
+    await banner.getByRole('button', { name: 'Got it' }).click();
+    await expect(banner).toBeHidden();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Show tips again' }).click();
+    await expect(banner).toContainText('Tap a card');
+    await expect(banner.locator('.tip-count')).toHaveText('1/8');
+  });
 });
 
 test.describe('patterns', () => {

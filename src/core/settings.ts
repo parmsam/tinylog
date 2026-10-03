@@ -1,4 +1,4 @@
-import type { Settings } from './types';
+import type { AccessoryId, Settings } from './types';
 
 export const SETTINGS_KEY = 'tinylog:v1:settings';
 
@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gridMarks: 'dots',
   haptics: true,
   companion: 'puff',
+  accessories: [],
   background: 'glow',
 };
 
@@ -42,7 +43,9 @@ export function loadSettings(): Settings {
     const c = s.companion as unknown;
     if (c === true) s.companion = 'puff';
     else if (c === false) s.companion = 'off';
-    if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'peanut', 'off'].includes(s.companion)) s.companion = 'puff';
+    if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'peanut', 'star', 'unicorn', 'bee', 'random', 'off'].includes(s.companion)) s.companion = 'puff';
+    const known: AccessoryId[] = ['bowtie', 'partyhat', 'flowers', 'crown', 'rainbow'];
+    s.accessories = Array.isArray(s.accessories) ? s.accessories.filter((a) => known.includes(a)) : [];
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
     return s;
   } catch {

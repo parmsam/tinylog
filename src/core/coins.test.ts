@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coins, milestonePassed, nextMilestone } from './coins';
+import { coins, coinsBefore, milestonePassed, nextMilestone } from './coins';
 import { createEvent, patchEvent } from './events';
 
 const at = (h: number, d = 30) => new Date(2026, 8, d, h).getTime();
@@ -24,6 +24,12 @@ describe('coins', () => {
     // 2 AM belongs to yesterday when the day starts at 6.
     expect(coins([createEvent('feed', at(2), undefined, at(2))], at(10), 6).today).toBe(0);
     expect(coins([createEvent('feed', at(2), undefined, at(2))], at(4), 6).today).toBe(1);
+  });
+
+  it('counts coins earned before a time (what was unlocked by the start of a day)', () => {
+    const events = [createEvent('feed', at(8, 29), undefined, at(8, 29)), createEvent('feed', at(8), undefined, at(8)), createEvent('note', at(7, 29), undefined, at(7, 29))];
+    expect(coinsBefore(events, at(0))).toBe(1);
+    expect(coinsBefore(events, at(9))).toBe(2);
   });
 });
 

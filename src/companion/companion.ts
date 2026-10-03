@@ -1,6 +1,7 @@
 import { animate, type AnimationParams } from 'animejs';
 import { characterSvg, type CompanionId } from './characters';
 import type { TimeOfDay } from './mood';
+import type { AccessoryId } from '../core/types';
 
 /**
  * A little companion who keeps you company. States mirror what's going on (asleep while the baby
@@ -42,6 +43,7 @@ export class Companion {
   private faceTimer: number | undefined;
   private excitedTimer: number | undefined;
   id: CompanionId;
+  private wearing: AccessoryId[] = [];
 
   constructor(
     private host: HTMLElement,
@@ -53,7 +55,7 @@ export class Companion {
 
   private draw() {
     const { state = 'idle', time } = this.root?.dataset ?? {};
-    this.host.innerHTML = characterSvg(this.id);
+    this.host.innerHTML = characterSvg(this.id, { wearing: this.wearing });
     this.root = this.host.querySelector('svg.buddy')!;
     this.root.dataset.state = state;
     if (time) this.root.dataset.time = time;
@@ -62,6 +64,13 @@ export class Companion {
   setCharacter(id: CompanionId) {
     if (id === this.id) return;
     this.id = id;
+    this.draw();
+  }
+
+  /** What it's wearing (already filtered to what's unlocked). */
+  setOutfit(wearing: AccessoryId[]) {
+    if (wearing.join() === this.wearing.join()) return;
+    this.wearing = [...wearing];
     this.draw();
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "tinylog",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "description": "An absurdly beautiful, local-only baby tracker. One tap to log; lovely ways to see the day.",
   "type": "module",

@@ -201,6 +201,25 @@ button {
 .banner .chip {
   flex: none;
 }
+.tip-actions {
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+.tip-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .banner:has(.tip-actions) {
+    flex-wrap: wrap;
+  }
+  .banner .tip-actions {
+    margin-left: auto;
+  }
+}
 
 /* ---------- Cards ---------- */
 .cards {
@@ -1493,6 +1512,13 @@ table.daygrid {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+.coin-chip:focus-visible {
+  outline: 2px solid var(--puff-prop);
+  outline-offset: 2px;
 }
 .coin {
   width: 16px;
@@ -1857,7 +1883,12 @@ table.daygrid {
 .buddy .c-topknot,
 .buddy .c-arm-l,
 .buddy .c-arm-r,
-.buddy .c-curl {
+.buddy .c-curl,
+.buddy .c-twinkle path,
+.buddy .c-horn,
+.buddy .c-sparkle,
+.buddy .c-wing-l,
+.buddy .c-wing-r {
   transform-box: fill-box;
 }
 /* Sadie: tail wags (faster when excited), ears lift a little when excited, droop while asleep. */
@@ -1993,8 +2024,69 @@ table.daygrid {
     transform: rotate(-28deg);
   }
 }
-/* Characters with their own colors dim at night like the emoji do (Puff uses theme tokens instead). */
-:root[data-theme='night'] .buddy:not([data-companion='puff']) {
+/* Star twinkles; faster when excited. */
+.buddy[data-companion='star'] .c-twinkle path {
+  transform-origin: 50% 50%;
+  animation: star-twinkle 2.4s ease-in-out infinite;
+}
+.buddy[data-companion='star'] .c-twinkle path + path {
+  animation-delay: -1.2s;
+}
+.buddy[data-companion='star'][data-excited] .c-twinkle path {
+  animation-duration: 0.6s;
+}
+@keyframes star-twinkle {
+  50% {
+    transform: scale(0.5);
+    opacity: 0.4;
+  }
+}
+/* Unicorn: the horn sparkles when excited. */
+.buddy[data-companion='unicorn'] .c-sparkle {
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+.buddy[data-companion='unicorn'][data-excited] .c-sparkle {
+  animation: unicorn-sparkle 0.5s ease-in-out infinite alternate;
+}
+@keyframes unicorn-sparkle {
+  from {
+    opacity: 0.3;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.2) rotate(30deg);
+  }
+}
+/* Bumblebee: wings flutter, faster when excited, and rest while asleep. */
+.buddy[data-companion='bee'] .c-wing-l {
+  transform-origin: 100% 100%;
+  animation: bee-flutter-l 0.5s ease-in-out infinite alternate;
+}
+.buddy[data-companion='bee'] .c-wing-r {
+  transform-origin: 0% 100%;
+  animation: bee-flutter-r 0.5s ease-in-out infinite alternate;
+}
+.buddy[data-companion='bee'][data-excited] :is(.c-wing-l, .c-wing-r) {
+  animation-duration: 0.12s;
+}
+.buddy[data-companion='bee'][data-state='sleeping'] :is(.c-wing-l, .c-wing-r) {
+  animation: none;
+}
+@keyframes bee-flutter-l {
+  to {
+    transform: rotate(-14deg);
+  }
+}
+@keyframes bee-flutter-r {
+  to {
+    transform: rotate(14deg);
+  }
+}
+/* Characters with their own colors dim at night like the emoji do (Puff uses theme tokens instead, but its accessories don't). */
+:root[data-theme='night'] .buddy:not([data-companion='puff']),
+:root[data-theme='night'] .buddy[data-companion='puff'] .p-acc {
   filter: sepia(0.5) saturate(0.6) brightness(0.7);
 }
 /* Picker previews: still. */
@@ -2011,6 +2103,160 @@ table.daygrid {
 }
 .buddy-picker svg {
   aspect-ratio: 120 / 96;
+}
+.scene-tile.locked {
+  cursor: default;
+  color: var(--muted);
+}
+.scene-tile.locked svg {
+  filter: grayscale(1) opacity(0.45);
+}
+.scene-tile small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Coins & rewards sheet */
+#rewards h3 {
+  margin: 18px 0 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+#rewards h3 .muted {
+  font-weight: 700;
+  color: var(--muted);
+}
+.coin-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+.coin.big {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  box-shadow: inset 0 0 0 3px color-mix(in oklab, var(--puff-prop) 70%, #8a5a00);
+}
+.coin-next p,
+p.coin-next {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+}
+.coin-meter {
+  height: 10px;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--puff-prop) 16%, transparent);
+  overflow: hidden;
+}
+.coin-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--puff-prop);
+}
+.medals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.medal-art {
+  display: block;
+  width: 100%;
+  max-width: 48px;
+  margin: 0 auto;
+}
+.medal-art text {
+  font: 800 9px/1 system-ui, sans-serif;
+}
+.medal-art[data-tier='bronze'] {
+  --m: #d9925a;
+  --m2: #b8703c;
+}
+.medal-art[data-tier='silver'] {
+  --m: #cfd6df;
+  --m2: #9aa5b3;
+}
+.medal-art[data-tier='gold'] {
+  --m: #f5cd6a;
+  --m2: #d9a93a;
+}
+.medal-art[data-tier='locked'] {
+  --m: color-mix(in oklab, var(--muted) 18%, transparent);
+  --m2: color-mix(in oklab, var(--muted) 45%, transparent);
+}
+.medal-ribbon {
+  fill: #e0525a;
+}
+.medal-art[data-tier='bronze'] .medal-ribbon {
+  fill: #7b8cf0;
+}
+.medal-art[data-tier='locked'] .medal-ribbon {
+  fill: color-mix(in oklab, var(--muted) 30%, transparent);
+}
+.medal-disc {
+  fill: var(--m);
+}
+.medal-rim {
+  fill: none;
+  stroke: var(--m2);
+  stroke-width: 1.5;
+}
+.medal-art text {
+  fill: #3a2a22;
+}
+.medal-art[data-tier='locked'] text {
+  fill: var(--muted);
+}
+.unlocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.unlock-tile {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: center;
+  cursor: pointer;
+}
+.unlock-tile svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 120 / 96;
+}
+.unlock-tile span {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.unlock-tile[aria-pressed='true'] {
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--text);
+}
+.unlock-tile:disabled {
+  cursor: default;
+}
+.unlock-tile:disabled svg {
+  filter: grayscale(1) opacity(0.45);
+}
+:root[data-theme='night'] :is(.medal-art, .unlock-tile svg) {
+  filter: sepia(0.5) saturate(0.6) brightness(0.7);
 }
 @media (prefers-reduced-motion: reduce) {
   .buddy [class^='c-'] {

@@ -39,6 +39,12 @@ describe('companion setting', () => {
     expect(loadSettings().companion).toBe('off');
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'sadie' }));
     expect(loadSettings().companion).toBe('sadie');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'unicorn', accessories: ['crown', 'cape', 3] }));
+    expect(loadSettings()).toMatchObject({ companion: 'unicorn', accessories: ['crown'] });
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ accessories: 'crown' }));
+    expect(loadSettings().accessories).toEqual([]);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'random' }));
+    expect(loadSettings().companion).toBe('random');
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: 'dragon' }));
     expect(loadSettings().companion).toBe('puff');
   });

@@ -18,7 +18,14 @@ export function coins(events: LogEvent[], now: number, dayStartHour: number): { 
   return { today, total };
 }
 
-/** All-time totals worth a celebration. */
+/** Coins earned before `at` (e.g. the start of a day), for what was unlocked by then. */
+export function coinsBefore(events: LogEvent[], at: number): number {
+  let n = 0;
+  for (const e of events) if (!e.deleted && e.type !== 'note' && e.createdAt < at) n++;
+  return n;
+}
+
+/** All-time totals worth a celebration (each brings a reward: companion/rewards.ts). */
 export const COIN_MILESTONES = [1, 50, 100, 250, 500, 1000, 2500, 5000, 10_000];
 
 /** The milestone passed going from `prev` to `next` coins (the biggest, if several), if any. */

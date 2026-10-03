@@ -11,13 +11,14 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Patterns, not predictions.** Typical nap length, bedtime and wake-up windows, longest stretch, feeds and diapers per day, time between feeds, weekly tummy time and pump output. Each says what it's based on, and waits until there's enough data.
 - **Markdown export.** Copy or download any range (or press `M` for today): totals, day notes and every entry. Paste it into Notes or Obsidian, or bring it to a checkup.
-- **A little companion.** Puff the cloud, Sadie the mini golden retriever, Moon, Bunny or Duckling. They sip a bottle when you log a feed, doze while the baby sleeps and sigh with relief when a fussy spell ends (Sadie wags). Or turn them off in Settings.
+- **A little companion.** Puff the cloud, Sadie the mini golden retriever, Moon, Bunny, Duckling or Peanut, or a different one each day (Surprise me). They sip a bottle when you log a feed, doze while the baby sleeps and sigh with relief when a fussy spell ends (Sadie wags). Or turn them off in Settings.
+- **Coins, medals and unlocks.** Every entry earns a coin. Tap the coins for medals at each milestone and what they unlock: a bow tie, party hat, flower crown, crown and rainbow to dress the companion up, and three special friends (Star, Unicorn, Bumblebee). Nothing is ever spent or lost.
 - **Day recap.** A shareable image of any day (clock, totals, longest stretch, your note), or the day as Markdown.
 - **Backgrounds.** A soft glow by default, or one of five gentle three.js scenes (night sky, fireflies, bubbles, crib mobile, snow), loaded only if you pick one and slower while the baby sleeps.
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
 - **Two phones.** Share an export from one phone (AirDrop, Messages) and import it on the other: entries merge, the newest edit wins, and importing twice is harmless.
-- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `,` settings, `?` all shortcuts.
+- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `K` coins & rewards, `,` settings, `?` all shortcuts.
 - **Works offline** as an installable PWA.
 
 ## Siri, Shortcuts and links

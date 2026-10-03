@@ -150,8 +150,11 @@ export function tapMoment(own: string[], n: number, tickled: boolean): Moment {
   return { reaction: TAP_REACTIONS[n % TAP_REACTIONS.length], note: lines[n % lines.length] };
 }
 
-/** Coin milestones (all-time), celebrated with a line. */
-export function milestoneMoment(coins: number, buddy: string): Moment {
+/** Coin milestones (all-time), celebrated with a line; one that unlocks something says what. */
+export function milestoneMoment(coins: number, buddy: string, unlock?: { kind: 'accessory' | 'companion'; label: string }): Moment {
+  const n = coins.toLocaleString();
+  if (unlock?.kind === 'accessory') return { reaction: 'proud', note: `${n} coins! ${buddy} got a ${unlock.label.toLowerCase()}` };
+  if (unlock?.kind === 'companion') return { reaction: 'proud', note: `${n} coins! ${unlock.label} came to say hi · tap the coins` };
   if (coins === 1) return { reaction: 'proud', note: `Your first coin! ${buddy} is keeping count` };
   return { reaction: 'proud', note: pick([`${coins.toLocaleString()} coins! ${buddy} is so proud`, `${coins.toLocaleString()} coins! Look at you go`], coins) };
 }

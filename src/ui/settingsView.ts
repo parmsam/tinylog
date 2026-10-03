@@ -8,7 +8,10 @@ import { copyText, downloadText } from './clipboard';
 import { storageStatus } from './persist';
 import { isIos, isTouchDevice } from '../core/haptics';
 import { PREVIEWS } from './scenePreviews';
-import { CHARACTERS, characterSvg } from '../companion/characters';
+import { BASE_IDS, CHARACTERS, characterSvg } from '../companion/characters';
+import { unlockAt } from '../companion/rewards';
+import { openRewards } from './rewardsView';
+import { currentOutfit } from './companion';
 import { resetTips } from './tips';
 import type { Background } from '../core/types';
 
@@ -21,6 +24,13 @@ const BACKGROUNDS: [Background, string][] = [
   ['snow', 'Snow'],
   ['none', 'Plain'],
 ];
+/** The "Surprise me" companion tile: a question mark with a little sparkle. */
+const SURPRISE_ART = `<svg class="surprise" viewBox="0 0 120 96" aria-hidden="true">
+  <circle cx="60" cy="50" r="30" fill="currentColor" opacity=".12"/>
+  <path d="M50 42a10 10 0 1 1 15 8.7c-3 1.7-5 3.6-5 7.3v2" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="60" cy="70" r="3.6" fill="currentColor"/>
+  <path d="M92 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor" opacity=".6"/>
+</svg>`;
 import { toast } from './toast';
 
 /** Ready-made link actions for the Shortcuts & Siri section (relative to the app's own URL). */
@@ -143,10 +153,20 @@ export function openSettings() {
       ([id, label]) =>
         `<label class="scene-tile"><input type="radio" name="background" value="${id}" ${id === s.background ? 'checked' : ''} />${PREVIEWS[id]}<span>${label}</span></label>`,
     ).join('')}</div></fieldset>
-    <fieldset class="field"><legend>Companion</legend><div class="scene-picker buddy-picker">${[...CHARACTERS.map((c) => [c.id, c.label, characterSvg(c.id, { preview: true })]), ['off', 'Off', '<svg viewBox="0 0 120 96" aria-hidden="true"></svg>']]
-      .map(([id, label, art]) => `<label class="scene-tile"><input type="radio" name="companion" value="${id}" ${id === s.companion ? 'checked' : ''} />${art}<span>${label}</span></label>`)
+    <fieldset class="field"><legend>Companion</legend><div class="scene-picker buddy-picker">${[
+      ...CHARACTERS.map((c) => [c.id, c.label, characterSvg(c.id, { preview: true, wearing: currentOutfit(purse.total) })]),
+      ['random', 'Surprise me', SURPRISE_ART],
+      ['off', 'Off', '<svg viewBox="0 0 120 96" aria-hidden="true"></svg>'],
+    ]
+      .map(([id, label, art]) => {
+        const at = BASE_IDS.includes(id as never) ? undefined : unlockAt('companion', id);
+        const locked = at !== undefined && purse.total < at;
+        return `<label class="scene-tile${locked ? ' locked' : ''}"><input type="radio" name="companion" value="${id}" ${id === s.companion ? 'checked' : ''} ${locked ? 'disabled' : ''} />${art}<span>${label}${locked ? `<small>🔒 ${at!.toLocaleString()} coins</small>` : ''}</span></label>`;
+      })
       .join('')}</div>
-      <p class="hint coin-total"><span class="coin" aria-hidden="true"></span> <b>${purse.total.toLocaleString()}</b> ${purse.total === 1 ? 'coin' : 'coins'} all time · ${purse.today} today. One for every entry, shown next to the companion.${next ? ` Next milestone: ${next.toLocaleString()}.` : ''}</p></fieldset>
+      <p class="hint">Surprise me brings a different companion each day.</p>
+      <p class="hint coin-total"><span class="coin" aria-hidden="true"></span> <b>${purse.total.toLocaleString()}</b> ${purse.total === 1 ? 'coin' : 'coins'} all time · ${purse.today} today. One for every entry, shown next to the companion.${next ? ` Next milestone: ${next.toLocaleString()}.` : ''}</p>
+      <div class="btn-row"><button type="button" class="btn" data-rewards>Medals &amp; unlocks</button></div></fieldset>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
@@ -199,6 +219,10 @@ export function openSettings() {
   dialog.onclick = (e) => {
     const t = e.target as HTMLElement;
     if (t === dialog || t.closest('[data-close]')) dialog.close();
+    else if (t.closest('[data-rewards]')) {
+      dialog.close();
+      openRewards();
+    }
     else if (t.closest('[data-export]')) {
       exportDownload();
       void refreshStatus(dialog);

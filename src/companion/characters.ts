@@ -4,10 +4,15 @@
  * - `.p-body` wraps the character (it squishes and hops); `.p-eyes` blink; `.p-closed` shows while asleep
  * - mouths: `.p-smile` (default), `.p-o` (sip / yawn / surprise), `.p-wince`; `.p-sweat` while fussy
  * - eyes sit near (47–73, 45–52) and the mouth near (60, 60), so shared props (bottle, hearts…) line up
+ * - `head` is the top middle of the head, where a hat sits (leave it out if the character already
+ *   wears something there), and `neck` is where a bow tie goes (see accessories.ts)
  * Character-only parts use `c-` classes and are animated in styles.css under `[data-companion=…]`.
  */
 
-export type CompanionId = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'peanut';
+import { outfit } from './accessories';
+import type { AccessoryId } from '../core/types';
+
+export type CompanionId = 'puff' | 'sadie' | 'moon' | 'bunny' | 'duck' | 'peanut' | 'star' | 'unicorn' | 'bee';
 
 export interface Character {
   id: CompanionId;
@@ -15,6 +20,8 @@ export interface Character {
   /** What it says when tapped, in its own voice (mixed with a few shared lines). */
   tapLines: string[];
   body: string;
+  head?: [number, number];
+  neck: [number, number];
 }
 
 const INK = '#2b2340';
@@ -23,6 +30,8 @@ const PUFF: Character = {
   id: 'puff',
   label: 'Puff',
   tapLines: ['Poof!', 'I’m mostly fluff', 'Soft cloud, reporting for duty'],
+  head: [58, 17],
+  neck: [60, 69],
   body: `<path class="p-fill" d="M30 70c-12 0-20-8-20-18s8-17 18-17c2-12 13-21 26-21 11 0 20 6 24 15 3-1 5-2 8-2 12 0 21 9 21 21 0 12-9 22-21 22H30Z"/>
     <ellipse class="p-cheek" cx="40" cy="58" rx="6" ry="3.5"/><ellipse class="p-cheek" cx="80" cy="58" rx="6" ry="3.5"/>
     <g class="p-eyes"><ellipse cx="47" cy="49" rx="3.6" ry="4.6"/><ellipse cx="73" cy="49" rx="3.6" ry="4.6"/>
@@ -39,6 +48,8 @@ const SADIE: Character = {
   id: 'sadie',
   label: 'Sadie',
   tapLines: ['Woof!', 'Belly rubs later?', 'Who’s a good pup? Me!'],
+  head: [60, 27],
+  neck: [60, 66],
   body: `<g class="c-tail"><path d="M76 80C88 80 98 72 99 59C100 53 96 49 92 51C95 57 91 67 78 71Z" fill="#e0a553"/>
       <path d="M96 55q3 1 3 4M97 62q3 1 2 4M93 69q2 2 0 5" fill="none" stroke="#f3c67e" stroke-width="1.6" stroke-linecap="round"/></g>
     <ellipse cx="60" cy="75" rx="20" ry="13.5" fill="#edb566"/>
@@ -68,6 +79,7 @@ const MOON: Character = {
   id: 'moon',
   label: 'Moon',
   tapLines: ['Twinkle twinkle', 'Shh, I’m glowing', 'Over the moon!'],
+  neck: [60, 79],
   body: `<defs><clipPath id="moon-clip"><circle cx="60" cy="52" r="28"/></clipPath></defs>
     <circle cx="60" cy="52" r="28" fill="#f7e7a6"/>
     <circle cx="74" cy="46" r="26" fill="#e8d07c" opacity=".45" clip-path="url(#moon-clip)"/>
@@ -90,6 +102,8 @@ const BUNNY: Character = {
   id: 'bunny',
   label: 'Bunny',
   tapLines: ['Boop!', '*nose wiggle*', 'Hop hop!'],
+  head: [60, 35],
+  neck: [60, 73],
   body: `<g class="c-ear-l"><ellipse cx="48" cy="22" rx="7" ry="20" transform="rotate(-8 48 22)" fill="#f7f2ef" stroke="#e3d8d3"/>
       <ellipse cx="48" cy="23" rx="3.4" ry="14" transform="rotate(-8 48 23)" fill="#f7b8c4"/></g>
     <g class="c-ear-r"><ellipse cx="72" cy="22" rx="7" ry="20" transform="rotate(8 72 22)" fill="#f7f2ef" stroke="#e3d8d3"/>
@@ -113,6 +127,8 @@ const DUCK: Character = {
   id: 'duck',
   label: 'Duckling',
   tapLines: ['Quack!', 'Puddle later?', 'Quack quack!'],
+  head: [56, 28],
+  neck: [56, 68],
   body: `<ellipse cx="62" cy="73" rx="27" ry="16" fill="#f7d24c"/>
     <path d="M87 70q8-6 6-14q-4 8-10 8Z" fill="#f7d24c"/>
     <ellipse class="c-wing" cx="72" cy="73" rx="11" ry="7" fill="#eebd2e"/>
@@ -135,6 +151,8 @@ const PEANUT: Character = {
   id: 'peanut',
   label: 'Peanut',
   tapLines: ['Shell yeah!', 'Nuts about you', 'Small but mighty'],
+  head: [60, 25],
+  neck: [60, 64],
   body: `<g class="c-arm-l"><path d="M41 64q-6-1-9-6" fill="none" stroke="#c48d4f" stroke-width="3" stroke-linecap="round"/></g>
     <g class="c-arm-r"><path d="M79 64q6-1 9-6" fill="none" stroke="#c48d4f" stroke-width="3" stroke-linecap="round"/></g>
     <ellipse cx="52" cy="87" rx="6" ry="2.8" fill="#c48d4f"/><ellipse cx="68" cy="87" rx="6" ry="2.8" fill="#c48d4f"/>
@@ -154,9 +172,125 @@ const PEANUT: Character = {
     <g class="c-paci"><ellipse cx="60" cy="57.5" rx="6.5" ry="3.6" fill="#9fd3f0" stroke="#6fb3dc" stroke-width="1"/><circle cx="60" cy="61.5" r="2.6" fill="none" stroke="#6fb3dc" stroke-width="1.4"/></g>`,
 };
 
-export const CHARACTERS: Character[] = [PUFF, SADIE, MOON, BUNNY, DUCK, PEANUT];
+/* Special companions, unlocked with coins (rewards.ts). */
+
+/** Star: a chubby little star that twinkles. */
+const STAR: Character = {
+  id: 'star',
+  label: 'Star',
+  tapLines: ['Twinkle!', 'You’re a star too', 'Shine on!'],
+  head: [60, 21],
+  neck: [60, 69],
+  body: `<path d="M60 16 71.2 36.6 94.2 40.9 78.1 57.9 81.2 81.1 60 71 38.8 81.1 41.9 57.9 25.8 40.9 48.8 36.6Z" fill="#f9d55b" stroke="#f9d55b" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M60 24 68 39" stroke="#fff3c4" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+    <g class="c-twinkle" fill="#f9d55b"><path d="M14 22l1.5 3.5 3.5 1.5-3.5 1.5L14 32l-1.5-3.5L9 27l3.5-1.5Z"/><path d="M104 64l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2Z"/></g>
+    <ellipse class="p-cheek" cx="46" cy="57" rx="4.6" ry="2.8"/><ellipse class="p-cheek" cx="74" cy="57" rx="4.6" ry="2.8"/>
+    <g class="p-eyes"><ellipse cx="52" cy="49" rx="3.2" ry="4.2" fill="${INK}"/><ellipse cx="68" cy="49" rx="3.2" ry="4.2" fill="${INK}"/>
+      <circle cx="53.2" cy="47.4" r="1.1" fill="#fff"/><circle cx="69.2" cy="47.4" r="1.1" fill="#fff"/></g>
+    <path class="p-closed" d="M47 50q5 4 10 0M63 50q5 4 10 0"/>
+    <path class="p-mouth p-smile" d="M55 58q5 5 10 0"/>
+    <ellipse class="p-mouth p-o" cx="60" cy="60" rx="3" ry="3.5"/>
+    <path class="p-mouth p-wince" d="M53 59l3-2 4 2 4-2 3 2"/>
+    <path class="p-sweat" d="M92 26c2 4 4 6 4 8a4 4 0 0 1-8 0c0-2 2-4 4-8Z"/>`,
+};
+
+/** Unicorn: a pastel mane and a golden horn that sparkles when excited. */
+const UNICORN: Character = {
+  id: 'unicorn',
+  label: 'Unicorn',
+  tapLines: ['Neigh-ce to meet you!', 'Sparkle sparkle', 'Magic, obviously'],
+  neck: [60, 72],
+  body: `<ellipse cx="60" cy="80" rx="19" ry="10" fill="#fbf6ff" stroke="#e6dcf2"/>
+    <ellipse cx="50" cy="88" rx="5.5" ry="2.6" fill="#c9b8e8"/><ellipse cx="70" cy="88" rx="5.5" ry="2.6" fill="#c9b8e8"/>
+    <path d="M43 35 40 22l11 8Z" fill="#fbf6ff" stroke="#e6dcf2" stroke-linejoin="round"/><path d="M77 35l3-13-11 8Z" fill="#fbf6ff" stroke="#e6dcf2" stroke-linejoin="round"/>
+    <ellipse cx="60" cy="52" rx="24" ry="22" fill="#fbf6ff" stroke="#e6dcf2"/>
+    <g class="c-horn"><path d="M56 32 60 9l4 23Z" fill="#f5cd6a" stroke="#e0b347" stroke-linejoin="round"/>
+      <path d="M56.8 26.5l6.2-2M57.8 20.5l4.6-1.6M58.8 14.8l2.6-1" stroke="#e0b347" stroke-width="1.2" stroke-linecap="round"/></g>
+    <g class="c-mane"><circle cx="51" cy="32" r="5.5" fill="#f7b8c4"/><circle cx="43" cy="36" r="6" fill="#c9b8e8"/><circle cx="37.5" cy="44" r="5.8" fill="#9fd3f0"/>
+      <circle cx="36" cy="53" r="5.2" fill="#f7d78a"/><circle cx="38" cy="61.5" r="4.6" fill="#f7b8c4"/></g>
+    <g class="c-sparkle" fill="#f5cd6a"><path d="M72 12l1.2 2.8 2.8 1.2-2.8 1.2L72 20l-1.2-2.8-2.8-1.2 2.8-1.2Z"/></g>
+    <ellipse class="p-cheek" cx="45" cy="59" rx="4.6" ry="2.8"/><ellipse class="p-cheek" cx="76" cy="59" rx="4.6" ry="2.8"/>
+    <g class="p-eyes"><ellipse cx="51" cy="50" rx="3.2" ry="4.2" fill="${INK}"/><ellipse cx="69" cy="50" rx="3.2" ry="4.2" fill="${INK}"/>
+      <circle cx="52.2" cy="48.4" r="1.1" fill="#fff"/><circle cx="70.2" cy="48.4" r="1.1" fill="#fff"/></g>
+    <path class="p-closed" d="M46 51q5 4 10 0M64 51q5 4 10 0"/>
+    <path class="p-mouth p-smile" d="M55 60q5 5 10 0"/>
+    <ellipse class="p-mouth p-o" cx="60" cy="62" rx="3" ry="3.5"/>
+    <path class="p-mouth p-wince" d="M53 61l3-2 4 2 4-2 3 2"/>
+    <path class="p-sweat" d="M88 34c2 4 4 6 4 8a4 4 0 0 1-8 0c0-2 2-4 4-8Z"/>`,
+};
+
+/** Bumblebee: round and fuzzy, wings always fluttering (faster when excited). */
+const BEE: Character = {
+  id: 'bee',
+  label: 'Bumblebee',
+  tapLines: ['Bzzz!', 'Bee-lieve in you', 'Un-bee-lievable!'],
+  head: [60, 33],
+  neck: [60, 64],
+  body: `<defs><clipPath id="bee-clip"><circle cx="60" cy="56" r="26"/></clipPath></defs>
+    <g class="c-wing-l"><ellipse cx="38" cy="32" rx="12" ry="8" transform="rotate(-25 38 32)" fill="#e6f4ff" stroke="#b9dcf2" opacity=".9"/></g>
+    <g class="c-wing-r"><ellipse cx="82" cy="32" rx="12" ry="8" transform="rotate(25 82 32)" fill="#e6f4ff" stroke="#b9dcf2" opacity=".9"/></g>
+    <path d="M52 32q-3-9-9-12M68 32q3-9 9-12" fill="none" stroke="#3a2a22" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="43" cy="19" r="3" fill="#3a2a22"/><circle cx="77" cy="19" r="3" fill="#3a2a22"/>
+    <circle cx="60" cy="56" r="26" fill="#f7d24c"/>
+    <g clip-path="url(#bee-clip)" fill="#3a2a22"><rect x="30" y="67" width="60" height="5.5"/><rect x="30" y="77" width="60" height="5.5"/></g>
+    <ellipse class="p-cheek" cx="44" cy="56" rx="4.6" ry="2.8"/><ellipse class="p-cheek" cx="76" cy="56" rx="4.6" ry="2.8"/>
+    <g class="p-eyes"><ellipse cx="51" cy="48" rx="3.2" ry="4.2" fill="${INK}"/><ellipse cx="69" cy="48" rx="3.2" ry="4.2" fill="${INK}"/>
+      <circle cx="52.2" cy="46.4" r="1.1" fill="#fff"/><circle cx="70.2" cy="46.4" r="1.1" fill="#fff"/></g>
+    <path class="p-closed" d="M46 49q5 4 10 0M64 49q5 4 10 0"/>
+    <path class="p-mouth p-smile" d="M55 56q5 5 10 0"/>
+    <ellipse class="p-mouth p-o" cx="60" cy="58" rx="3" ry="3.5"/>
+    <path class="p-mouth p-wince" d="M53 57l3-2 4 2 4-2 3 2"/>
+    <path class="p-sweat" d="M90 40c2 4 4 6 4 8a4 4 0 0 1-8 0c0-2 2-4 4-8Z"/>`,
+};
+
+/** Everyone there from the start; "Surprise me" picks from these plus any unlocked specials. */
+export const BASE_IDS: CompanionId[] = ['puff', 'sadie', 'moon', 'bunny', 'duck', 'peanut'];
+
+export const CHARACTERS: Character[] = [PUFF, SADIE, MOON, BUNNY, DUCK, PEANUT, STAR, UNICORN, BEE];
 
 export const characterById = (id: CompanionId) => CHARACTERS.find((c) => c.id === id) ?? PUFF;
+
+/** A small seeded PRNG (mulberry32), so the daily pick is the same on every reload and every phone. */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Everyone in `pool`, shuffled for round `n`. */
+function shuffled(pool: CompanionId[], n: number): CompanionId[] {
+  const rand = seeded(n * 2654435761);
+  const ids = [...pool];
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  return ids;
+}
+
+/** One round of every character; it never starts with the one the last round ended on (swapping the first two leaves the end alone). */
+function round(pool: CompanionId[], n: number): CompanionId[] {
+  const ids = shuffled(pool, n);
+  if (ids.length > 1 && ids[0] === shuffled(pool, n - 1).at(-1)) [ids[0], ids[1]] = [ids[1], ids[0]];
+  return ids;
+}
+
+/**
+ * "Surprise me": the companion for a day (a `days.ts` key, YYYY-MM-DD). Characters in `pool` take
+ * turns in shuffled rounds, so everyone shows up once a round and the same one never comes two days
+ * running (except, rarely, the day the pool grows).
+ */
+export function companionForDay(day: string, pool: CompanionId[] = BASE_IDS): CompanionId {
+  const [y, m, d] = day.split('-').map(Number);
+  const n = Math.floor(Date.UTC(y, m - 1, d) / 86_400_000);
+  const len = pool.length;
+  return round(pool, Math.floor(n / len))[((n % len) + len) % len];
+}
 
 /** Shared reaction props, drawn over any character. */
 export const PROPS = `<g class="p-prop p-bottle"><rect x="70" y="56" width="16" height="9" rx="4"/><rect x="84" y="58" width="6" height="5" rx="2" class="p-nipple"/></g>
@@ -167,13 +301,28 @@ export const PROPS = `<g class="p-prop p-bottle"><rect x="70" y="56" width="16" 
     <g class="p-prop p-bubbles"><circle cx="22" cy="40" r="4"/><circle cx="30" cy="26" r="3"/><circle cx="98" cy="30" r="5"/><circle cx="92" cy="16" r="2.5"/></g>
     <g class="p-prop p-plus"><rect x="92" y="18" width="12" height="4" rx="1.5"/><rect x="96" y="14" width="4" height="12" rx="1.5"/></g>`;
 
-/** Full SVG for a character. `preview` renders a still, smaller version for pickers. */
-export function characterSvg(id: CompanionId, opts: { preview?: boolean } = {}): string {
+/** The accessories worn, at the character's anchors (behind it for the back slot; none on the head if it has no `head`). */
+function wornSvg(c: Character, wearing: AccessoryId[]): { back: string; front: string } {
+  let back = '';
+  let front = '';
+  for (const a of outfit(wearing)) {
+    const at = a.slot === 'back' ? [0, 0] : a.slot === 'head' ? c.head : c.neck;
+    if (!at) continue;
+    const g = `<g class="p-acc" data-acc="${a.id}"${a.slot === 'back' ? '' : ` transform="translate(${at[0]} ${at[1]})"`}>${a.art}</g>`;
+    if (a.slot === 'back') back += g;
+    else front += g;
+  }
+  return { back, front };
+}
+
+/** Full SVG for a character. `preview` renders a still, smaller version for pickers; `wearing` dresses it up. */
+export function characterSvg(id: CompanionId, opts: { preview?: boolean; wearing?: AccessoryId[] } = {}): string {
   const c = characterById(id);
   const cls = opts.preview ? 'buddy preview' : 'buddy';
+  const { back, front } = wornSvg(c, opts.wearing ?? []);
   return `<svg class="${cls}" viewBox="0 0 120 96" aria-hidden="true" data-companion="${c.id}" data-state="idle">
-    <ellipse class="p-shadow" cx="60" cy="90" rx="34" ry="4"/>
-    <g class="p-bob"><g class="p-body">${c.body}</g>${opts.preview ? '' : PROPS}</g>
+    ${back}<ellipse class="p-shadow" cx="60" cy="90" rx="34" ry="4"/>
+    <g class="p-bob"><g class="p-body">${c.body}${front}</g>${opts.preview ? '' : PROPS}</g>
     <g class="p-zs"><text x="92" y="30">z</text><text x="100" y="20">z</text><text x="108" y="10">z</text></g>
   </svg>`;
 }

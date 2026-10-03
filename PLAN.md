@@ -186,6 +186,7 @@ Settings → Background is a picker with small static previews: Glow (default), 
 #### More companions
 Companions live in `src/companion/`: `characters.ts` holds each character's SVG, all following one contract (shared eyes/mouth/prop positions and class names), and `companion.ts` runs the shared states and reactions. Each character adds its own touches in CSS under `[data-companion=…]`. Same rules for all: decoration only, never sad about anything missed, quiet at night, static under reduced motion.
 - [x] Companion picker in Settings (Puff by default, or Off), with still previews
+- [x] "Surprise me": a different companion each day (`companionForDay` in `characters.ts`)
 - [x] **Sadie**: a mini golden retriever pup with fluffy wavy ears, a top-knot and a red collar. Her tail wags, faster when you log a feed; ears lift when excited
 - [x] **Moon**: a sleepy moon in a nightcap that rocks while the baby sleeps
 - [x] **Bunny**: ears perk up when excited and flop down for naps; the nose twitches
@@ -195,6 +196,8 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] Coins: one for every entry, today's (with the all-time total under it) in a chip by the companion (a "+1" pops on each log), all time in Settings → Companion. Derived from the log, so undo takes the coin back; no streaks, nothing lost on a quiet day
 - [x] Tap the companion: a line in its own voice (each character has `tapLines`) mixed with shared ones, taking turns; five quick taps tickle it
 - [x] Coin milestones (all time: 1, 50, 100, 250, 500, 1,000, 2,500, 5,000, 10,000) get a celebration; Settings shows the next one
+- [x] Medals and unlocks at coin milestones, prechosen in `src/companion/rewards.ts`: a medal for each (bronze, silver, gold), plus a bow tie (50), party hat (100), **Star** (250), flower crown (500), **Unicorn** (1,000), crown (2,500), **Bumblebee** (5,000) and rainbow (10,000). Accessories (`accessories.ts`) sit on each character's `head` / `neck` anchors, one per slot; a newly unlocked one goes straight on
+- [x] Coins & rewards sheet: tap the coin chip (or `K`, or Settings → Medals & unlocks) for today and all-time coins, progress to the next milestone, the medal shelf and every unlock; wear accessories and pick special companions there
 - [x] Moods by time of day and moments of the day (`src/companion/mood.ts`): greetings and drowsier eyes in the evening and at night, small idle bits (morning stretch, afternoon look-around, evening yawn), and bigger reactions with a cute line for a few seconds: first entry of each part of the day, waking up for the morning, goodnight, longest sleep today, round numbers of feeds and diapers, first poop, baths, tummy time, a calm-again fussy spell and a busy hour
 
 ### Phase 5 — Links & shortcuts
@@ -207,7 +210,6 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - **Cloud sync** (iCloud or similar) for the two phones, so merging isn't manual. The `updatedAt` + soft-delete model is already sync-ready.
 - Medicines, growth (weight/length/head) and milestones: out of scope for now.
 - Pump volume per side (currently one amount per session).
-- **Companion unlocks with coins**: special companions or accessories at coin milestones (all-time total, so nothing is ever lost or spent down).
 
 ## Decisions log
 - 2026-09-30 — Same stack and conventions as pomotimer2 (Vite + vanilla TS, anime.js, lazy three.js, vite-plugin-pwa, Vitest + Playwright, Pages).
@@ -253,3 +255,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-02 — Backup reminders come more often: every 4 days by default (was 7), set in Settings → Your data (2, 4, 7 or 14 days, or only every 50 entries). Still only when something new was logged since the last backup. "Not now" puts the time reminder off for a day, saved in settings (`backupLaterAt`) instead of per session, since an installed app's session can last days. The banner's button is "Back up now": the share sheet on phones (Save to Files, iCloud Drive, Google Drive), a download elsewhere.
 - 2026-10-02 — v0.7.0: tap the companion, coin milestones, all-time coins in the chip, backup reminders every few days (a setting) with Back up now, and the e2e time zone fix.
 - 2026-10-02 — v0.7.1: Peanut, a baby peanut companion (diaper, hair curl, pacifier while asleep).
+- 2026-10-03 — Companion "Surprise me" (`companion: 'random'`): the pick follows the app's day (so it respects "day starts at" and doesn't swap mid-night) and is worked out from the date alone, seeded shuffled rounds of every character, so it's the same on every reload and both phones, everyone shows up once a round, and the same one never comes two days running.
+- 2026-10-03 — Companion unlocks and medals. Every coin milestone has a prechosen reward (a medal, and mostly an accessory or a special companion) in one table, `REWARDS`, kept in step with `COIN_MILESTONES` by a test. Unlocks are worked out from the all-time coin total, never stored; settings only hold what's worn (`accessories`) and who's chosen, so an undo that dips below a milestone hides the reward until it's earned again. Characters gained `head` and `neck` anchors; Moon and Unicorn leave `head` out (nightcap, horn) and skip hats. "Surprise me" includes specials unlocked by the start of the day, so the pick can't change mid-day. The companion now waits for the log to load before showing, since who's out depends on the coins.
+- 2026-10-03 — Tips: "Next ›" in the tip banner steps through every tip that applies on this device, due or not, so people can learn more without waiting; browsing doesn't mark tips seen, only "Got it" does. Added tips for editing entries, coins & rewards, the recap, Trends, the bedside display and Shortcuts & Siri.
+- 2026-10-03 — v0.8.0: companion medals and unlocks (bow tie, party hat, flower crown, crown, rainbow; Star, Unicorn and Bumblebee), the Coins & rewards sheet, Surprise me (a different companion each day), and browsing tips with Next.

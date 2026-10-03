@@ -124,5 +124,7 @@ describe('coin milestones', () => {
   it('welcomes the first coin and cheers the rest', () => {
     expect(milestoneMoment(1, 'Puff').note).toBe('Your first coin! Puff is keeping count');
     expect(milestoneMoment(1000, 'Puff').note).toMatch(/^1,000 coins!/);
+    expect(milestoneMoment(100, 'Puff', { kind: 'accessory', label: 'Party hat' }).note).toBe('100 coins! Puff got a party hat');
+    expect(milestoneMoment(250, 'Puff', { kind: 'companion', label: 'Star' }).note).toBe('250 coins! Star came to say hi · tap the coins');
   });
 });
