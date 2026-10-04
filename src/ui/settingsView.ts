@@ -59,7 +59,7 @@ function hourLabel(h: number) {
 
 export function exportFile(type = 'application/json'): File {
   const now = Date.now();
-  const text = JSON.stringify(toBackup(snapshot(), now), null, 1);
+  const text = JSON.stringify(toBackup(snapshot(), now, settings.get().babyName), null, 1);
   const name = backupFilename(now);
   return new File([text], type === 'text/plain' ? name.replace(/\.json$/, '.txt') : name, { type });
 }
@@ -122,7 +122,15 @@ async function importFile(file: File) {
     const { added, updated } = await importData(parsed);
     const bits = [`${added} new`, `${updated} updated`];
     if (parsed.skipped) bits.push(`${parsed.skipped} skipped`);
-    toast(added || updated ? `Merged: ${bits.join(', ')}` : 'Already up to date. Nothing new in that file.');
+    // The file's baby name fills in a blank one here; a name already set on this phone is kept.
+    const named = !!parsed.babyName && !settings.get().babyName.trim();
+    if (named) {
+      settings.set({ babyName: parsed.babyName });
+      const input = document.querySelector<HTMLInputElement>('#settings input[name="babyName"]');
+      if (input) input.value = parsed.babyName!;
+    }
+    const msg = added || updated ? `Merged: ${bits.join(', ')}` : 'Already up to date. Nothing new in that file.';
+    toast(named ? `${msg} Name set to ${parsed.babyName}.` : msg);
   } catch (err) {
     toast(err instanceof BackupError ? err.message : "Couldn't read that file.");
   }

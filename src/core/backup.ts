@@ -6,10 +6,15 @@ export interface Backup extends LogData {
   app: 'tinylog';
   version: 1;
   exportedAt: number;
+  /** The baby's name as set when exporting; left out when there isn't one. Older versions ignore it. */
+  babyName?: string;
 }
 
-export function toBackup(data: LogData, now: number): Backup {
-  return { app: 'tinylog', version: 1, exportedAt: now, events: data.events, notes: data.notes };
+const MAX_NAME = 60;
+
+export function toBackup(data: LogData, now: number, babyName = ''): Backup {
+  const name = babyName.trim();
+  return { app: 'tinylog', version: 1, exportedAt: now, ...(name ? { babyName: name } : {}), events: data.events, notes: data.notes };
 }
 
 export function backupFilename(now: number): string {
@@ -44,7 +49,7 @@ function validNote(n: unknown): n is DayNote {
 export class BackupError extends Error {}
 
 /** Parses an export. Invalid entries are skipped (and counted) rather than failing the whole import. */
-export function parseBackup(text: string): LogData & { skipped: number } {
+export function parseBackup(text: string): LogData & { skipped: number; babyName?: string } {
   let data: unknown;
   try {
     data = JSON.parse(text);
@@ -58,5 +63,6 @@ export function parseBackup(text: string): LogData & { skipped: number } {
   const rawNotes = Array.isArray(b.notes) ? b.notes : [];
   const events = rawEvents.filter(validEvent);
   const notes = rawNotes.filter(validNote);
-  return { events, notes, skipped: rawEvents.length - events.length + rawNotes.length - notes.length };
+  const name = typeof b.babyName === 'string' ? b.babyName.trim().slice(0, MAX_NAME) : '';
+  return { events, notes, skipped: rawEvents.length - events.length + rawNotes.length - notes.length, ...(name ? { babyName: name } : {}) };
 }

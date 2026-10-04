@@ -261,6 +261,36 @@ test.describe('data', () => {
     await expect(toastEl(page)).toContainText('Merged: 1 new');
   });
 
+  test('the baby name travels with an export, and fills in a blank name on import', async ({ page }) => {
+    await open(page, { events: [ev('bath', Date.now() - 60 * MIN)], settings: { babyName: 'Pip' } });
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export backup' }).click();
+    const text = await (await download).createReadStream().then(async (s) => {
+      const chunks: Buffer[] = [];
+      for await (const c of s) chunks.push(c as Buffer);
+      return Buffer.concat(chunks).toString();
+    });
+    expect(JSON.parse(text).babyName).toBe('Pip');
+
+    // A phone with no name yet takes it from the file…
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('[data-import]').setInputFiles({ name: 'tinylog.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+    await expect(toastEl(page)).toContainText('Name set to Pip');
+    await expect(page.getByLabel("Baby's name")).toHaveValue('Pip');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#brand-name')).toHaveText('Pip');
+
+    // …but never replaces one that's already set.
+    await open(page, { settings: { babyName: 'Bean' } });
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('[data-import]').setInputFiles({ name: 'tinylog.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+    await expect(toastEl(page)).toContainText('Merged: 1 new');
+    await expect(toastEl(page)).not.toContainText('Name set');
+    await expect(page.getByLabel("Baby's name")).toHaveValue('Bean');
+  });
+
   test('a file that is not an export is rejected politely', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
