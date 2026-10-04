@@ -160,7 +160,8 @@ test.describe('day grid', () => {
 
 test.describe('tips', () => {
   test('the welcome tip shows once, and Settings → Show tips again brings it back', async ({ page }) => {
-    await open(page, { settings: { tipsSeen: [] } });
+    // (The Android install tip, which would come next on the phone project, is out of the way.)
+    await open(page, { settings: { tipsSeen: ['install-android'] } });
     const banner = page.locator('#banner');
     await expect(banner).toContainText('Tap a card');
     await banner.getByRole('button', { name: 'Got it' }).click();
@@ -178,12 +179,19 @@ test.describe('tips', () => {
     await open(page, { settings: { tipsSeen: [] } });
     const banner = page.locator('#banner');
     const next = banner.getByRole('button', { name: 'Next tip' });
+    // The Android phone project also gets the install tip, right after the welcome.
+    const android = test.info().project.name === 'mobile';
+    const total = android ? 9 : 8;
     await expect(banner).toContainText('Tap a card');
-    await expect(banner.locator('.tip-count')).toHaveText('1/8');
+    await expect(banner.locator('.tip-count')).toHaveText(`1/${total}`);
     await next.click();
+    if (android) {
+      await expect(banner).toContainText('Install tinylog');
+      await next.click();
+    }
     // Not due yet (needs 10 entries), but browsing shows it anyway.
     await expect(banner).toContainText('Share with partner');
-    await expect(banner.locator('.tip-count')).toHaveText('2/8');
+    await expect(banner.locator('.tip-count')).toHaveText(`${android ? 3 : 2}/${total}`);
     await page.screenshot({ path: test.info().outputPath('tips.png') });
     for (let i = 0; i < 6; i++) await next.click();
     await expect(banner).toContainText('Shortcuts & Siri');
@@ -200,7 +208,18 @@ test.describe('tips', () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('button', { name: 'Show tips again' }).click();
     await expect(banner).toContainText('Tap a card');
-    await expect(banner.locator('.tip-count')).toHaveText('1/8');
+    await expect(banner.locator('.tip-count')).toHaveText(`1/${total}`);
+  });
+
+  test('Settings has an install guide, with the steps for this phone first', async ({ page }) => {
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const section = page.locator('#settings section', { has: page.getByRole('heading', { name: 'Install the app' }) });
+    await expect(section).toContainText('Add to Home Screen');
+    const first = section.locator('.install-steps li').first();
+    await expect(first).toContainText(test.info().project.name === 'mobile' ? 'Android' : 'iPhone');
+    // Only shown when the browser offers its own install prompt.
+    await expect(section.getByRole('button', { name: 'Install tinylog' })).toBeHidden();
   });
 });
 

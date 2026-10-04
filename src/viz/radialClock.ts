@@ -102,7 +102,9 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
         );
         break;
       }
+      case 'spitup':
       case 'bath':
+      case 'book':
       case 'doctor': {
         const [x, y] = polar(C, C, LANE.other, a0);
         dots.push(

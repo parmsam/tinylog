@@ -6,6 +6,7 @@ import { tapCard } from './ui/actions';
 import { mountCards, renderCards } from './ui/cardsView';
 import { goToDay, mountDayView, renderDayView } from './ui/dayView';
 import { setupPwa } from './ui/pwa';
+import { setupInstall } from './ui/install';
 import { openSettings } from './ui/settingsView';
 import { showBanner } from './ui/tips';
 import { applyTheme } from './ui/theme';
@@ -158,4 +159,5 @@ void init().then(({ restored }) => {
   render();
 });
 setupPwa();
+setupInstall();
 window.tinylog = createAgentApi();

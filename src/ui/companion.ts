@@ -176,7 +176,9 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
   tummy: { start: 'tummy', stop: 'tummy', log: 'tummy' },
   pump: { start: 'pump', stop: 'pump', log: 'pump' },
   fussy: { start: 'fussy', stop: 'settled', log: 'fussy' },
+  spitup: { log: 'spitup' },
   bath: { log: 'bath' },
+  books: { log: 'books' },
   doctor: { log: 'doctor' },
 };
 

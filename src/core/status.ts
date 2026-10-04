@@ -133,6 +133,10 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
         ongoing: false,
       };
     }
+    case 'spitup':
+    case 'books':
+      if (!last) return { primary: 'Tap to log', secondary: card.id === 'books' ? 'one tap per book' : '', ongoing: false };
+      return { primary: ago(last.at, now), secondary: `${t(last.at)} · ${inDay.length} today`, ongoing: false };
     case 'bath':
       return last ? { primary: ago(last.at, now), secondary: t(last.at), ongoing: false } : { primary: 'Tap to log', secondary: '', ongoing: false };
     case 'doctor': {
@@ -178,6 +182,10 @@ function pastStatus(
       const ml = sumAmount(inDay);
       return { primary: plural(n, 'session'), secondary: ml ? amount(ml, prefs.units) : '', ongoing: false };
     }
+    case 'spitup':
+      return n ? { primary: plural(n, 'spit-up'), secondary: '', ongoing: false } : none;
+    case 'books':
+      return n ? { primary: plural(n, 'book'), secondary: '', ongoing: false } : none;
     case 'bath':
       return n ? { primary: 'Bath ✓', secondary: '', ongoing: false } : none;
     case 'doctor':

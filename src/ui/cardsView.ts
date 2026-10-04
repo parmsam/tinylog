@@ -77,6 +77,8 @@ export function renderCards(host: HTMLElement, now = Date.now()) {
     btn.querySelector('.card-primary')!.textContent = st.primary;
     btn.querySelector('.card-secondary')!.textContent = st.secondary;
     btn.classList.toggle('is-ongoing', st.ongoing);
+    // A hidden button still shows while its timer runs, so it can be stopped.
+    btn.hidden = prefs.hiddenCards.includes(c.id) && !st.ongoing;
     const hint = !isToday ? 'Tap to add an entry for this day' : c.timed ? (st.ongoing ? 'Tap to stop' : 'Tap to start') : c.sheetFirst ? 'Tap to add' : 'Tap to log now';
     btn.setAttribute('aria-label', `${c.label}: ${st.primary}${st.secondary ? `, ${st.secondary}` : ''}. ${hint}; hold for details.`);
   }

@@ -83,7 +83,7 @@ function act(verb: 'log' | 'start' | 'stop' | 'toggle', what: string, opts: ActO
 /** Common requests and the calls that answer them, shown in `tinylog.help()` and `llms.txt`. An e2e test runs each one. */
 export const RECIPES: { ask: string; code: string; note: string }[] = [
   { ask: 'When did the baby last eat?', code: 'tinylog.state().last.feed', note: 'minutesAgo, the time (ISO) and a summary like "Breast · L". state() also has what is going on now and today\'s totals.' },
-  { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, bath, doctor (with a note).' },
+  { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, spitup, bath, books (one per book), doctor (with a note).' },
   { ask: 'Log a 90 ml bottle of formula', code: "tinylog.log('bottle', { ml: 90, milk: 'formula' })", note: 'Breast feeds: tinylog.log(\'feed\', { side: \'L\' }). Plain tinylog.log(\'feed\') picks the other breast, like a tap.' },
   { ask: 'The baby fell asleep / woke up', code: "tinylog.toggle('sleep')", note: '"sleep" is a nap by day and night sleep in the evening; toggle starts it or stops the one running.' },
   { ask: 'How has sleep been this week?', code: 'tinylog.patterns(7)', note: 'Descriptive patterns (typical nap length, bedtime window…); each says what it is based on. Not advice.' },
@@ -91,7 +91,7 @@ export const RECIPES: { ask: string; code: string; note: string }[] = [
 ];
 
 const HELP = `tinylog: baby tracker scripting API (window.tinylog). Data stays in this browser.
-All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, bath, doctor.
+All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, spitup, bath, books, doctor.
 
 tinylog.state()                        what's going on now, the last of each thing, today's totals
 tinylog.log(what, opts?)               log it now (timed things toggle); opts:
@@ -132,7 +132,7 @@ export function createAgentApi() {
         now: iso(now),
         ongoing,
         awakeMinutes: asleep ? null : wake !== undefined ? Math.round((now - wake) / MIN) : null,
-        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), bath: last('bath') },
+        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), spitup: last('spitup'), bath: last('bath'), books: last('books') },
         today: {
           feeds: t.feeds,
           bottleMl: t.bottleMl,
@@ -143,6 +143,8 @@ export function createAgentApi() {
           tummyMinutes: Math.round(t.tummyMs / MIN),
           fussyMinutes: Math.round(t.fussyMs / MIN),
           pumpMl: t.pumpMl,
+          spitups: t.spitups,
+          books: t.books,
         },
       };
     },

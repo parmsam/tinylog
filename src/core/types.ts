@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'bath' | 'doctor' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'doctor' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -79,4 +79,6 @@ export interface Settings {
   accessories: AccessoryId[];
   /** Page background: soft glow (default), three.js night sky, or plain. */
   background: Background;
+  /** Home-screen buttons turned off in Settings (card ids). Their entries, links and keys still work. */
+  hiddenCards: string[];
 }

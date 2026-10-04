@@ -296,6 +296,43 @@ test.describe('data', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'night');
     await expect(entries(page).first()).toContainText('4.1 oz');
   });
+
+  test('spit-ups and books are one tap each and count up for the day', async ({ page }) => {
+    await open(page);
+    await card(page, 'spitup').click();
+    await card(page, 'books').click();
+    await card(page, 'books').click();
+    await expect(card(page, 'spitup')).toContainText('1 today');
+    await expect(card(page, 'books')).toContainText('2 today');
+    await expect(entries(page)).toHaveCount(3);
+    await expect(entries(page).first()).toContainText('Books');
+  });
+
+  test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const buttons = page.locator('#settings fieldset', { hasText: 'Buttons' });
+    await buttons.locator('label', { hasText: 'Pump' }).click();
+    await buttons.locator('label', { hasText: 'Doctor' }).click();
+    await page.keyboard.press('Escape');
+    await expect(card(page, 'pump')).toBeHidden();
+    await expect(card(page, 'doctor')).toBeHidden();
+    await expect(card(page, 'feed')).toBeVisible();
+
+    // The key still works, and a running pump shows its card so it can be stopped.
+    await page.keyboard.press('p');
+    await expect(card(page, 'pump')).toBeVisible();
+    await card(page, 'pump').click();
+    await expect(card(page, 'pump')).toBeHidden();
+
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(card(page, 'doctor')).toBeHidden();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await buttons.locator('label', { hasText: 'Doctor' }).click();
+    await page.keyboard.press('Escape');
+    await expect(card(page, 'doctor')).toBeVisible();
+  });
 });
 
 test.describe('backup reminders', () => {

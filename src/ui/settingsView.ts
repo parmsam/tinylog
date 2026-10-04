@@ -3,9 +3,11 @@ import { coins, nextMilestone } from '../core/coins';
 import { BACKUP_DAY_CHOICES, DEFAULT_SETTINGS } from '../core/settings';
 import { shortDate } from '../core/format';
 import { app, importData, settings, snapshot } from '../core/log';
+import { CARDS } from '../core/cards';
 import type { Settings } from '../core/types';
 import { copyText, downloadText } from './clipboard';
 import { storageStatus } from './persist';
+import { canPromptInstall, installGuideHtml, isStandalone, onInstallChange, promptInstall } from './install';
 import { isIos, isTouchDevice } from '../core/haptics';
 import { PREVIEWS } from './scenePreviews';
 import { BASE_IDS, CHARACTERS, characterSvg } from '../companion/characters';
@@ -149,6 +151,10 @@ export function openSettings() {
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>
     ${seg('gridMarks', [['dots', '● Dots'], ['checks', '✓ Checks'], ['crosses', '✕ Crosses']], s.gridMarks, 'Grid marks (feeds and diapers)')}
+    <fieldset class="field"><legend>Buttons</legend><div class="seg card-toggles">${CARDS.map(
+      (c) => `<label><input type="checkbox" data-card-toggle value="${c.id}" ${s.hiddenCards.includes(c.id) ? '' : 'checked'} /><span>${c.emoji} ${c.label}</span></label>`,
+    ).join('')}</div>
+      <p class="hint">Pick the buttons you use. Turned-off ones leave the home screen, but past entries, links and keys still work.</p></fieldset>
     <fieldset class="field"><legend>Background</legend><div class="scene-picker">${BACKGROUNDS.map(
       ([id, label]) =>
         `<label class="scene-tile"><input type="radio" name="background" value="${id}" ${id === s.background ? 'checked' : ''} />${PREVIEWS[id]}<span>${label}</span></label>`,
@@ -186,6 +192,17 @@ export function openSettings() {
       <p class="hint">The reminder has a <b>Back up now</b> button. It also comes every 50 new entries.</p>
     </section>
 
+    <section class="settings-section" aria-labelledby="install-h">
+      <h3 id="install-h">Install the app</h3>
+      ${
+        isStandalone()
+          ? '<p class="status-line">✓ Running as an installed app.</p>'
+          : `<p class="hint">Add tinylog to your Home Screen: it opens full screen like an app, works offline, and on iPhone keeps your log safe (Safari can clear data for sites that aren't installed). On iPhone the installed app starts with its own, empty log: if you've already logged in Safari, <b>Export backup</b> here and import it there.</p>
+      <div class="btn-row" data-install-row ${canPromptInstall() ? '' : 'hidden'}><button type="button" class="btn primary" data-install>Install tinylog</button></div>
+      ${installGuideHtml()}`
+      }
+    </section>
+
     <section class="settings-section" aria-labelledby="links-h">
       <h3 id="links-h">Shortcuts &amp; Siri</h3>
       <p class="hint">Each link logs something when opened. In the iPhone <b>Shortcuts</b> app: New Shortcut → <b>Open URLs</b> → paste a link → name it (say, “Wet diaper”). Then: “Hey Siri, wet diaper.” Add <code>&amp;ago=15</code> to log it 15 minutes ago.</p>
@@ -210,6 +227,17 @@ export function openSettings() {
 
   dialog.oninput = dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
+    if (t.matches('[data-card-toggle]')) {
+      if (e.type !== 'change') return;
+      const boxes = [...dialog.querySelectorAll<HTMLInputElement>('[data-card-toggle]')];
+      if (!boxes.some((b) => b.checked)) {
+        t.checked = true;
+        toast('Keep at least one button');
+        return;
+      }
+      settings.set({ hiddenCards: boxes.filter((b) => !b.checked).map((b) => b.value) });
+      return;
+    }
     const name = t.name as keyof Settings;
     if (!name || t.type === 'file') return;
     if (t.type === 'radio' && !t.checked) return;
@@ -230,7 +258,8 @@ export function openSettings() {
     else if (t.closest('[data-copy-link]')) {
       const q = t.closest<HTMLElement>('[data-copy-link]')!.dataset.copyLink!;
       void copyText(new URL(q, location.origin + import.meta.env.BASE_URL).href).then((ok) => toast(ok ? 'Link copied' : "Couldn't copy"));
-    } else if (t.closest('[data-tips-reset]')) {
+    } else if (t.closest('[data-install]')) void promptInstall().then((ok) => ok && toast('Installing tinylog. Open it from your Home Screen.'));
+    else if (t.closest('[data-tips-reset]')) {
       resetTips();
       dialog.close();
       toast('Tips will show again, starting now');
@@ -252,6 +281,11 @@ export function openSettings() {
     }
   };
   dialog.onsubmit = (e) => e.preventDefault();
+  const stop = onInstallChange(() => {
+    const row = dialog.querySelector<HTMLElement>('[data-install-row]');
+    if (row) row.hidden = !canPromptInstall();
+  });
+  dialog.addEventListener('close', () => stop(), { once: true });
 
   if (!dialog.open) dialog.showModal();
 }

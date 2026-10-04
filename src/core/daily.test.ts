@@ -20,6 +20,13 @@ const events = [
 ];
 
 describe('dayTotals', () => {
+  it('counts spit-ups and books', () => {
+    const more = [createEvent('spitup', at(9), undefined, 0), createEvent('spitup', at(10), undefined, 0), createEvent('book', at(19), undefined, 0)];
+    const t = dayTotals(more, '2026-09-30', 0, now);
+    expect(t).toMatchObject({ spitups: 2, books: 1 });
+    expect(totalsLine(t, { units: 'ml' })).toBe('2 spit-ups · 1 book');
+  });
+
   it('adds up a day, splitting a night that started the evening before', () => {
     const t = dayTotals(events, '2026-09-30', 0, now);
     expect(t).toMatchObject({ feeds: 2, breastFeeds: 1, bottleMl: 90, wet: 2, dirty: 1, naps: 1, pumps: 1, pumpMl: 120, baths: 0 });

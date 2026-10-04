@@ -21,7 +21,9 @@ export function totalsLine(t: DayTotals, prefs: Pick<Settings, 'units'>): string
   if (t.tummyMs) bits.push(`tummy ${duration(t.tummyMs)}`);
   if (t.fussyMs) bits.push(`fussy ${duration(t.fussyMs)}`);
   if (t.pumps) bits.push(`pumped ${t.pumpMl ? amount(t.pumpMl, prefs.units) : plural(t.pumps, 'time')}`);
+  if (t.spitups) bits.push(plural(t.spitups, 'spit-up'));
   if (t.baths) bits.push('bath');
+  if (t.books) bits.push(plural(t.books, 'book'));
   if (t.doctor) bits.push(plural(t.doctor, 'doctor visit'));
   return bits.join(' · ');
 }

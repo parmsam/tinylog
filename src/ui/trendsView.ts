@@ -69,11 +69,13 @@ function table(lastDay: string, days: number, now: number): string {
       <td>${t.tummyMs ? duration(t.tummyMs) : '—'}</td>
       <td>${t.fussyMs ? duration(t.fussyMs) : '—'}</td>
       <td>${t.pumpMl ? amount(t.pumpMl, prefs.units) : t.pumps ? `${t.pumps}×` : '—'}</td>
+      <td>${dash(t.spitups)}</td>
+      <td>${dash(t.books)}</td>
     </tr>`;
   }).join('');
   return `<div class="table-wrap"><table class="totals">
     <caption>Daily totals</caption>
-    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Fussy</th><th scope="col">Pump</th></tr></thead>
+    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Fussy</th><th scope="col">Pump</th><th scope="col">Spit-ups</th><th scope="col">Books</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
 

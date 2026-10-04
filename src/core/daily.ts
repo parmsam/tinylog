@@ -23,7 +23,10 @@ export interface DayTotals {
   fussies: number;
   pumps: number;
   pumpMl: number;
+  spitups: number;
   baths: number;
+  /** Books read (one entry per book). */
+  books: number;
   doctor: number;
 }
 
@@ -46,7 +49,9 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
     fussies: 0,
     pumps: 0,
     pumpMl: 0,
+    spitups: 0,
     baths: 0,
+    books: 0,
     doctor: 0,
   };
   for (const e of events) {
@@ -90,8 +95,14 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
         t.pumps++;
         t.pumpMl += d.amount ?? 0;
         break;
+      case 'spitup':
+        if (starts) t.spitups++;
+        break;
       case 'bath':
         if (starts) t.baths++;
+        break;
+      case 'book':
+        if (starts) t.books++;
         break;
       case 'doctor':
         if (starts) t.doctor++;

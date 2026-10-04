@@ -1,12 +1,13 @@
 # 🌙 tinylog
 
-An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, bath or doctor visit, with lovely ways to see the day.
+An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, spit-up, bath, book read or doctor visit, with lovely ways to see the day.
 
-**Live:** https://parmsam.github.io/tinylog/ (install it: Share → Add to Home Screen)
+**Live:** https://parmsam.github.io/tinylog/ (install it: on iPhone, Share → Add to Home Screen; on Android, ⋮ → Add to Home screen. Settings → Install the app has the steps)
 
 ## Features
 - **"When did we last…?" cards.** Tap to log right now. Timed things (nap, night sleep, tummy time, pump) are tap to start, tap to stop, and keep running across reloads.
 - **Logging late is normal.** Every log gets a toast with **Undo** and **−5m / −15m / −30m** chips. Hold a card to fill in details first (breast side and optional minutes per side, bottle amount, pump volume, a note).
+- **Your buttons.** Settings → Buttons turns off the cards you don't use; turn them back on any time.
 - **One day at a time.** Step back through days to fill in or fix entries; a night sleep that crosses midnight shows on both days. Each day has its own note.
 - **Over-engineered charts.** Each day as a 24-hour clock (sleep arcs draw themselves in) or an hour-by-hour grid (dots, ✓ or ✕). In Trends: a day-by-day timeline or a time-of-day heatmap, a week of concentric sleep rings, and a daily totals table.
 - **Patterns, not predictions.** Typical nap length, bedtime and wake-up windows, longest stretch, feeds and diapers per day, time between feeds, weekly tummy time and pump output. Each says what it's based on, and waits until there's enough data.
@@ -18,7 +19,7 @@ An absurdly beautiful, local-only baby tracker. One tap to log a feed, diaper, n
 - **Bedside display.** A dim, huge "since last feed / awake for" screen that keeps the phone awake.
 - **Night theme.** Dim and warm from 9 PM to 6 AM (or whenever you pick it), with muted colors and calmer animation.
 - **Two phones.** Share an export from one phone (AirDrop, Messages) and import it on the other: entries merge, the newest edit wins, and importing twice is harmless.
-- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `B` bath, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `K` coins & rewards, `,` settings, `?` all shortcuts.
+- **Keyboard:** `F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy time, `P` pump, `C` fussy, `X` spit-up, `B` bath, `L` books, `O` doctor, `U` undo, `←/→` days, `.` today, `G` trends, `A` bedside display, `M` copy today as Markdown, `R` day recap, `K` coins & rewards, `,` settings, `?` all shortcuts.
 - **Works offline** as an installable PWA.
 
 ## Siri, Shortcuts and links

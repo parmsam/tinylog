@@ -1,3 +1,4 @@
+import { CARDS } from './cards';
 import type { AccessoryId, Settings } from './types';
 
 export const SETTINGS_KEY = 'tinylog:v1:settings';
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   companion: 'puff',
   accessories: [],
   background: 'glow',
+  hiddenCards: [],
 };
 
 export function loadSettings(): Settings {
@@ -46,6 +48,10 @@ export function loadSettings(): Settings {
     if (!['puff', 'sadie', 'moon', 'bunny', 'duck', 'peanut', 'star', 'unicorn', 'bee', 'random', 'off'].includes(s.companion)) s.companion = 'puff';
     const known: AccessoryId[] = ['bowtie', 'partyhat', 'flowers', 'crown', 'rainbow'];
     s.accessories = Array.isArray(s.accessories) ? s.accessories.filter((a) => known.includes(a)) : [];
+    // Unknown ids are dropped, and at least one button always stays.
+    const ids = CARDS.map((c) => c.id as string);
+    s.hiddenCards = Array.isArray(s.hiddenCards) ? [...new Set(s.hiddenCards.filter((id) => ids.includes(id)))] : [];
+    if (s.hiddenCards.length >= ids.length) s.hiddenCards = [];
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
     return s;
   } catch {

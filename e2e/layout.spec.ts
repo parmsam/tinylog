@@ -41,7 +41,7 @@ test('entry sheet fields never overlap on iPhone, in every state', async ({ page
   await assertClean(s, 'feed (breast)');
   await s.getByText('Bottle', { exact: true }).click();
   await assertClean(s, 'feed (bottle: amount + milk)');
-  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🛁 Bath', '🩺 Doctor']) {
+  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🩺 Doctor']) {
     await s.getByText(kind, { exact: true }).click();
     await assertClean(s, kind);
   }

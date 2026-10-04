@@ -1,6 +1,6 @@
 # tinylog — Plan
 
-An absurdly beautiful baby tracker. One tap to log a feed, diaper, nap, sleep, tummy time, pump, bath or doctor visit; an over-engineered, lovely way to see the day.
+An absurdly beautiful baby tracker. One tap to log a feed, diaper, nap, sleep, tummy time, pump, spit-up, bath, book or doctor visit; an over-engineered, lovely way to see the day.
 Static site on GitHub Pages, installable PWA, **all data stays on the device**.
 
 Sibling project to [pomotimer2](https://github.com/parmsam/pomotimer2): same stack, conventions and "pomo aesthetic", reused wherever it fits.
@@ -24,7 +24,7 @@ Sibling project to [pomotimer2](https://github.com/parmsam/pomotimer2): same sta
 ## Core technical decisions
 1. **Event log is the source of truth.** Everything (cards, timeline, stats, recap) is derived from one list of events; no separate counters to drift (the pomo streak lesson).
    ```ts
-   type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'bath' | 'doctor' | 'note'
+   type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'doctor' | 'note'
    interface LogEvent {
      id: string            // crypto.randomUUID()
      type: EventType
@@ -135,7 +135,8 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 
 ### Phase 1 — Day view MVP
 - [x] Event model, IndexedDB storage, store, soft delete
-- [x] Cards: feed (breast/bottle), wet, dirty, nap, night sleep, tummy time, pump, bath, doctor
+- [x] Cards: feed (breast/bottle), wet, dirty, nap, night sleep, tummy time, pump, fussy, spit-up, bath, books, doctor
+- [x] Settings → Buttons: turn cards on or off for the home screen
 - [x] Tap to log, Undo toast with −5/−15/−30m and pick-time; long press opens the sheet first
 - [x] Timed events (nap, night, tummy, pump) with live elapsed display that survives reload
 - [x] Detail sheet: edit type-specific details, start/end time, note, delete
@@ -155,6 +156,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Week of rings
 - [x] Day view: Clock | Grid toggle on the main page. Grid = hour rows × category columns for the selected day, position in a cell = minute; marks as dots, ✓ or ✕ (Settings → Grid marks)
 - [x] One-time tips (welcome, iPhone install, two phones) with Settings → Show tips again
+- [x] Android install tip, and Settings → Install the app: steps for iPhone and Android (this phone's first) and an Install button when the browser offers its own prompt
 - [x] Heatmap view (Trends → Timeline | Heatmap): rows are hours of the day, columns are feeds, wet, dirty, sleep, tummy, pump; darker = more often at that hour over the range
 - [x] Markdown export (per-day headings, events with times, daily totals), copy + download
 - [x] Keyboard shortcuts (`F` feed, `W` wet, `D` dirty, `N` nap, `S` night sleep, `T` tummy, `P` pump, `B` bath, `←/→` days, `U` undo, `?` cheat sheet, `.` today, `G` trends, `A` bedside, `M` copy today as Markdown, `?` cheat sheet). Cmd/Ctrl+K palette: backburner
@@ -259,3 +261,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-03 — Companion unlocks and medals. Every coin milestone has a prechosen reward (a medal, and mostly an accessory or a special companion) in one table, `REWARDS`, kept in step with `COIN_MILESTONES` by a test. Unlocks are worked out from the all-time coin total, never stored; settings only hold what's worn (`accessories`) and who's chosen, so an undo that dips below a milestone hides the reward until it's earned again. Characters gained `head` and `neck` anchors; Moon and Unicorn leave `head` out (nightcap, horn) and skip hats. "Surprise me" includes specials unlocked by the start of the day, so the pick can't change mid-day. The companion now waits for the log to load before showing, since who's out depends on the coins.
 - 2026-10-03 — Tips: "Next ›" in the tip banner steps through every tip that applies on this device, due or not, so people can learn more without waiting; browsing doesn't mark tips seen, only "Got it" does. Added tips for editing entries, coins & rewards, the recap, Trends, the bedside display and Shortcuts & Siri.
 - 2026-10-03 — v0.8.0: companion medals and unlocks (bow tie, party hat, flower crown, crown, rainbow; Star, Unicorn and Bumblebee), the Coins & rewards sheet, Surprise me (a different companion each day), and browsing tips with Next.
+- 2026-10-04 — Spit-up (🫧, key `X`) and Books (📚, key `L`, one tap per book read) cards: instant events (`spitup`, `book`) like a bath, counted per day on the card, in the totals line, the Trends table and `tinylog.state()`, and marked on the clock's outer ring. Not chart series, so no new `--v-*` colors; card tints only (`--c-spitup`, `--c-books`). Links take spitup / spit-up / spit and books / book / read / reading / story.
+- 2026-10-04 — Settings → Buttons: pick which cards show on the home screen (`hiddenCards`, card ids; unknown ids dropped, at least one always stays). Hiding is only about the home screen: past entries, the entry sheet, links, keys and the API all still work, and a hidden timed card reappears while it's running so it can be stopped.
+- 2026-10-04 — Installing: an Android install tip next to the iPhone one, and a Settings → Install the app guide (iPhone and Android steps, this phone's first; hidden once installed). Chrome's `beforeinstallprompt` is kept for an Install button instead of popping up on its own. The guide says that on iPhone the installed app has its own empty log, so export from Safari and import there.
+- 2026-10-04 — v0.9.0: Spit-up and Books cards, Settings → Buttons to choose which cards show, and an install guide (Android tip, Settings → Install the app).

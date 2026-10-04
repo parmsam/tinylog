@@ -749,6 +749,14 @@ fieldset.field {
   flex-wrap: wrap;
   gap: 8px;
 }
+.install-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
 .status-line {
   font-size: 0.85rem;
   color: var(--muted);

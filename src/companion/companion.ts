@@ -21,7 +21,9 @@ export type Reaction =
   | 'pump'
   | 'fussy'
   | 'settled'
+  | 'spitup'
   | 'bath'
+  | 'books'
   | 'doctor'
   | 'undo'
   // Moments of the day (see mood.ts)
@@ -149,6 +151,14 @@ export class Companion {
       case 'settled':
         this.prop('hearts', 1100);
         this.body({ scaleY: [{ to: 0.92, duration: 300 }, { to: 1, duration: 700, ease: 'outElastic(1, .5)' }] }); // a big sigh
+        break;
+      case 'spitup': // a sympathetic little wince
+        this.setFace('wince', 700);
+        this.body({ scaleY: [{ to: 0.95, duration: 160 }, { to: 1, duration: 500, ease: 'outElastic(1, .6)' }] });
+        break;
+      case 'books': // listening to a story
+        this.setFace('o', 800);
+        this.prop('sparkles', 1200);
         break;
       case 'bath':
         this.excite(1500);

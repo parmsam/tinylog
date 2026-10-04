@@ -16,6 +16,13 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=both')).toMatchObject({ card: 'dirty', detail: { diaper: 'both' } });
   });
 
+  it('logs spit-ups and books by their everyday names', () => {
+    expect(p('?do=log&what=spit-up')).toMatchObject({ kind: 'log', card: 'spitup' });
+    expect(p('?do=log&what=spit up')).toMatchObject({ card: 'spitup' });
+    expect(p('?do=log&what=book&ago=5')).toMatchObject({ card: 'books', minutesAgo: 5 });
+    expect(p('?do=log&what=reading')).toMatchObject({ card: 'books' });
+  });
+
   it('understands feed details and amounts', () => {
     expect(p('?do=log&what=bottle&oz=3&milk=formula')).toMatchObject({ card: 'feed', detail: { method: 'bottle', amount: 89, milk: 'formula' } });
     expect(p('?do=log&what=feed&ml=90')).toMatchObject({ detail: { method: 'bottle', amount: 90 } });

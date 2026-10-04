@@ -42,6 +42,15 @@ describe('cardStatus today', () => {
     expect(status('night', [night])).toMatchObject({ primary: '10h', secondary: 'last night · woke 06:00' });
   });
 
+  it('counts today’s spit-ups and books', () => {
+    expect(status('spitup', [createEvent('spitup', at(9, 40), undefined, 0), createEvent('spitup', at(7), undefined, 0)])).toMatchObject({
+      primary: '30m ago',
+      secondary: '09:40 · 2 today',
+    });
+    expect(status('books', [])).toMatchObject({ primary: 'Tap to log', secondary: 'one tap per book' });
+    expect(status('books', [createEvent('book', at(8, 32, 29), undefined, 0)], '2026-09-29').primary).toBe('1 book');
+  });
+
   it('shows an upcoming doctor visit', () => {
     const visit = createEvent('doctor', at(10, 0, 30) + 3 * 86_400_000, { note: '2-month checkup' }, 0);
     expect(status('doctor', [visit])).toMatchObject({ primary: 'in 3 days', secondary: '2-month checkup' });

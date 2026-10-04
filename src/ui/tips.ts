@@ -1,6 +1,7 @@
 import { backupStatus } from '../core/backupReminder';
 import { shortDate } from '../core/format';
 import { app, settings } from '../core/log';
+import { isAndroid, isPhoneBrowserTab } from './install';
 import { isIosBrowserTab } from './persist';
 import { backUpNow } from './settingsView';
 
@@ -29,7 +30,13 @@ const TIPS: Tip[] = [
     id: 'install',
     when: () => true,
     applies: isIosBrowserTab,
-    html: `<span>📲 <b>Add to Home Screen</b> (Share → Add to Home Screen). Safari can clear data for sites that aren't installed.</span>`,
+    html: `<span>📲 <b>Add to Home Screen</b> (Share → Add to Home Screen). Safari can clear data for sites that aren't installed. Steps: <b>Settings → Install the app</b>.</span>`,
+  },
+  {
+    id: 'install-android',
+    when: () => true,
+    applies: () => isAndroid() && isPhoneBrowserTab(),
+    html: `<span>📲 <b>Install tinylog</b> (⋮ menu → Add to Home screen) for a full-screen app that works offline. Steps: <b>Settings → Install the app</b>.</span>`,
   },
   {
     id: 'partner',

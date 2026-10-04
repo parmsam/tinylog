@@ -117,6 +117,11 @@ export function momentFor(
     const dirty = diapers.filter((e) => e.detail?.diaper === 'dirty' || e.detail?.diaper === 'both');
     if (card === 'dirty' && dirty.length === 1) return say('cheer', ['First poop of the day · delivered!', 'Poop o’clock · well done, {name}']);
   }
+  if (what === 'log' && card === 'books') {
+    const count = todays.filter((e) => e.type === 'book').length;
+    if (count === 1) return say('cheer', ['Story time{to} · {buddy} is listening', 'First book of the day · bookworm in training']);
+    if (count && count % 5 === 0) return say('proud', [`${count} books today · a tiny bookworm`, `${count} books today · {buddy} wants another`]);
+  }
   if (what === 'log' && card === 'bath') return say('cheer', ['Squeaky clean{to}!', 'Fresh as a daisy{to}', 'Bath done · {buddy} wants one too']);
   if (card === 'tummy' && what === 'stop' && length >= 3 * MIN) return say('proud', [`Tummy time champ · ${duration(length)}`, `${duration(length)} of tummy time · strong little arms`]);
 

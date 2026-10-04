@@ -9,7 +9,7 @@ Source: https://github.com/parmsam/tinylog
 
 Open the app with a `do` query parameter to log something. The parameters are removed from the URL once it has run, and the app shows what it did with an Undo button. Settings never travel in the URL.
 
-- `?do=log&what=wet`: log it now. `what` is one of feed, bottle, breast, wet, dirty, both, bath, doctor (and for timed things below, `log` toggles)
+- `?do=log&what=wet`: log it now. `what` is one of feed, bottle, breast, wet, dirty, both, spitup, bath, books (one per book read), doctor (and for timed things below, `log` toggles)
 - `?do=start&what=nap` / `?do=stop&what=nap` / `?do=toggle&what=nap`: timed things are nap, night, sleep, tummy, pump, fussy. `sleep` means night sleep from 7 PM to 6 AM and a nap otherwise
 - `&ago=15`: it happened 15 minutes ago (0–1440)
 - Feeds: `&side=L|R|both`, `&method=breast|bottle`, `&milk=breast|formula`, `&ml=90` or `&oz=3` (an amount means a bottle). A plain feed picks the other breast, or the same kind of bottle as last time
@@ -26,7 +26,7 @@ On iPhone, links open in Safari, and iOS keeps a Home Screen web app's data sepa
 When you control the page (Playwright `page.evaluate`, DevTools, a browser agent), use `window.tinylog`. Calls are synchronous, return plain JSON-safe data, and throw an Error with a readable message on bad input. Names and options are the same as the link actions.
 
 - `tinylog.help()`: this reference as text
-- `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, bath }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
+- `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, spitup, bath, books }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl, spitups, books } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
 - `tinylog.log(what, opts?)`, `tinylog.start(what, opts?)`, `tinylog.stop(what, opts?)`, `tinylog.toggle(what, opts?)`: opts are `{ minutesAgo, side, ml, oz, method, milk, diaper, note, minL, minR, min }`. Returns `{ result: 'logged' | 'started' | 'stopped' | 'switched', entry }` or `{ result: 'nothing-to-do', reason }`
 - `tinylog.entries(day?)`: a day's entries (`'YYYY-MM-DD'`, default today) as `{ id, what, label, start, end, minutes, ongoing, summary, note }`
 - `tinylog.undo()`: undo the last change made in the app (within 5 minutes)

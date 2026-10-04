@@ -49,7 +49,15 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   fussy: 'fussy',
   crying: 'fussy',
   cry: 'fussy',
+  spitup: 'spitup',
+  'spit-up': 'spitup',
+  spit: 'spitup',
   bath: 'bath',
+  books: 'books',
+  book: 'books',
+  read: 'books',
+  reading: 'books',
+  story: 'books',
   doctor: 'doctor',
   checkup: 'doctor',
 };
@@ -73,7 +81,7 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const whatRaw = q.get('what')?.trim().toLowerCase().replace(/\s+/g, '-');
   if (!whatRaw) return { kind: 'invalid', reason: 'say what to log, e.g. &what=wet' };
   const what = WHAT[whatRaw];
-  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, bath)` };
+  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books)` };
 
   const agoRaw = q.get('ago');
   const minutesAgo = agoRaw === null ? 0 : Math.round(Number(agoRaw));

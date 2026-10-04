@@ -23,6 +23,16 @@ describe('settings', () => {
     expect(loadSettings()).toMatchObject({ gridMarks: 'dots', tipsSeen: [], dayStartHour: 0, backupEveryDays: 4, backupLaterAt: 0 });
   });
 
+  it('keeps hidden buttons, dropping unknown ids and never hiding them all', () => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: ['pump', 'books', 'nope', 'pump'] }));
+    expect(loadSettings().hiddenCards).toEqual(['pump', 'books']);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump' }));
+    expect(loadSettings().hiddenCards).toEqual([]);
+    const all = ['feed', 'wet', 'dirty', 'nap', 'night', 'tummy', 'pump', 'fussy', 'spitup', 'bath', 'books', 'doctor'];
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: all }));
+    expect(loadSettings().hiddenCards).toEqual([]);
+  });
+
   it('keeps a chosen backup reminder interval, including off', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ backupEveryDays: 0 }));
     expect(loadSettings().backupEveryDays).toBe(0);
