@@ -170,6 +170,8 @@ test.describe('companions', () => {
   });
 
   test('Sadie and friends: pick one in Settings, and they react the same way', async ({ page }) => {
+    // Settings redraws every companion preview on each pick; CI's GPU-less WebKit takes ~20× longer than a laptop.
+    test.slow();
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     const picker = page.locator('#settings .buddy-picker');
