@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   accessories: [],
   background: 'glow',
   hiddenCards: [],
+  splash: true,
 };
 
 export function loadSettings(): Settings {
@@ -41,6 +42,7 @@ export function loadSettings(): Settings {
     if (!BACKUP_DAY_CHOICES.includes(s.backupEveryDays)) s.backupEveryDays = DEFAULT_SETTINGS.backupEveryDays;
     if (!['glow', 'none', 'sky', 'fireflies', 'bubbles', 'mobile', 'snow'].includes(s.background)) s.background = 'glow';
     s.haptics = s.haptics !== false;
+    s.splash = s.splash !== false;
     // v0.1 stored a boolean.
     const c = s.companion as unknown;
     if (c === true) s.companion = 'puff';

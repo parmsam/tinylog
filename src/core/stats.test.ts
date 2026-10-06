@@ -85,6 +85,27 @@ describe('patterns', () => {
     expect(p.tummy.ok && p.tummy.value.weeks).toHaveLength(1);
     expect(p.tummy.ok && p.tummy.value.perDay).toBe(10 * MIN);
     expect(p.pump).toBeUndefined();
+    expect(p.sleepPlace).toBeUndefined();
+  });
+
+  it('shares sleep time by place, once enough sleeps have one', () => {
+    const placed = [
+      timed('sleep', at(25, 13), 90, { sleep: 'nap', where: 'bassinet' }),
+      timed('sleep', at(26, 13), 90, { sleep: 'nap', where: 'bassinet' }),
+      timed('sleep', at(27, 13), 60, { sleep: 'nap', where: 'stroller' }),
+      timed('sleep', at(28, 13), 60, { sleep: 'nap', where: 'bassinet' }),
+    ];
+    const few = patterns([...routine(), ...placed], '2026-09-30', 7, 0, now).sleepPlace;
+    expect(few).toEqual({ ok: false, have: 4, need: 5 });
+    const enough = patterns([...routine(), ...placed, timed('sleep', at(29, 13), 90, { sleep: 'nap', where: 'stroller' })], '2026-09-30', 7, 0, now).sleepPlace;
+    expect(enough).toEqual({
+      ok: true,
+      basis: 5,
+      value: [
+        { place: 'bassinet', share: 240 / 390 },
+        { place: 'stroller', share: 150 / 390 },
+      ],
+    });
   });
 
   it('holds back until there is enough data', () => {

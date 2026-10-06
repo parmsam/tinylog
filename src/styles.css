@@ -2318,3 +2318,82 @@ table.daygrid {
 .settings-section code {
   font-size: 0.8em;
 }
+
+/* Splash: the brand for a moment while the app opens (Settings can turn it off). Same background as the page, so no flash at night. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.splash-mark {
+  width: 112px;
+  height: 112px;
+  overflow: visible;
+  filter: drop-shadow(0 0 28px color-mix(in oklab, var(--c-feed) 45%, transparent));
+  animation: splash-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.splash-star {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: splash-twinkle 900ms ease-out 250ms both;
+}
+.splash-star.s2 {
+  animation-delay: 400ms;
+}
+.splash-name {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  animation: splash-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
+}
+.splash.leaving {
+  animation: splash-out 380ms ease-in forwards;
+}
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+}
+@keyframes splash-twinkle {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+/* Night: dimmer and stiller. */
+:root[data-theme='night'] .splash-mark {
+  opacity: 0.7;
+  filter: none;
+}
+:root[data-theme='night'] :is(.splash-mark, .splash-name, .splash-star) {
+  animation-duration: 900ms;
+  animation-name: splash-fade;
+}
+@keyframes splash-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.splash-mark, .splash-name, .splash-star) {
+    animation: none;
+  }
+}

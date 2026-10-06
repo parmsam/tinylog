@@ -41,6 +41,16 @@ describe('settings', () => {
   });
 });
 
+describe('splash setting', () => {
+  it('is on unless turned off', () => {
+    expect(DEFAULT_SETTINGS.splash).toBe(true);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ babyName: 'Pip' }));
+    expect(loadSettings().splash).toBe(true);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ splash: false }));
+    expect(loadSettings().splash).toBe(false);
+  });
+});
+
 describe('companion setting', () => {
   it('migrates the old on/off boolean', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: true }));

@@ -2,7 +2,7 @@ import { CARDS, cardById, cardFor, type CardDef, type CardId } from '../core/car
 import { createEvent } from '../core/events';
 import { fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
 import { addEvent, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import type { Detail, LogEvent } from '../core/types';
+import { SLEEP_PLACES, type Detail, type LogEvent } from '../core/types';
 import { toast } from './toast';
 import { companionReact } from './companion';
 import { requestPersistence } from './persist';
@@ -78,7 +78,7 @@ function fieldsFor(card: CardDef, d: Detail): string {
       return seg('diaper', [['wet', '💧 Wet'], ['dirty', '💩 Dirty'], ['both', 'Both']], d.diaper ?? card.preset?.diaper, 'Diaper');
     case 'nap':
     case 'night':
-      return seg('sleep', [['nap', '😴 Nap'], ['night', '🌙 Night']], d.sleep ?? card.preset?.sleep, 'Sleep');
+      return seg('sleep', [['nap', '😴 Nap'], ['night', '🌙 Night']], d.sleep ?? card.preset?.sleep, 'Sleep') + seg('where', SLEEP_PLACES, d.where, 'Where (optional)');
     case 'pump':
       return seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side') + amountField(d.amount, 'Volume');
     default:
@@ -146,6 +146,8 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   if (diaper) detail.diaper = diaper;
   const sleep = str('sleep') as Detail['sleep'];
   if (sleep) detail.sleep = sleep;
+  const where = str('where') as Detail['where'];
+  if (where) detail.where = where;
   for (const k of ['minL', 'minR', 'min'] as const) {
     const v = Math.round(parseFloat(str(k) ?? ''));
     if (v > 0 && v <= 180) detail[k] = v;
@@ -185,6 +187,7 @@ function detailFor(card: CardDef, d: Detail): Detail {
     case 'nap':
     case 'night':
       out.sleep = d.sleep ?? card.preset?.sleep;
+      out.where = d.where;
       break;
     case 'pump':
       Object.assign(out, { side: d.side, amount: d.amount });

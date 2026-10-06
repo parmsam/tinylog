@@ -38,7 +38,7 @@ export async function open(page: Page, seed: Seed = {}, path = './') {
       const r = indexedDB.deleteDatabase('tinylog');
       r.onsuccess = r.onerror = r.onblocked = () => res(null);
     });
-    localStorage.setItem('tinylog:v1:settings', JSON.stringify({ tipsSeen: ['welcome', 'install', 'install-android', 'partner', 'edit', 'coins', 'recap', 'trends', 'bedside', 'siri'], theme: 'dusk', ...seed.settings }));
+    localStorage.setItem('tinylog:v1:settings', JSON.stringify({ tipsSeen: ['welcome', 'install', 'install-android', 'partner', 'edit', 'coins', 'recap', 'trends', 'bedside', 'siri'], theme: 'dusk', splash: false, ...seed.settings }));
     const events = seed.events ?? [];
     const notes = seed.notes ?? [];
     if (seed.mirrorOnly) {

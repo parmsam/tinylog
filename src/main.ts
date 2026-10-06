@@ -23,6 +23,7 @@ import { renderDayGrid } from './viz/dayGridView';
 import { mountCompanion, renderCompanion } from './ui/companion';
 import { isIos, setHapticTriggersEnabled } from './core/haptics';
 import { renderRadialClock } from './viz/radialClock';
+import { showSplash } from './ui/splash';
 
 const cardsEl = document.getElementById('cards')!;
 
@@ -151,7 +152,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 render();
-void init().then(({ restored }) => {
+const loading = init();
+showSplash(loading, { enabled: settings.get().splash });
+void loading.then(({ restored }) => {
   if (restored) toast(`Recovered ${restored} entr${restored === 1 ? 'y' : 'ies'} from the on-device backup copy`);
   document.documentElement.dataset.ready = '';
   runLinkAction();

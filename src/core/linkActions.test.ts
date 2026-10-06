@@ -57,6 +57,15 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=feed&side=up')).toMatchObject({ kind: 'invalid' });
   });
 
+  it('takes where a sleep happened, by everyday names', () => {
+    expect(p('?do=start&what=nap&where=bassinet')).toMatchObject({ kind: 'start', card: 'nap', detail: { where: 'bassinet' } });
+    expect(p('?do=stop&what=sleep&where=held')).toMatchObject({ card: 'nap', detail: { where: 'contact' } });
+    expect(p('?do=toggle&what=night&where=Car Seat')).toMatchObject({ detail: { where: 'car' } });
+    expect(p('?do=start&what=nap&where=sofa')).toMatchObject({ kind: 'invalid' });
+    expect(p('?do=log&what=wet&where=crib')).toMatchObject({ kind: 'invalid' });
+    expect(stripLinkAction('https://x.test/tinylog/?do=start&what=nap&where=crib')).toBe('/tinylog/');
+  });
+
   it('caps notes', () => {
     const a = p(`?do=log&what=doctor&note=${'x'.repeat(500)}`);
     expect(a?.kind === 'log' && a.detail.note?.length).toBe(300);

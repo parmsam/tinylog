@@ -37,6 +37,7 @@ Sibling project to [pomotimer2](https://github.com/parmsam/pomotimer2): same sta
        amount?: number                         // ml (bottle, pump); displayed in the user's unit
        diaper?: 'wet' | 'dirty' | 'both'
        sleep?: 'nap' | 'night'
+       where?: 'bassinet' | 'crib' | 'contact' | 'stroller' | 'car'  // sleep, optional
        note?: string                           // any event, and the whole of a doctor visit
      }
      createdAt: number     // when it was logged
@@ -201,6 +202,8 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - [x] Medals and unlocks at coin milestones, prechosen in `src/companion/rewards.ts`: a medal for each (bronze, silver, gold), plus a bow tie (50), party hat (100), **Star** (250), flower crown (500), **Unicorn** (1,000), crown (2,500), **Bumblebee** (5,000) and rainbow (10,000). Accessories (`accessories.ts`) sit on each character's `head` / `neck` anchors, one per slot; a newly unlocked one goes straight on
 - [x] Coins & rewards sheet: tap the coin chip (or `K`, or Settings → Medals & unlocks) for today and all-time coins, progress to the next milestone, the medal shelf and every unlock; wear accessories and pick special companions there
 - [x] Moods by time of day and moments of the day (`src/companion/mood.ts`): greetings and drowsier eyes in the evening and at night, small idle bits (morning stretch, afternoon look-around, evening yawn), and bigger reactions with a cute line for a few seconds: first entry of each part of the day, waking up for the morning, goodnight, longest sleep today, round numbers of feeds and diapers, first poop, baths, tummy time, a calm-again fussy spell and a busy hour
+- [x] Splash screen on open (moon mark + wordmark), on by default, Settings → Splash screen when the app opens
+- [x] Sleep location: optional Where chips on naps and night sleep (Bassinet, Crib, Held, Stroller, Car), shown in the log, `&where=` on links and the API, and a Where sleep happened pattern
 
 ### Phase 5 — Links & shortcuts
 - [x] Link actions: `?do=log|start|stop|toggle&what=…` with `ago`, `side`, `ml`/`oz`, `milk`, `method`, `note`; friendly names (bottle, poop, both, sleep…); params stripped after running; a repeat within 8 s is ignored; bad links explain themselves
@@ -268,3 +271,6 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-04 — Exports carry the baby's name (`babyName`, left out when blank; older versions ignore it). Importing fills in the name only when this phone has none, so a partner's file never renames the baby.
 - 2026-10-04 — README reworked after pomotimer2's: screenshots (`docs/`, made from the fake demo baby by `e2e/screenshots.spec.ts`, which only runs with `SCREENSHOTS=1`), install steps, grouped features, shortcut and link tables, and a comparison with other trackers (Huckleberry, Baby Tracker, Glow Baby, What to Expect, BabyCenter, Sprout Track, Feed), dated because prices and policies change.
 - 2026-10-04 — v0.9.1: README with screenshots, install steps and a comparison table; the baby's name travels with exports.
+- 2026-10-06 — Splash screen for branding, on by default and switchable in Settings. It stays at least 0.9s and at most 2.5s (leaves once the log has loaded), uses the page background so night has no flash, and is quieter at night and still under reduced motion. Any tap or key dismisses it and is swallowed, so it never logs by accident. `?do=` links skip it. E2E seeds it off; `delight.spec.ts` tests it.
+- 2026-10-06 — Bassinet is a sleep location, not its own card: a separate button would split sleep in two for every chart and pattern. Sleeps get an optional `detail.where` (bassinet, crib, contact shown as Held, stroller, car), never filled in for you (a remembered default would quietly make the data wrong). Links take `&where=` (aliases: held/arms, cot, pram, car-seat), only on sleeps. Patterns show each place's share of sleep time from sleeps that have one, from 5 of them; it's hidden if no sleep has a place.
+- 2026-10-06 — v0.10.0: splash screen (on by default, switchable) and sleep location (Where chips on sleeps, `&where=` links, Where sleep happened pattern).

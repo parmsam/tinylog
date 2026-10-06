@@ -238,3 +238,32 @@ test.describe('backgrounds', () => {
     await expect(page.locator('canvas.scene-canvas')).toHaveCount(0);
   });
 });
+
+test.describe('splash', () => {
+  test('shows on open by default; a tap dismisses it without logging anything', async ({ page }) => {
+    // Hold time still so it can't leave on its own before the tap.
+    await page.clock.install();
+    await open(page, { settings: { splash: true } });
+    const splash = page.locator('.splash');
+    await expect(splash).toBeVisible();
+    await expect(splash).toContainText('tinylog');
+    await splash.click();
+    await expect(splash).toHaveCount(0);
+    await expect(entries(page)).toHaveCount(0);
+  });
+
+  test('goes away by itself, and can be turned off in Settings', async ({ page }) => {
+    await open(page, { settings: { splash: true } });
+    await expect(page.locator('.splash')).toHaveCount(0, { timeout: 4000 });
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByLabel('Splash screen when the app opens').uncheck();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(page.locator('.splash')).toHaveCount(0);
+  });
+
+  test('is skipped for a link that logs something', async ({ page }) => {
+    await open(page, { settings: { splash: true } }, './?do=wet');
+    await expect(page.locator('.splash')).toHaveCount(0);
+  });
+});

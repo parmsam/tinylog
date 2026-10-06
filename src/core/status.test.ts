@@ -14,6 +14,9 @@ describe('summary', () => {
     expect(summary(createEvent('feed', 0, { method: 'breast', side: 'L' }, 0), prefs)).toBe('Breast · L');
     expect(summary(createEvent('feed', 0, { method: 'bottle', amount: 90, milk: 'formula' }, 0), prefs)).toBe('Bottle · 90 ml · formula');
     expect(summary(createEvent('diaper', 0, { diaper: 'both' }, 0), prefs)).toBe('Wet + dirty');
+    expect(summary(createEvent('sleep', 0, { sleep: 'nap', where: 'bassinet' }, 0), prefs)).toBe('Bassinet');
+    expect(summary(createEvent('sleep', 0, { sleep: 'night', where: 'contact' }, 0), prefs)).toBe('Held');
+    expect(summary(createEvent('sleep', 0, { sleep: 'nap' }, 0), prefs)).toBe('');
     expect(summary(createEvent('pump', 0, { side: 'both', amount: 120 }, 0), { units: 'oz' })).toBe('both sides · 4.1 oz');
   });
 });

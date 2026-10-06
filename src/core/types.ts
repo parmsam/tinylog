@@ -2,6 +2,16 @@ export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy'
 
 export type Side = 'L' | 'R' | 'both';
 
+/** Where a sleep happened ('contact' = held, on someone). */
+export type SleepPlace = 'bassinet' | 'crib' | 'contact' | 'stroller' | 'car';
+export const SLEEP_PLACES: [SleepPlace, string][] = [
+  ['bassinet', 'Bassinet'],
+  ['crib', 'Crib'],
+  ['contact', 'Held'],
+  ['stroller', 'Stroller'],
+  ['car', 'Car'],
+];
+
 /** Optional detail. Nothing here is ever required to log an event. */
 export interface Detail {
   method?: 'breast' | 'bottle'; // feed
@@ -14,6 +24,7 @@ export interface Detail {
   min?: number;
   diaper?: 'wet' | 'dirty' | 'both';
   sleep?: 'nap' | 'night';
+  where?: SleepPlace; // sleep
   note?: string;
 }
 
@@ -81,4 +92,6 @@ export interface Settings {
   background: Background;
   /** Home-screen buttons turned off in Settings (card ids). Their entries, links and keys still work. */
   hiddenCards: string[];
+  /** A short branded splash while the app opens. */
+  splash: boolean;
 }

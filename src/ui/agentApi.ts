@@ -24,6 +24,8 @@ export interface ActOptions {
   method?: 'breast' | 'bottle';
   milk?: 'breast' | 'formula';
   diaper?: 'wet' | 'dirty' | 'both';
+  /** Where a sleep happened. */
+  where?: 'bassinet' | 'crib' | 'held' | 'stroller' | 'car';
   note?: string;
   /** Breastfeeding length in minutes: per side, or one total. */
   minL?: number;
@@ -85,7 +87,7 @@ export const RECIPES: { ask: string; code: string; note: string }[] = [
   { ask: 'When did the baby last eat?', code: 'tinylog.state().last.feed', note: 'minutesAgo, the time (ISO) and a summary like "Breast · L". state() also has what is going on now and today\'s totals.' },
   { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, spitup, bath, books (one per book), doctor (with a note).' },
   { ask: 'Log a 90 ml bottle of formula', code: "tinylog.log('bottle', { ml: 90, milk: 'formula' })", note: 'Breast feeds: tinylog.log(\'feed\', { side: \'L\' }). Plain tinylog.log(\'feed\') picks the other breast, like a tap.' },
-  { ask: 'The baby fell asleep / woke up', code: "tinylog.toggle('sleep')", note: '"sleep" is a nap by day and night sleep in the evening; toggle starts it or stops the one running.' },
+  { ask: 'The baby fell asleep / woke up', code: "tinylog.toggle('sleep')", note: '"sleep" is a nap by day and night sleep in the evening; toggle starts it or stops the one running. Add { where: \'bassinet\' } for where.' },
   { ask: 'How has sleep been this week?', code: 'tinylog.patterns(7)', note: 'Descriptive patterns (typical nap length, bedtime window…); each says what it is based on. Not advice.' },
   { ask: 'Summarize today', code: 'tinylog.markdown(1)', note: 'Markdown with totals, the day note and every entry. entries() gives the same as data.' },
 ];
@@ -96,7 +98,8 @@ All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, n
 tinylog.state()                        what's going on now, the last of each thing, today's totals
 tinylog.log(what, opts?)               log it now (timed things toggle); opts:
                                        { minutesAgo, side: 'L'|'R'|'both', ml, oz, method, milk, diaper, note,
-                                         minL, minR, min }  (breastfeeding minutes: per side, or a total)
+                                         minL, minR, min,  (breastfeeding minutes: per side, or a total)
+                                         where: 'bassinet'|'crib'|'held'|'stroller'|'car' }  (sleeps)
 tinylog.start(what, opts?)             start nap / night / tummy / pump / fussy
 tinylog.stop(what, opts?)              stop it (pump: pass ml)
 tinylog.toggle(what, opts?)            start or stop

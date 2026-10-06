@@ -116,6 +116,17 @@ test.describe('the sheet', () => {
     await expect(entries(page).first()).toContainText('Bottle · 90 ml · formula');
   });
 
+  test('a sleep can say where it happened (optional)', async ({ page }) => {
+    const now = Date.now();
+    await open(page, { events: [ev('sleep', now - 60 * MIN, { endAt: now - 20 * MIN, detail: { sleep: 'nap' } })] });
+    await entries(page).first().click();
+    const sheet = page.locator('#sheet');
+    await sheet.getByText('Bassinet', { exact: true }).click();
+    await sheet.getByRole('button', { name: 'Save' }).click();
+    await expect(entries(page).first()).toContainText('Bassinet');
+    expect((await storedEvents(page))[0].detail).toMatchObject({ sleep: 'nap', where: 'bassinet' });
+  });
+
   test('editing an entry changes it; deleting can be undone', async ({ page }) => {
     const now = Date.now();
     await open(page, { events: [ev('diaper', now - 30 * MIN, { detail: { diaper: 'wet' } })] });

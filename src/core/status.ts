@@ -1,7 +1,7 @@
 import { lastFor, lastWake, nextUpcoming, ongoingFor, type CardDef } from './cards';
 import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
-import type { LogEvent, Settings } from './types';
+import { SLEEP_PLACES, type LogEvent, type Settings } from './types';
 
 type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'>;
 
@@ -36,6 +36,11 @@ export function summary(e: LogEvent, prefs: Pick<Settings, 'units'>): string {
     case 'diaper':
       bits.push(d.diaper === 'both' ? 'Wet + dirty' : d.diaper === 'dirty' ? 'Dirty' : 'Wet');
       break;
+    case 'sleep': {
+      const place = SLEEP_PLACES.find(([id]) => id === d.where);
+      if (place) bits.push(place[1]);
+      break;
+    }
     case 'pump':
       if (d.side) bits.push(SIDE[d.side]);
       if (d.amount) bits.push(amount(d.amount, prefs.units));

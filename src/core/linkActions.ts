@@ -1,6 +1,6 @@
 import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
-import type { Detail, Side } from './types';
+import type { Detail, SleepPlace, Side } from './types';
 
 /**
  * Link actions: open the app with `?do=…` to log something, e.g. from an iOS Shortcut ("Hey Siri,
@@ -10,6 +10,7 @@ import type { Detail, Side } from './types';
  *   ?do=toggle&what=nap                   ?do=start&what=tummy     ?do=stop&what=pump&ml=120
  *   &ago=15  logs it 15 minutes ago       &side=L|R|both   &milk=breast|formula   &note=…
  *   &minl=12&minr=8 (or &min=20)  breastfeeding length in minutes
+ *   &where=bassinet|crib|held|stroller|car  where a sleep happened
  *
  * Settings never travel in the URL. Parameters are removed once the action has run.
  */
@@ -21,7 +22,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -63,6 +64,18 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
 };
 
 const SIDES: Record<string, Side> = { l: 'L', left: 'L', r: 'R', right: 'R', both: 'both', b: 'both' };
+const PLACES: Record<string, SleepPlace> = {
+  bassinet: 'bassinet',
+  crib: 'crib',
+  cot: 'crib',
+  held: 'contact',
+  contact: 'contact',
+  arms: 'contact',
+  stroller: 'stroller',
+  pram: 'stroller',
+  car: 'car',
+  'car-seat': 'car',
+};
 const MAX_NOTE = 300;
 
 /** "sleep" means night sleep in the evening and early morning, a nap otherwise. */
@@ -130,6 +143,13 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   if (detail.minL && detail.minR && !detail.side) detail.side = 'both';
   else if (detail.minL && !detail.side) detail.side = 'L';
   else if (detail.minR && !detail.side) detail.side = 'R';
+
+  const where = q.get('where')?.trim().toLowerCase().replace(/\s+/g, '-');
+  if (where) {
+    if (card !== 'nap' && card !== 'night') return { kind: 'invalid', reason: 'where is for naps and night sleep' };
+    if (!PLACES[where]) return { kind: 'invalid', reason: 'where is bassinet, crib, held, stroller or car' };
+    detail.where = PLACES[where];
+  }
 
   const note = q.get('note')?.trim().slice(0, MAX_NOTE);
   if (note) detail.note = note;

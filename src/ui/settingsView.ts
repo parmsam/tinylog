@@ -182,6 +182,7 @@ export function openSettings() {
       <p class="hint coin-total"><span class="coin" aria-hidden="true"></span> <b>${purse.total.toLocaleString()}</b> ${purse.total === 1 ? 'coin' : 'coins'} all time · ${purse.today} today. One for every entry, shown next to the companion.${next ? ` Next milestone: ${next.toLocaleString()}.` : ''}</p>
       <div class="btn-row"><button type="button" class="btn" data-rewards>Medals &amp; unlocks</button></div></fieldset>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
+    <label class="check"><input type="checkbox" name="splash" ${s.splash ? 'checked' : ''} /> Splash screen when the app opens</label>
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
 

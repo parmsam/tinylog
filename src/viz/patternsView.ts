@@ -1,7 +1,7 @@
 import { dayDate } from '../core/days';
 import { amount, clockTime, dayTitle, duration } from '../core/format';
 import type { Maybe, Patterns, Spread } from '../core/stats';
-import type { Settings } from '../core/types';
+import { SLEEP_PLACES, type Settings } from '../core/types';
 
 type Prefs = Pick<Settings, 'units' | 'clock'>;
 
@@ -187,6 +187,19 @@ export function patternsHtml(p: Patterns, prefs: Prefs): string {
         value: v.peak === null ? duration(v.perDay) : hourSpan(v.peak, (v.peak + 3) % 24),
         sub: v.peak === null ? `a day · ${plural(v.spells, 'spell')}` : `most often · ${duration(v.perDay)} a day`,
         basis: `from ${plural(v.spells, 'spell')} over ${plural(n, 'day')}`,
+      })),
+    );
+  }
+
+  if (p.sleepPlace) {
+    const name = (id: string) => SLEEP_PLACES.find(([p]) => p === id)![1];
+    const pct = (s: number) => `${Math.round(s * 100)}%`;
+    tiles.push(
+      maybeTile(p.sleepPlace, 'Where sleep happened', 'sleep', (v, n) => ({
+        label: 'Where sleep happened',
+        value: name(v[0].place),
+        sub: v.map((x) => `${name(x.place).toLowerCase()} ${pct(x.share)}`).join(' · '),
+        basis: `share of sleep time, from ${plural(n, 'sleep')} with a place`,
       })),
     );
   }

@@ -1,6 +1,6 @@
 import { dayTotals } from './daily';
 import { addDays, dayKey, dayRange } from './days';
-import type { LogEvent } from './types';
+import type { LogEvent, SleepPlace } from './types';
 
 /**
  * Descriptive patterns from the log: what usually happens, never what should.
@@ -65,6 +65,8 @@ export interface Patterns {
   fussy?: Maybe<{ perDay: number; spells: number; peak: number | null }>;
   /** Only when there's any pumping in range. */
   pump?: Maybe<{ mlPerDay: number; perSession: Spread | null; sessionsPerDay: number }>;
+  /** Only when a sleep in range has a place. Share of sleep time with a place, most first. */
+  sleepPlace?: Maybe<{ place: SleepPlace; share: number }[]>;
 }
 
 /** Local date of the evening a night belongs to: sleep starting before noon counts for the previous evening. */
@@ -202,5 +204,16 @@ export function patterns(events: LogEvent[], lastDay: string, rangeDays: number,
       })
     : undefined;
 
-  return { days, sleepPerDay, napLength, napsPerDay, longestStretch, bedtime, wake, feedsPerDay, feedGap, diapers, tummy, fussy, pump };
+  // Where sleep happened: share of the time of finished sleeps that have a place.
+  const placed = inRange.filter((e) => e.type === 'sleep' && e.detail?.where && e.endAt !== undefined);
+  const sleepPlace = placed.length
+    ? need(placed.length, MIN_SAMPLES, () => {
+        const byPlace = new Map<SleepPlace, number>();
+        for (const e of placed) byPlace.set(e.detail!.where!, (byPlace.get(e.detail!.where!) ?? 0) + e.endAt! - e.at);
+        const total = [...byPlace.values()].reduce((a, b) => a + b, 0) || 1;
+        return [...byPlace].map(([place, ms]) => ({ place, share: ms / total })).sort((a, b) => b.share - a.share);
+      })
+    : undefined;
+
+  return { days, sleepPerDay, napLength, napsPerDay, longestStretch, bedtime, wake, feedsPerDay, feedGap, diapers, tummy, fussy, pump, sleepPlace };
 }
