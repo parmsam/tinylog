@@ -241,8 +241,10 @@ test.describe('backgrounds', () => {
 
 test.describe('splash', () => {
   test('shows on open by default; a tap dismisses it without logging anything', async ({ page }) => {
-    // Hold time still so it can't leave on its own before the tap.
-    await page.clock.install();
+    // Pause the page's clock so the splash can't leave on its own before the tap (install alone lets time run).
+    const t0 = Date.now();
+    await page.clock.install({ time: t0 });
+    await page.clock.pauseAt(t0 + 1000);
     await open(page, { settings: { splash: true } });
     const splash = page.locator('.splash');
     await expect(splash).toBeVisible();

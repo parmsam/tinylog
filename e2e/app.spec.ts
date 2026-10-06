@@ -414,6 +414,7 @@ test.describe('backup reminders', () => {
     // A day later it's back.
     await page.clock.setFixedTime(now + DAY + MIN);
     await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
     await expect(banner).toContainText('6 days since your last backup');
   });
 
