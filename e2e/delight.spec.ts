@@ -249,6 +249,7 @@ test.describe('splash', () => {
     const splash = page.locator('.splash');
     await expect(splash).toBeVisible();
     await expect(splash).toContainText('tinylog');
+    await expect(splash).toContainText('Little moments, logged.');
     await splash.click();
     await expect(splash).toHaveCount(0);
     await expect(entries(page)).toHaveCount(0);

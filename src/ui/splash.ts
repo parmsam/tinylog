@@ -20,7 +20,7 @@ export function showSplash(ready: Promise<unknown>, { enabled, search = location
   const el = document.createElement('div');
   el.className = 'splash';
   el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = `${MOON}<p class="splash-name">tinylog</p>`;
+  el.innerHTML = `${MOON}<p class="splash-name">tinylog</p><p class="splash-caption">Little moments, logged.</p>`;
   document.body.append(el);
 
   let gone = false;
