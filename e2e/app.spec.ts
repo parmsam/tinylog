@@ -402,6 +402,8 @@ test.describe('backup reminders', () => {
     const DAY = 24 * 60 * MIN;
     const old = Array.from({ length: 25 }, (_, i) => ev('diaper', now - 10 * DAY + i * MIN, { detail: { diaper: 'wet' } }));
     const fresh = [ev('feed', now - DAY), ev('feed', now - 2 * DAY)];
+    // `now` is set when the file loads, maybe minutes ago on CI: pin the page to it so "Not now" records exactly it.
+    await page.clock.setFixedTime(now);
     await open(page, { events: [...old, ...fresh], settings: { lastBackupAt: now - 5 * DAY } });
     const banner = page.locator('#banner');
     await expect(banner).toContainText('5 days since your last backup');
