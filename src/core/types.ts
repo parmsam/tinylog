@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'doctor' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -92,6 +92,8 @@ export interface Settings {
   background: Background;
   /** Home-screen buttons turned off in Settings (card ids). Their entries, links and keys still work. */
   hiddenCards: string[];
+  /** Off-by-default cards already hidden once on this phone, so turning one on in Settings sticks. */
+  cardsOffered: string[];
   /** A short branded splash while the app opens. */
   splash: boolean;
 }

@@ -122,6 +122,11 @@ export function momentFor(
     if (count === 1) return say('cheer', ['Story time{to} · {buddy} is listening', 'First book of the day · bookworm in training']);
     if (count && count % 5 === 0) return say('proud', [`${count} books today · a tiny bookworm`, `${count} books today · {buddy} wants another`]);
   }
+  if (what === 'log' && card === 'music') {
+    const count = todays.filter((e) => e.type === 'music').length;
+    if (count === 1) return say('cheer', ['Music time{to} · {buddy} is swaying', 'First song of the day · la la la']);
+    if (count && count % 5 === 0) return say('proud', [`${count} songs today · a tiny music fan`, `${count} songs today · {buddy} wants an encore`]);
+  }
   if (what === 'log' && card === 'bath') return say('cheer', ['Squeaky clean{to}!', 'Fresh as a daisy{to}', 'Bath done · {buddy} wants one too']);
   if (card === 'tummy' && what === 'stop' && length >= 3 * MIN) return say('proud', [`Tummy time champ · ${duration(length)}`, `${duration(length)} of tummy time · strong little arms`]);
 

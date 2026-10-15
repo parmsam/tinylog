@@ -21,6 +21,7 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=spit up')).toMatchObject({ card: 'spitup' });
     expect(p('?do=log&what=book&ago=5')).toMatchObject({ card: 'books', minutesAgo: 5 });
     expect(p('?do=log&what=reading')).toMatchObject({ card: 'books' });
+    for (const w of ['music', 'song', 'sing', 'lullaby']) expect(p(`?do=log&what=${w}`)).toMatchObject({ card: 'music' });
   });
 
   it('understands feed details and amounts', () => {

@@ -349,6 +349,21 @@ test.describe('data', () => {
     await expect(entries(page).first()).toContainText('Books');
   });
 
+  test('music starts hidden; turned on in Settings it logs one song per tap and stays on', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'music')).toBeHidden();
+    await page.keyboard.press('j'); // the key works while it's hidden
+    await expect(entries(page).first()).toContainText('Music');
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings fieldset', { hasText: 'Buttons' }).locator('label', { hasText: 'Music' }).click();
+    await page.keyboard.press('Escape');
+    await card(page, 'music').click();
+    await expect(card(page, 'music')).toContainText('2 today');
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(card(page, 'music')).toBeVisible();
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

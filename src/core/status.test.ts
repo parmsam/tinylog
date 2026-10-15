@@ -52,6 +52,8 @@ describe('cardStatus today', () => {
     });
     expect(status('books', [])).toMatchObject({ primary: 'Tap to log', secondary: 'one tap per book' });
     expect(status('books', [createEvent('book', at(8, 32, 29), undefined, 0)], '2026-09-29').primary).toBe('1 book');
+    expect(status('music', [])).toMatchObject({ primary: 'Tap to log', secondary: 'one tap per song' });
+    expect(status('music', [createEvent('music', at(8, 32, 29), undefined, 0), createEvent('music', at(8, 40, 29), undefined, 0)], '2026-09-29').primary).toBe('2 songs');
   });
 
   it('shows an upcoming doctor visit', () => {

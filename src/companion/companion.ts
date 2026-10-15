@@ -24,6 +24,7 @@ export type Reaction =
   | 'spitup'
   | 'bath'
   | 'books'
+  | 'music'
   | 'doctor'
   | 'undo'
   // Moments of the day (see mood.ts)
@@ -159,6 +160,10 @@ export class Companion {
       case 'books': // listening to a story
         this.setFace('o', 800);
         this.prop('sparkles', 1200);
+        break;
+      case 'music': // a little sway to the tune
+        this.prop('sparkles', 1200);
+        this.body({ rotate: [{ to: -4, duration: 260 }, { to: 4, duration: 520 }, { to: 0, duration: 400, ease: 'outElastic(1, .6)' }] });
         break;
       case 'bath':
         this.excite(1500);

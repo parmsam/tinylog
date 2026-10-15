@@ -37,6 +37,7 @@
   --c-spitup: #c9d3e6;
   --c-bath: #69d7d0;
   --c-books: #c3d96b;
+  --c-music: #e79ad8;
   --c-doctor: #f5cd6a;
 
   /* Chart series: fewer, validated colors (dataviz validator, dark surface #221c30, adjacent order feed → sleep → tummy → diaper → pump → fussy).
@@ -93,6 +94,7 @@
   --c-spitup: #7f8ca8;
   --c-bath: #22a79f;
   --c-books: #7f9a1f;
+  --c-music: #b4529f;
   --c-doctor: #c9971a;
 
   /* Chart series, light surface #fffaf5 (validated). */
@@ -139,6 +141,7 @@
   --c-spitup: #a89c8c;
   --c-bath: #b0a080;
   --c-books: #b0a868;
+  --c-music: #c08ca0;
   --c-doctor: #c9a060;
   --muted: color-mix(in oklab, var(--text) 58%, transparent);
   --danger: #d77b5f;

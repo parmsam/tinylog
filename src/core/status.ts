@@ -140,7 +140,8 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
     }
     case 'spitup':
     case 'books':
-      if (!last) return { primary: 'Tap to log', secondary: card.id === 'books' ? 'one tap per book' : '', ongoing: false };
+    case 'music':
+      if (!last) return { primary: 'Tap to log', secondary: card.id === 'books' ? 'one tap per book' : card.id === 'music' ? 'one tap per song' : '', ongoing: false };
       return { primary: ago(last.at, now), secondary: `${t(last.at)} · ${inDay.length} today`, ongoing: false };
     case 'bath':
       return last ? { primary: ago(last.at, now), secondary: t(last.at), ongoing: false } : { primary: 'Tap to log', secondary: '', ongoing: false };
@@ -191,6 +192,8 @@ function pastStatus(
       return n ? { primary: plural(n, 'spit-up'), secondary: '', ongoing: false } : none;
     case 'books':
       return n ? { primary: plural(n, 'book'), secondary: '', ongoing: false } : none;
+    case 'music':
+      return n ? { primary: plural(n, 'song'), secondary: '', ongoing: false } : none;
     case 'bath':
       return n ? { primary: 'Bath ✓', secondary: '', ongoing: false } : none;
     case 'doctor':

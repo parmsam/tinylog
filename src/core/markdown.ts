@@ -24,6 +24,7 @@ export function totalsLine(t: DayTotals, prefs: Pick<Settings, 'units'>): string
   if (t.spitups) bits.push(plural(t.spitups, 'spit-up'));
   if (t.baths) bits.push('bath');
   if (t.books) bits.push(plural(t.books, 'book'));
+  if (t.songs) bits.push(plural(t.songs, 'song'));
   if (t.doctor) bits.push(plural(t.doctor, 'doctor visit'));
   return bits.join(' · ');
 }

@@ -14,9 +14,11 @@ export interface CardDef {
   /** Does an event belong to this card? */
   matches(e: LogEvent): boolean;
   key: string;
+  /** Starts hidden on the home screen (once per phone; Settings → Buttons turns it on). */
+  offByDefault?: boolean;
 }
 
-export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'doctor';
+export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor';
 
 const of = (type: EventType) => (e: LogEvent) => e.type === type;
 
@@ -68,6 +70,7 @@ export const CARDS: readonly CardDef[] = [
   { id: 'spitup', label: 'Spit-up', emoji: '🫧', type: 'spitup', timed: false, matches: of('spitup'), key: 'x' },
   { id: 'bath', label: 'Bath', emoji: '🛁', type: 'bath', timed: false, matches: of('bath'), key: 'b' },
   { id: 'books', label: 'Books', emoji: '📚', type: 'book', timed: false, matches: of('book'), key: 'l' },
+  { id: 'music', label: 'Music', emoji: '🎵', type: 'music', timed: false, matches: of('music'), key: 'j', offByDefault: true },
   { id: 'doctor', label: 'Doctor', emoji: '🩺', type: 'doctor', timed: false, sheetFirst: true, matches: of('doctor'), key: 'o' },
 ];
 

@@ -137,6 +137,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 ### Phase 1 — Day view MVP
 - [x] Event model, IndexedDB storage, store, soft delete
 - [x] Cards: feed (breast/bottle), wet, dirty, nap, night sleep, tummy time, pump, fussy, spit-up, bath, books, doctor
+- [x] Music card (🎵, key `J`, one tap per song), off by default: turn it on in Settings → Buttons
 - [x] Settings → Buttons: turn cards on or off for the home screen
 - [x] Tap to log, Undo toast with −5/−15/−30m and pick-time; long press opens the sheet first
 - [x] Timed events (nap, night, tummy, pump) with live elapsed display that survives reload
@@ -274,3 +275,4 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-06 — Splash screen for branding, on by default and switchable in Settings. It stays at least 0.9s and at most 2.5s (leaves once the log has loaded), uses the page background so night has no flash, and is quieter at night and still under reduced motion. Any tap or key dismisses it and is swallowed, so it never logs by accident. `?do=` links skip it. E2E seeds it off; `delight.spec.ts` tests it.
 - 2026-10-06 — Bassinet is a sleep location, not its own card: a separate button would split sleep in two for every chart and pattern. Sleeps get an optional `detail.where` (bassinet, crib, contact shown as Held, stroller, car), never filled in for you (a remembered default would quietly make the data wrong). Links take `&where=` (aliases: held/arms, cot, pram, car-seat), only on sleeps. Patterns show each place's share of sleep time from sleeps that have one, from 5 of them; it's hidden if no sleep has a place.
 - 2026-10-06 — v0.10.0: splash screen (on by default, switchable) and sleep location (Where chips on sleeps, `&where=` links, Where sleep happened pattern).
+- 2026-10-14 — Music (🎵, key `J`, one tap per song or session of singing): an instant `music` event like Books, counted as songs on the card, in the totals line, the Trends table and `tinylog.state()` (`last.music`, `today.songs`), and marked on the clock's outer ring. Card tint only (`--c-music`). Links take music / song / songs / sing / singing / lullaby. Logging only: tinylog never plays sound (night mode is silent, and iOS stops web audio when the screen locks). It's the first card that's **off by default** (`offByDefault` in `cards.ts`): it starts hidden once per phone, existing installs included (tracked in settings `cardsOffered`), so updating doesn't add a button nobody asked for, and turning it on in Settings sticks.

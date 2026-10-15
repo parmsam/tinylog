@@ -179,6 +179,7 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
   spitup: { log: 'spitup' },
   bath: { log: 'bath' },
   books: { log: 'books' },
+  music: { log: 'music' },
   doctor: { log: 'doctor' },
 };
 

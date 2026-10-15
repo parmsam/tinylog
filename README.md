@@ -1,6 +1,6 @@
 # 🌙 tinylog
 
-An absurdly beautiful baby tracker that keeps everything on your phone. One tap logs a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, spit-up, bath, book or doctor visit, and there are lovely ways to see the day.
+An absurdly beautiful baby tracker that keeps everything on your phone. One tap logs a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, spit-up, bath, book, song or doctor visit, and there are lovely ways to see the day.
 
 **[Open the app →](https://parmsam.github.io/tinylog/)** It's free, with no account and no ads, and it works offline.
 
@@ -80,7 +80,7 @@ Press <kbd>?</kbd> in the app to see them all.
 | <kbd>F</kbd> <kbd>W</kbd> <kbd>D</kbd> | Feed, wet diaper, dirty diaper |
 | <kbd>N</kbd> <kbd>S</kbd> | Start / stop a nap, night sleep |
 | <kbd>T</kbd> <kbd>P</kbd> <kbd>C</kbd> | Start / stop tummy time, pump, fussy |
-| <kbd>X</kbd> <kbd>B</kbd> <kbd>L</kbd> <kbd>O</kbd> | Spit-up, bath, book, doctor visit |
+| <kbd>X</kbd> <kbd>B</kbd> <kbd>L</kbd> <kbd>J</kbd> <kbd>O</kbd> | Spit-up, bath, book, song, doctor visit |
 | <kbd>U</kbd> | Undo |
 | <kbd>←</kbd> <kbd>→</kbd> <kbd>.</kbd> | Previous / next day, back to today |
 | <kbd>G</kbd> <kbd>A</kbd> <kbd>R</kbd> <kbd>K</kbd> | Trends, bedside display, day recap, coins & rewards |
@@ -93,7 +93,7 @@ Any link with `?do=` logs something when opened, with the usual Undo. **Settings
 
 | Link | Does |
 |---|---|
-| `?do=log&what=wet` | Log a wet diaper (also `dirty`, `both`, `spitup`, `bath`, `books`, `doctor`) |
+| `?do=log&what=wet` | Log a wet diaper (also `dirty`, `both`, `spitup`, `bath`, `books`, `music`, `doctor`) |
 | `?do=log&what=bottle&ml=90` | Log a 90 ml bottle (`oz=3` works too) |
 | `?do=toggle&what=sleep` | Start or stop sleep: a nap by day, night sleep in the evening |
 | `?do=log&what=wet&ago=15` | Log it as 15 minutes ago |

@@ -6,6 +6,8 @@ export const SETTINGS_KEY = 'tinylog:v1:settings';
 /** Backup reminder intervals offered in Settings (0 = only every 50 entries). */
 export const BACKUP_DAY_CHOICES = [2, 4, 7, 14, 0];
 
+const OFF_BY_DEFAULT: string[] = CARDS.filter((c) => c.offByDefault).map((c) => c.id);
+
 export const DEFAULT_SETTINGS: Settings = {
   babyName: '',
   units: 'ml',
@@ -22,7 +24,8 @@ export const DEFAULT_SETTINGS: Settings = {
   companion: 'puff',
   accessories: [],
   background: 'glow',
-  hiddenCards: [],
+  hiddenCards: [...OFF_BY_DEFAULT],
+  cardsOffered: [...OFF_BY_DEFAULT],
   splash: true,
 };
 
@@ -53,12 +56,25 @@ export function loadSettings(): Settings {
     // Unknown ids are dropped, and at least one button always stays.
     const ids = CARDS.map((c) => c.id as string);
     s.hiddenCards = Array.isArray(s.hiddenCards) ? [...new Set(s.hiddenCards.filter((id) => ids.includes(id)))] : [];
+    // From the saved copy only: settings saved before a card existed haven't offered it yet.
+    s.cardsOffered = Array.isArray(saved.cardsOffered) ? saved.cardsOffered.filter((id) => ids.includes(id)) : [];
+    offerNewCards(s);
     if (s.hiddenCards.length >= ids.length) s.hiddenCards = [];
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
     return s;
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
+}
+
+/** Off-by-default cards start hidden the first time this phone sees them, so a new one doesn't just appear after an update. */
+function offerNewCards(s: Settings): Settings {
+  const fresh = OFF_BY_DEFAULT.filter((id) => !s.cardsOffered.includes(id));
+  if (fresh.length) {
+    s.hiddenCards = [...new Set([...s.hiddenCards, ...fresh])];
+    s.cardsOffered = [...s.cardsOffered, ...fresh];
+  }
+  return s;
 }
 
 export function saveSettings(s: Settings): void {

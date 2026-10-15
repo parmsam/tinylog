@@ -25,11 +25,20 @@ describe('settings', () => {
 
   it('keeps hidden buttons, dropping unknown ids and never hiding them all', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: ['pump', 'books', 'nope', 'pump'] }));
-    expect(loadSettings().hiddenCards).toEqual(['pump', 'books']);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump' }));
+    expect(loadSettings().hiddenCards).toEqual(['pump', 'books', 'music']);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump', cardsOffered: ['music'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
     const all = ['feed', 'wet', 'dirty', 'nap', 'night', 'tummy', 'pump', 'fussy', 'spitup', 'bath', 'books', 'doctor'];
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: all }));
+    expect(loadSettings().hiddenCards).toEqual([]);
+  });
+
+  it('starts off-by-default buttons hidden once, on new and existing phones, then respects the choice', () => {
+    expect(loadSettings()).toMatchObject({ hiddenCards: ['music'], cardsOffered: ['music'] });
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ babyName: 'Pip', hiddenCards: ['pump'] }));
+    expect(loadSettings()).toMatchObject({ hiddenCards: ['pump', 'music'], cardsOffered: ['music'] });
+    // Turned on in Settings → Buttons: it stays on.
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: [], cardsOffered: ['music'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
   });
 

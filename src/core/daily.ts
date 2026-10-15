@@ -27,6 +27,8 @@ export interface DayTotals {
   baths: number;
   /** Books read (one entry per book). */
   books: number;
+  /** Songs sung or played (one entry per song). */
+  songs: number;
   doctor: number;
 }
 
@@ -52,6 +54,7 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
     spitups: 0,
     baths: 0,
     books: 0,
+    songs: 0,
     doctor: 0,
   };
   for (const e of events) {
@@ -103,6 +106,9 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
         break;
       case 'book':
         if (starts) t.books++;
+        break;
+      case 'music':
+        if (starts) t.songs++;
         break;
       case 'doctor':
         if (starts) t.doctor++;
