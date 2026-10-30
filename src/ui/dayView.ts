@@ -7,7 +7,9 @@ import { summary } from '../core/status';
 import type { LogEvent } from '../core/types';
 import { riseIn } from '../fx/anims';
 import { sameTimeOn } from './actions';
+import { removeEntry } from './removeEntry';
 import { openSheet } from './sheet';
+import { isSwiping, mountSwipeDelete } from './swipeDelete';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -29,17 +31,24 @@ export function mountDayView() {
     const ev = row && getEvent(row.dataset.id!);
     if (ev) openSheet({ event: ev });
   });
+  mountSwipeDelete($('entries'), removeEntry);
 
   // Day note: saved as you type (debounced) and on blur. Tied to the day it was typed on.
   const note = $<HTMLTextAreaElement>('day-note');
   let timer: number | undefined;
   let noteDay = app.get().day;
+  // Only typed text is saved: after moving to another day the box shows that day's note, and
+  // saving it on pagehide used to blank the note of the day it was last focused on.
+  let dirty = false;
   const saveNote = () => {
     clearTimeout(timer);
+    if (!dirty) return;
+    dirty = false;
     setNote(noteDay, note.value.trim() ? note.value : '');
   };
   note.addEventListener('focus', () => (noteDay = app.get().day));
   note.addEventListener('input', () => {
+    dirty = true;
     clearTimeout(timer);
     timer = window.setTimeout(saveNote, 500);
   });
@@ -71,8 +80,8 @@ export function renderDayView(now = Date.now()) {
   const html = events.map((e) => entryHtml(e, start, now)).join('');
   $('entries-empty').hidden = events.length > 0;
   $('entries-empty').textContent = isToday ? 'Nothing logged yet today. Tap a card above.' : 'Nothing logged this day. Use + Add entry to fill it in.';
-  // Only touch the DOM when something changed, so rows don't flicker every tick.
-  if (html !== lastRendered) {
+  // Only touch the DOM when something changed, so rows don't flicker every tick. Never mid-swipe.
+  if (html !== lastRendered && !isSwiping()) {
     const before = new Set([...list.querySelectorAll<HTMLElement>('[data-id]')].map((el) => el.dataset.id));
     const dayChanged = list.dataset.day !== s.day;
     list.innerHTML = html;

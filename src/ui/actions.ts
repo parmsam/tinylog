@@ -32,12 +32,22 @@ function shiftChips(id: string, field: 'at', base: number, onShift: (ts: number)
   }));
 }
 
+/**
+ * Undo of a fresh log. Never silent: the toast sits over the lower cards, so a tap meant for one
+ * can land on Undo instead, and the entry must not just vanish without a way back.
+ */
+function removeLogged(card: CardDef, id: string, prefix = '') {
+  const prev = getEvent(id);
+  deleteEvent(id);
+  if (prev) toast(`${prefix}${card.emoji} ${card.label} removed`, { actions: [{ label: 'Put back', primary: true, run: () => revertTo(prev) }] });
+}
+
 function logged(card: CardDef, e: LogEvent, verb: string, prefix = '') {
   const t = (ts: number) => clockTime(ts, settings.get().clock);
   const label = (ts: number) => `${prefix}${card.emoji} ${card.label} ${verb} · ${t(ts)}`;
   const handle = toast(label(e.at), {
     actions: [
-      { label: 'Undo', primary: true, run: () => deleteEvent(e.id) },
+      { label: 'Undo', primary: true, run: () => removeLogged(card, e.id, prefix) },
       ...shiftChips(e.id, 'at', e.at, (ts) => handle.update(label(ts))),
       { label: 'Details', run: () => openSheet({ event: getEvent(e.id)! }) },
     ],

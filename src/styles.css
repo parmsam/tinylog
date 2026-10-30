@@ -377,6 +377,53 @@ button {
   background: var(--surface);
   text-align: left;
 }
+.entries li {
+  position: relative;
+  border-radius: 14px;
+}
+/* Swipe left to delete: the row slides over a quiet danger tint (no bright flash at night). */
+.entry {
+  touch-action: pan-y pinch-zoom;
+}
+.entries li.is-swiping {
+  overflow: hidden;
+  background: color-mix(in oklab, var(--danger) 18%, var(--surface));
+}
+.entries li.is-swiping::after {
+  content: 'Delete';
+  position: absolute;
+  inset: 0 18px 0 auto;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--danger);
+}
+.entries li.is-swiping .entry {
+  position: relative;
+  z-index: 1;
+}
+.entries li.is-armed {
+  background: color-mix(in oklab, var(--danger) 34%, var(--surface));
+}
+.entry.is-settling {
+  transition: transform 0.22s var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry.is-settling {
+    transition: none;
+  }
+}
+.confirm-body {
+  margin: 0;
+  color: var(--muted);
+}
+.sheet.confirm {
+  width: min(420px, 100%);
+}
+.sheet.confirm form {
+  gap: 12px;
+}
 .entry:hover {
   border-color: color-mix(in oklab, var(--c) 45%, transparent);
   border-left-color: var(--c);

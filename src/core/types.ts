@@ -96,4 +96,6 @@ export interface Settings {
   cardsOffered: string[];
   /** A short branded splash while the app opens. */
   splash: boolean;
+  /** Ask before deleting an entry (sheet Delete or swiping a log row). */
+  confirmDeletes: boolean;
 }

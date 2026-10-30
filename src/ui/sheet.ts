@@ -6,6 +6,7 @@ import { SLEEP_PLACES, type Detail, type LogEvent } from '../core/types';
 import { toast } from './toast';
 import { companionReact } from './companion';
 import { requestPersistence } from './persist';
+import { removeEntry } from './removeEntry';
 
 export interface SheetOpts {
   /** Edit this event. */
@@ -237,10 +238,7 @@ export function openSheet(opts: SheetOpts) {
     const t = e.target as HTMLElement;
     if (t === dialog || t.closest('[data-close]')) dialog.close();
     else if (t.closest('[data-delete]') && existing) {
-      const prev = getEvent(existing.id) ?? existing;
-      deleteEvent(existing.id);
-      dialog.close();
-      toast(`${card.emoji} ${card.label} deleted`, { actions: [{ label: 'Undo', run: () => revertTo(prev), primary: true }] });
+      void removeEntry(existing.id, { beforeToast: () => dialog.close() });
     }
   };
 

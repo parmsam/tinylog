@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hiddenCards: [...OFF_BY_DEFAULT],
   cardsOffered: [...OFF_BY_DEFAULT],
   splash: true,
+  confirmDeletes: true,
 };
 
 export function loadSettings(): Settings {
@@ -46,6 +47,7 @@ export function loadSettings(): Settings {
     if (!['glow', 'none', 'sky', 'fireflies', 'bubbles', 'mobile', 'snow'].includes(s.background)) s.background = 'glow';
     s.haptics = s.haptics !== false;
     s.splash = s.splash !== false;
+    s.confirmDeletes = s.confirmDeletes !== false;
     // v0.1 stored a boolean.
     const c = s.companion as unknown;
     if (c === true) s.companion = 'puff';

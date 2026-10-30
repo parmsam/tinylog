@@ -32,19 +32,26 @@ export const app = createStore<AppState>({
 export function setupPersistence() {
   persist(settings, saveSettings);
   window.addEventListener('pagehide', flushMirror);
+  // iOS often suspends (and later kills) a Home Screen app without a pagehide: write the copy when it's hidden.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushMirror();
+  });
 }
 
 export const today = (now = Date.now()) => dayKey(now, settings.get().dayStartHour);
 
 export async function init(): Promise<{ restored: number }> {
   const data = await loadAll();
+  // Anything logged while the stored log was loading is already saved; keep it rather than
+  // replacing it with the older stored copy (newest edit wins, as in an import).
+  const merged = mergeData(snapshot(), data);
   app.set({
-    events: data.events,
-    notes: Object.fromEntries(data.notes.map((n) => [n.day, n])),
+    events: merged.events,
+    notes: Object.fromEntries(merged.notes.map((n) => [n.day, n])),
     loaded: true,
     idbOk: data.idbOk,
   });
-  if (data.restored || !data.idbOk) scheduleMirror();
+  if (data.restored || !data.idbOk || merged.events.length !== data.events.length || merged.updated) scheduleMirror();
   return { restored: data.restored };
 }
 

@@ -60,6 +60,16 @@ describe('splash setting', () => {
   });
 });
 
+describe('confirm deletes setting', () => {
+  it('is on unless turned off', () => {
+    expect(DEFAULT_SETTINGS.confirmDeletes).toBe(true);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ babyName: 'Pip' }));
+    expect(loadSettings().confirmDeletes).toBe(true);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ confirmDeletes: false }));
+    expect(loadSettings().confirmDeletes).toBe(false);
+  });
+});
+
 describe('companion setting', () => {
   it('migrates the old on/off boolean', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ companion: true }));

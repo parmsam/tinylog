@@ -19,6 +19,11 @@ test.describe('one-tap logging', () => {
     await expect(entries(page)).toHaveCount(0);
     await expect(card(page, 'wet')).toContainText('Tap to log');
     await expect.poll(async () => (await storedEvents(page))[0]?.deleted).toBe(true);
+    // Never silent, since a tap meant for a card can land on Undo: it says so and can put it back.
+    await expect(toastEl(page)).toContainText('Wet removed');
+    await toastEl(page).getByRole('button', { name: 'Put back' }).click();
+    await expect(entries(page)).toHaveCount(1);
+    await expect.poll(async () => (await storedEvents(page))[0]?.deleted).toBeFalsy();
   });
 
   test('time chips move a late entry back', async ({ page }) => {
@@ -141,6 +146,15 @@ test.describe('the sheet', () => {
 
     await entries(page).first().click();
     await sheet.getByRole('button', { name: 'Delete' }).click();
+    const confirm = page.locator('#confirm');
+    await expect(confirm).toContainText('Delete this entry?');
+    await confirm.getByRole('button', { name: 'Cancel' }).click();
+    await expect(sheet).toBeVisible();
+    await expect(entries(page)).toHaveCount(1);
+
+    await sheet.getByRole('button', { name: 'Delete' }).click();
+    await confirm.getByRole('button', { name: 'Delete' }).click();
+    await expect(sheet).toBeHidden();
     await expect(entries(page)).toHaveCount(0);
     await toastEl(page).getByRole('button', { name: 'Undo' }).click();
     await expect(entries(page)).toHaveCount(1);
@@ -200,6 +214,20 @@ test.describe('days', () => {
     await page.reload();
     await expect(page.locator('html[data-ready]')).toBeAttached();
     await expect(page.getByLabel('📝 Day note')).toHaveValue('First real smile at the park');
+  });
+
+  // Regression: leaving the app after moving to another day saved that day's (empty) box over the note.
+  test('a day note survives leaving the app from another day', async ({ page }) => {
+    await open(page);
+    const note = page.getByLabel('📝 Day note');
+    await note.fill('Rolled over');
+    await note.blur();
+    await page.getByRole('button', { name: 'Previous day' }).click();
+    await note.focus();
+    await note.blur();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    await expect(note).toHaveValue('Rolled over');
   });
 });
 
@@ -521,4 +549,51 @@ test('breastfeeding length: per side, or one total, optional', async ({ page }) 
   await sheet.getByRole('button', { name: 'Save' }).click();
   await expect(entries(page).first()).toContainText('Breast · L 12m');
   await expect(entries(page).first()).not.toContainText('R 8m');
+});
+
+test.describe('swipe to delete', () => {
+  async function swipe(page: import('@playwright/test').Page, row: import('@playwright/test').Locator, dx: number) {
+    await row.scrollIntoViewIfNeeded();
+    const box = (await row.boundingBox())!;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width - 20, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) await page.mouse.move(box.x + box.width - 20 + (dx * i) / 8, y);
+    await page.mouse.up();
+  }
+
+  test('swiping a row left asks, then deletes; Undo brings it back', async ({ page }) => {
+    const now = Date.now();
+    await open(page, { events: [ev('feed', now - 20 * MIN), ev('diaper', now - 40 * MIN, { detail: { diaper: 'dirty' } })] });
+    await expect(entries(page)).toHaveCount(2);
+    const confirm = page.locator('#confirm');
+
+    // A short drag springs back and doesn't open the entry.
+    await swipe(page, entries(page).first(), -30);
+    await expect(confirm).toBeHidden();
+    await expect(page.locator('#sheet')).toBeHidden();
+    await expect(page.locator('#entries li.is-swiping')).toHaveCount(0);
+
+    await swipe(page, entries(page).first(), -260);
+    await expect(confirm).toContainText('Feed');
+    await confirm.getByRole('button', { name: 'Cancel' }).click();
+    await expect(entries(page)).toHaveCount(2);
+    await expect(page.locator('#sheet')).toBeHidden();
+
+    await swipe(page, entries(page).first(), -260);
+    await confirm.getByRole('button', { name: 'Delete' }).click();
+    await expect(entries(page)).toHaveCount(1);
+    await expect(entries(page).first()).toContainText('Dirty');
+    await expect.poll(async () => (await storedEvents(page)).find((e) => e.type === 'feed')?.deleted).toBe(true);
+    await toastEl(page).getByRole('button', { name: 'Undo' }).click();
+    await expect(entries(page)).toHaveCount(2);
+  });
+
+  test('with "Ask before deleting" off, a swipe deletes straight away', async ({ page }) => {
+    await open(page, { events: [ev('feed', Date.now() - 20 * MIN)], settings: { confirmDeletes: false } });
+    await swipe(page, entries(page).first(), -260);
+    await expect(entries(page)).toHaveCount(0);
+    await expect(page.locator('#confirm')).toBeHidden();
+    await expect(toastEl(page)).toContainText('Feed deleted');
+  });
 });

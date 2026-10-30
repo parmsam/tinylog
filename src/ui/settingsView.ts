@@ -183,6 +183,7 @@ export function openSettings() {
       <div class="btn-row"><button type="button" class="btn" data-rewards>Medals &amp; unlocks</button></div></fieldset>
     ${isTouchDevice() || isIos() ? `<label class="check"><input type="checkbox" name="haptics" ${s.haptics ? 'checked' : ''} /> Haptic taps</label>` : ''}
     <label class="check"><input type="checkbox" name="splash" ${s.splash ? 'checked' : ''} /> Splash screen when the app opens</label>
+    <label class="check"><input type="checkbox" name="confirmDeletes" ${s.confirmDeletes ? 'checked' : ''} /> Ask before deleting an entry</label>
     <label class="field"><span class="field-label">A day starts at</span>
       <select name="dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}" ${h === s.dayStartHour ? 'selected' : ''}>${h === 0 ? 'Midnight' : hourLabel(h)}</option>`).join('')}</select></label>
 
