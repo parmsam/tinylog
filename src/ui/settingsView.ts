@@ -155,6 +155,8 @@ export function openSettings() {
     <label class="field"><span class="field-label">Baby's name</span>
       <input type="text" name="babyName" value="${esc(s.babyName)}" placeholder="Shown at the top. Stays on this device." autocomplete="off" /></label>
     ${seg('units', [['ml', 'ml'], ['oz', 'oz']], s.units, 'Volume')}
+    ${seg('growthUnits', [['metric', 'kg · cm'], ['imperial', 'lb · in']], s.growthUnits, 'Weight & height')}
+    <p class="hint">How weights and heights are shown. When adding one you can type it in either unit; it's converted for you.</p>
     ${seg('clock', [['auto', 'Auto'], ['12h', '12-hour'], ['24h', '24-hour']], s.clock, 'Clock')}
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>

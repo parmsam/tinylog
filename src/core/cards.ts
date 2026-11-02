@@ -18,7 +18,7 @@ export interface CardDef {
   offByDefault?: boolean;
 }
 
-export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor';
+export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor' | 'weight' | 'height';
 
 const of = (type: EventType) => (e: LogEvent) => e.type === type;
 
@@ -72,6 +72,9 @@ export const CARDS: readonly CardDef[] = [
   { id: 'books', label: 'Books', emoji: '📚', type: 'book', timed: false, matches: of('book'), key: 'l' },
   { id: 'music', label: 'Music', emoji: '🎵', type: 'music', timed: false, matches: of('music'), key: 'j', offByDefault: true },
   { id: 'doctor', label: 'Doctor', emoji: '🩺', type: 'doctor', timed: false, sheetFirst: true, matches: of('doctor'), key: 'o' },
+  // Measurements: tapping opens the sheet, since they need a number.
+  { id: 'weight', label: 'Weight', emoji: '⚖️', type: 'weight', timed: false, sheetFirst: true, matches: of('weight'), key: 'e' },
+  { id: 'height', label: 'Height', emoji: '📏', type: 'height', timed: false, sheetFirst: true, matches: of('height'), key: 'h' },
 ];
 
 export const cardById = (id: CardId) => CARDS.find((c) => c.id === id)!;

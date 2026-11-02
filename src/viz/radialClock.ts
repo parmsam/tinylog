@@ -106,7 +106,9 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
       case 'bath':
       case 'book':
       case 'music':
-      case 'doctor': {
+      case 'doctor':
+      case 'weight':
+      case 'height': {
         const [x, y] = polar(C, C, LANE.other, a0);
         dots.push(
           `<g ${tipAttr(e)} class="rc-mark"><circle cx="${f1(x)}" cy="${f1(y)}" r="11" class="rc-hit" /><text x="${f1(x)}" y="${f1(y)}" class="rc-emoji" dominant-baseline="central" text-anchor="middle">${cardFor(e)!.emoji}</text></g>`,

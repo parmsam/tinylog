@@ -181,6 +181,8 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
   books: { log: 'books' },
   music: { log: 'music' },
   doctor: { log: 'doctor' },
+  weight: { log: 'growth' },
+  height: { log: 'growth' },
 };
 
 /**

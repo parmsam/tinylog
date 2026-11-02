@@ -1171,6 +1171,53 @@ table.totals thead th {
   font-weight: 700;
 }
 
+/* Growth (Trends) */
+.growth-charts {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.growth-fig {
+  margin: 0;
+}
+.growth-fig figcaption {
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+.growth-chart .gc-grid {
+  stroke: var(--v-grid);
+  stroke-width: 1;
+}
+.growth-chart .gc-tick,
+.growth-chart .gc-unit {
+  fill: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.growth-chart .gc-unit {
+  font-weight: 700;
+}
+.growth-chart .gc-line {
+  fill: none;
+  stroke: color-mix(in oklab, var(--v-ink) 45%, transparent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.growth-chart .gc-dot {
+  fill: var(--v-ink);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.growth-chart .gc-hit {
+  fill: transparent;
+}
+.sheet .conv:empty,
+.conv:empty {
+  display: none;
+}
+
 /* Shortcuts */
 .keys {
   display: grid;

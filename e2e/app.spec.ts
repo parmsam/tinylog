@@ -392,6 +392,59 @@ test.describe('data', () => {
     await expect(card(page, 'music')).toBeVisible();
   });
 
+  test('weight and height: a tap asks for the number, in either unit, converted for display', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'weight')).toContainText('Add a weight');
+    await card(page, 'weight').click();
+    const s = page.locator('#sheet form');
+    // A provider gave it in lb + oz; the setting is kg. Switch units in the sheet and type it as given.
+    await s.getByText('lb · oz', { exact: true }).click();
+    await s.getByLabel('Weight (lb)').fill('15');
+    await s.getByLabel('and oz').fill('14');
+    await expect(s.locator('[data-conv]')).toHaveText('= 7.201 kg');
+    // Switching back converts what was typed.
+    await s.getByText('kg', { exact: true }).click();
+    await expect(s.getByLabel('Weight (kg)')).toHaveValue('7.201');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'weight')).toContainText('7.201 kg');
+    await expect(entries(page).first()).toContainText('7.201 kg');
+
+    // Saving without a number explains instead of logging an empty measurement.
+    await card(page, 'height').click();
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(s.getByRole('alert')).toHaveText('Enter the height.');
+    await s.getByText('in', { exact: true }).click();
+    await s.getByLabel('Height (in)').fill('24.5');
+    await expect(s.locator('[data-conv]')).toHaveText('= 62.2 cm');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'height')).toContainText('62.2 cm');
+
+    // Display units are a setting; stored values don't change.
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings').getByText('lb · in', { exact: true }).click();
+    await page.keyboard.press('Escape');
+    await expect(card(page, 'weight')).toContainText('15 lb 14 oz');
+    await expect(card(page, 'height')).toContainText('24.5 in');
+
+    // Trends: a Growth chart per measurement with tooltips, and the table.
+    await page.keyboard.press('g');
+    const growth = page.locator('#trends section', { hasText: 'Growth' });
+    await expect(growth.locator('.growth-chart[data-kind="weight"] [data-tip]')).toHaveCount(1);
+    await expect(growth.locator('.growth-table tbody tr')).toHaveCount(1);
+    await expect(growth.locator('.growth-table tbody tr')).toContainText('15 lb 14 oz');
+    await expect(growth.locator('.growth-table tbody tr')).toContainText('24.5 in');
+  });
+
+  test('weight and height links take any unit', async ({ page }) => {
+    await open(page, {}, './?do=log&what=weight&lb=14&oz=2');
+    await expect(card(page, 'weight')).toContainText('6.407 kg');
+    const r = await page.evaluate(() => window.tinylog.log('height', { inches: 24 }));
+    expect(r).toMatchObject({ result: 'logged', entry: { what: 'height', summary: '61 cm' } });
+    const g = await page.evaluate(() => window.tinylog.growth());
+    expect(g.weight).toHaveLength(1);
+    expect(g.height[0].cm).toBe(60.96);
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

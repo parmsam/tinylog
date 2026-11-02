@@ -19,6 +19,15 @@ describe('summary', () => {
     expect(summary(createEvent('sleep', 0, { sleep: 'nap' }, 0), prefs)).toBe('');
     expect(summary(createEvent('pump', 0, { side: 'both', amount: 120 }, 0), { units: 'oz' })).toBe('both sides · 4.1 oz');
   });
+
+  it('shows weights and heights in the chosen growth units', () => {
+    const w = createEvent('weight', 0, { grams: 7200 }, 0);
+    const h = createEvent('height', 0, { cm: 62 }, 0);
+    expect(summary(w, prefs)).toBe('7.2 kg');
+    expect(summary(w, { units: 'ml', growthUnits: 'imperial' })).toBe('15 lb 14 oz');
+    expect(summary(h, { units: 'oz' })).toBe('24.41 in');
+    expect(summary(h, { units: 'oz', growthUnits: 'metric' })).toBe('62 cm');
+  });
 });
 
 describe('cardStatus today', () => {
@@ -54,6 +63,18 @@ describe('cardStatus today', () => {
     expect(status('books', [createEvent('book', at(8, 32, 29), undefined, 0)], '2026-09-29').primary).toBe('1 book');
     expect(status('music', [])).toMatchObject({ primary: 'Tap to log', secondary: 'one tap per song' });
     expect(status('music', [createEvent('music', at(8, 32, 29), undefined, 0), createEvent('music', at(8, 40, 29), undefined, 0)], '2026-09-29').primary).toBe('2 songs');
+  });
+
+  it('shows the latest weight and height, and when they were taken', () => {
+    expect(status('weight', [])).toMatchObject({ primary: 'Add a weight' });
+    expect(status('height', [])).toMatchObject({ primary: 'Add a height' });
+    const events = [createEvent('weight', at(9, 0, 20), { grams: 6800 }, 0), createEvent('weight', at(9, 0, 28), { grams: 7200 }, 0), createEvent('height', at(9, 0, 28), { cm: 62 }, 0)];
+    expect(status('weight', events).primary).toBe('7.2 kg');
+    expect(status('weight', events).secondary).toMatch(/^Sep 28 · 2d \d+h ago$/);
+    expect(status('height', events).primary).toBe('62 cm');
+    // On a past day: that day's measurement.
+    expect(status('weight', events, '2026-09-20').primary).toBe('6.8 kg');
+    expect(status('weight', events, '2026-09-21').primary).toBe('—');
   });
 
   it('shows an upcoming doctor visit', () => {

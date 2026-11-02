@@ -138,6 +138,7 @@ Keep this checklist current: tick items as they land, add new ones as scope chan
 - [x] Event model, IndexedDB storage, store, soft delete
 - [x] Cards: feed (breast/bottle), wet, dirty, nap, night sleep, tummy time, pump, fussy, spit-up, bath, books, doctor
 - [x] Music card (🎵, key `J`, one tap per song), off by default: turn it on in Settings → Buttons
+- [x] Weight (⚖️, key `E`) and Height (📏, key `H`) cards: a tap opens the sheet for the number, typed in kg or lb + oz, cm or in (switchable per entry, with a live conversion); shown in Settings → Weight & height units; a Growth chart and table in Trends; `?do=log&what=weight&kg=…` links and `tinylog.growth()`
 - [x] Settings → Buttons: turn cards on or off for the home screen
 - [x] Tap to log, Undo toast with −5/−15/−30m and pick-time; long press opens the sheet first
 - [x] Timed events (nap, night, tummy, pump) with live elapsed display that survives reload
@@ -215,7 +216,7 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 
 ## Later / not now
 - **Cloud sync** (iCloud or similar) for the two phones, so merging isn't manual. The `updatedAt` + soft-delete model is already sync-ready.
-- Medicines, growth (weight/length/head) and milestones: out of scope for now.
+- Medicines, head circumference and milestones: out of scope for now. (Weight and height landed 2026-11-02.)
 - Pump volume per side (currently one amount per session).
 
 ## Decisions log
@@ -280,3 +281,5 @@ Companions live in `src/companion/`: `characters.ts` holds each character's SVG,
 - 2026-10-29 — Swipe left on a log row to delete it (past a third of the row, or a quick flick); short drags spring back and never open the entry. Rows use `touch-action: pan-y pinch-zoom`, so scrolling and pinch-zoom still work. Deletes from a swipe or the sheet ask first through a small confirm sheet (Cancel is focused), unless Settings → Ask before deleting is off; either way the Undo toast follows.
 - 2026-10-29 — Fixed entries vanishing after logging (reported on feeds and diapers). Three causes: (1) a tap while the stored log was still loading (the splash leaves after 2.5 s at most, or on a tap) was replaced in memory when the load finished, and the backup copy was then written without it; `init()` now merges what's in memory with what's stored, newest edit wins. (2) The localStorage copy was written 250 ms after a change and on `pagehide`, which iOS often skips when it suspends a Home Screen app; it's now also written when the page is hidden. (3) The toast's Undo sits over the lower cards, so a tap meant for the next card could remove the last entry without a word; Undo of a fresh log now says "removed" and offers Put back. Also fixed: leaving the app after moving to another day could save that day's empty note box over the note of the day last edited; the note only saves when it was typed in.
 - 2026-10-29 — v0.11.0: swipe to delete with an optional confirmation, fixes for entries lost while the app opened or was backgrounded, a visible Undo with Put back, and the Music card.
+- 2026-11-02 — Weight and height (`weight` / `height` events, cards ⚖️ `E` and 📏 `H`, on by default). Unlike other cards they need a number, so a tap opens the sheet (like Doctor), saving without one explains, and links/API without one are refused. Stored metric with enough precision that any typed unit round-trips exactly (`detail.grams` to 0.1 g, `detail.cm` to 0.01 cm). Providers mix kg and lb, so the sheet has its own unit switch (starts at the setting, converts what's typed when flipped, and shows the other unit live); Settings → Weight & height only picks how they're shown. Older settings without one follow the volume unit (oz → lb · in). Links take `kg`/`g`/`lb`/`oz` and `cm`/`in` (on a weight, `oz` is weight, not volume). Implausible values (outside 0.3–40 kg, 20–130 cm) are flagged as likely typos. Cards show the latest value and its date, never the change since last time (deltas read as judgments). Trends → Growth: one chart per measurement with a y-axis fitted to the values (from zero every line would look flat), neutral `--v-ink` marks (no new series color), dots for weight and diamonds for height, and a measurements table as the text equivalent.
+- 2026-11-02 — v0.12.0: Weight and Height cards (any unit, converted for you), Settings → Weight & height units, and a Growth chart and table in Trends.

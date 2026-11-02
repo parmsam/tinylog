@@ -1,8 +1,9 @@
-import { CARDS, cardById, cardFor, type CardDef, type CardId } from '../core/cards';
+import { CARDS, cardById, cardFor, lastFor, type CardDef, type CardId } from '../core/cards';
 import { createEvent } from '../core/events';
 import { fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
-import { addEvent, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import { SLEEP_PLACES, type Detail, type LogEvent } from '../core/types';
+import { cmFrom, CM_PER_IN, formatHeight, formatWeight, gramsFrom, growthUnits, heightInRange, toLbOz, weightInRange } from '../core/growth';
+import { addEvent, app, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
+import { SLEEP_PLACES, type Detail, type GrowthUnits, type LogEvent } from '../core/types';
 import { toast } from './toast';
 import { companionReact } from './companion';
 import { requestPersistence } from './persist';
@@ -25,6 +26,8 @@ interface Draft {
   endAt: string;
   ongoing: boolean;
   detail: Detail;
+  /** Units for typing a weight or height. Starts at the setting; switchable per entry, since providers mix kg and lb. */
+  growthUnits: GrowthUnits;
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -60,7 +63,47 @@ function lengthFields(d: Detail): string {
   return minutesField('min', 'Length (min)', d.min);
 }
 
-function fieldsFor(card: CardDef, d: Detail): string {
+function numField(name: string, label: string, value: number | string | undefined, step: string, placeholder = '') {
+  return `<label class="field"><span class="field-label">${label}</span>
+    <input type="number" name="${name}" inputmode="decimal" min="0" step="${step}" value="${value ?? ''}" placeholder="${placeholder}" /></label>`;
+}
+
+/** "last 7.2 kg" as a placeholder, so the previous measurement is in view (never prefilled: it'd be easy to save unchanged). */
+function lastHint(card: CardDef): string {
+  const last = lastFor(app.get().events, card, Date.now());
+  const s = last ? (card.id === 'weight' ? last.detail?.grams && formatWeight(last.detail.grams, growthUnits(settings.get())) : last.detail?.cm && formatHeight(last.detail.cm, growthUnits(settings.get()))) : '';
+  return s ? `last ${s}` : '';
+}
+
+function unitSeg(card: CardDef, units: GrowthUnits): string {
+  const opts: [GrowthUnits, string][] = card.id === 'weight' ? [['metric', 'kg'], ['imperial', 'lb · oz']] : [['metric', 'cm'], ['imperial', 'in']];
+  return seg('gunit', opts, units, 'Units');
+}
+
+function weightFields(card: CardDef, d: Detail, units: GrowthUnits): string {
+  const hint = lastHint(card);
+  if (units === 'imperial') {
+    const v = d.grams ? toLbOz(d.grams) : undefined;
+    return `<div class="row">${numField('lb', 'Weight (lb)', v?.lb, '1', hint)}${numField('wOz', 'and oz', v?.oz, '0.1')}</div>`;
+  }
+  return numField('kg', 'Weight (kg)', d.grams ? Math.round(d.grams) / 1000 : undefined, '0.001', hint);
+}
+
+function heightFields(card: CardDef, d: Detail, units: GrowthUnits): string {
+  const hint = lastHint(card);
+  if (units === 'imperial') return numField('inches', 'Height (in)', d.cm ? Math.round((d.cm / CM_PER_IN) * 100) / 100 : undefined, '0.01', hint);
+  return numField('cm', 'Height (cm)', d.cm ? Math.round(d.cm * 10) / 10 : undefined, '0.1', hint);
+}
+
+/** The typed measurement in the other unit ("= 15 lb 14 oz"), so either can be checked against a provider's note. */
+function conversion(card: CardDef, d: Detail, units: GrowthUnits): string {
+  const other: GrowthUnits = units === 'metric' ? 'imperial' : 'metric';
+  if (card.id === 'weight' && d.grams) return `= ${formatWeight(d.grams, other)}`;
+  if (card.id === 'height' && d.cm) return `= ${formatHeight(d.cm, other)}`;
+  return '';
+}
+
+function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits): string {
   switch (card.id) {
     case 'feed': {
       const method = d.method ?? 'breast';
@@ -82,6 +125,10 @@ function fieldsFor(card: CardDef, d: Detail): string {
       return seg('sleep', [['nap', '😴 Nap'], ['night', '🌙 Night']], d.sleep ?? card.preset?.sleep, 'Sleep') + seg('where', SLEEP_PLACES, d.where, 'Where (optional)');
     case 'pump':
       return seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side') + amountField(d.amount, 'Volume');
+    case 'weight':
+      return unitSeg(card, units) + weightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
+    case 'height':
+      return unitSeg(card, units) + heightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
     default:
       return '';
   }
@@ -98,7 +145,7 @@ function render(dialog: HTMLDialogElement, draft: Draft, existing: LogEvent | un
         draft.cardId,
         'What',
       );
-  const timeLabel = card.timed ? 'Started' : card.id === 'doctor' ? 'When' : 'Time';
+  const timeLabel = card.timed ? 'Started' : card.id === 'doctor' || card.sheetFirst ? 'When' : 'Time';
   const end = card.timed
     ? `<div class="field">
         <label class="field"><span class="field-label">Ended</span>
@@ -113,7 +160,7 @@ function render(dialog: HTMLDialogElement, draft: Draft, existing: LogEvent | un
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     ${picker}
-    ${fieldsFor(card, draft.detail)}
+    ${fieldsFor(card, draft.detail, draft.growthUnits)}
     <div class="${card.timed ? 'row' : ''}">
       <label class="field"><span class="field-label">${timeLabel}</span>
         <input type="datetime-local" name="at" value="${draft.at}" required /></label>
@@ -153,12 +200,21 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
     const v = Math.round(parseFloat(str(k) ?? ''));
     if (v > 0 && v <= 180) detail[k] = v;
   }
+  const n = (k: string) => {
+    const v = parseFloat(str(k) ?? '');
+    return Number.isFinite(v) ? v : undefined;
+  };
+  if (f.has('kg') || f.has('lb') || f.has('wOz')) detail.grams = gramsFrom({ kg: n('kg'), lb: n('lb'), oz: n('wOz') });
+  else if (draft.detail.grams) detail.grams = draft.detail.grams;
+  if (f.has('cm') || f.has('inches')) detail.cm = cmFrom({ cm: n('cm'), inches: n('inches') });
+  else if (draft.detail.cm) detail.cm = draft.detail.cm;
   const amount = parseFloat(str('amount') ?? '');
   if (amount > 0) detail.amount = toMl(amount, settings.get().units);
   // Switching cards in the picker resets card-specific choices to that card's preset.
   const next = cardId !== draft.cardId ? { note: detail.note, ...cardById(cardId).preset } : detail;
   return {
     cardId,
+    growthUnits: (str('gunit') as GrowthUnits | undefined) ?? draft.growthUnits,
     at: str('at') ?? draft.at,
     endAt: str('endAt') ?? draft.endAt,
     ongoing: f.get('ongoing') === 'on',
@@ -193,6 +249,12 @@ function detailFor(card: CardDef, d: Detail): Detail {
     case 'pump':
       Object.assign(out, { side: d.side, amount: d.amount });
       break;
+    case 'weight':
+      out.grams = d.grams;
+      break;
+    case 'height':
+      out.cm = d.cm;
+      break;
   }
   return out;
 }
@@ -219,6 +281,7 @@ export function openSheet(opts: SheetOpts) {
     endAt: existing?.endAt !== undefined ? toLocalInput(existing.endAt) : '',
     ongoing: existing ? existing.endAt === undefined : !!opts.ongoing,
     detail: { ...card.preset, ...(existing?.detail ?? opts.detail) },
+    growthUnits: growthUnits(settings.get()),
   };
   draft = withEnd(draft);
   render(dialog, draft, existing);
@@ -227,11 +290,20 @@ export function openSheet(opts: SheetOpts) {
 
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
-    if (['card', 'method', 'ongoing', 'side'].includes(t.name)) {
+    if (['card', 'method', 'ongoing', 'side', 'gunit'].includes(t.name)) {
       draft = withEnd(read(form(), draft));
       render(dialog, draft, existing);
       form().querySelector<HTMLElement>(`[name="${t.name}"]:checked, [name="${t.name}"]`)?.focus();
     }
+  };
+
+  // Live conversion while typing a weight or height.
+  dialog.oninput = (e) => {
+    const t = e.target as HTMLInputElement;
+    if (!['kg', 'lb', 'wOz', 'cm', 'inches'].includes(t.name)) return;
+    const d = read(form(), draft);
+    const out = dialog.querySelector<HTMLElement>('[data-conv]');
+    if (out) out.textContent = conversion(cardById(d.cardId), d.detail, d.growthUnits);
   };
 
   dialog.onclick = (e) => {
@@ -255,6 +327,15 @@ export function openSheet(opts: SheetOpts) {
       if (endAt < at) return fail('The end is before the start.');
     }
     if (chosen.timed && draft.ongoing && at > Date.now()) return fail("Something still going can't start in the future.");
+    // A measurement is the one entry that needs a number.
+    if (chosen.id === 'weight') {
+      if (!draft.detail.grams) return fail('Enter the weight.');
+      if (!weightInRange(draft.detail.grams)) return fail('That weight looks off. Check the number, and the units in Settings.');
+    }
+    if (chosen.id === 'height') {
+      if (!draft.detail.cm) return fail('Enter the height.');
+      if (!heightInRange(draft.detail.cm)) return fail('That height looks off. Check the number, and the units in Settings.');
+    }
 
     const detail = detailFor(chosen, draft.detail);
     if (existing) {

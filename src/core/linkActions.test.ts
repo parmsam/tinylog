@@ -24,6 +24,29 @@ describe('parseLinkAction', () => {
     for (const w of ['music', 'song', 'sing', 'lullaby']) expect(p(`?do=log&what=${w}`)).toMatchObject({ card: 'music' });
   });
 
+  it('takes a weight or height in whatever unit it was given', () => {
+    expect(p('?do=log&what=weight&kg=7.2')).toMatchObject({ card: 'weight', detail: { grams: 7200 } });
+    expect(p('?do=log&what=weight&g=6400')).toMatchObject({ card: 'weight', detail: { grams: 6400 } });
+    // On a weight, oz is weight, not a bottle volume.
+    const lbOz = p('?do=log&what=weight&lb=15&oz=14');
+    expect(lbOz).toMatchObject({ card: 'weight' });
+    expect(lbOz && 'detail' in lbOz && lbOz.detail.amount).toBeFalsy();
+    expect(lbOz && 'detail' in lbOz && Math.round(lbOz.detail.grams!)).toBe(7201);
+    expect(p('?do=log&what=weigh-in&oz=12')).toMatchObject({ card: 'weight' });
+    expect(p('?do=log&what=height&cm=62')).toMatchObject({ card: 'height', detail: { cm: 62 } });
+    expect(p('?do=log&what=length&in=24.5')).toMatchObject({ card: 'height', detail: { cm: 62.23 } });
+  });
+
+  it('explains weight and height mistakes', () => {
+    expect(p('?do=log&what=weight')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('say the weight') });
+    expect(p('?do=log&what=weight&kg=72')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('looks off') });
+    expect(p('?do=log&what=weight&kg=abc')).toMatchObject({ kind: 'invalid' });
+    expect(p('?do=log&what=height')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('say the height') });
+    expect(p('?do=log&what=feed&kg=3')).toMatchObject({ kind: 'invalid', reason: 'kg, g and lb are for weight' });
+    expect(p('?do=log&what=wet&cm=3')).toMatchObject({ kind: 'invalid', reason: 'cm and in are for height' });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=weight&lb=15&oz=14&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
   it('understands feed details and amounts', () => {
     expect(p('?do=log&what=bottle&oz=3&milk=formula')).toMatchObject({ card: 'feed', detail: { method: 'bottle', amount: 89, milk: 'formula' } });
     expect(p('?do=log&what=feed&ml=90')).toMatchObject({ detail: { method: 'bottle', amount: 90 } });

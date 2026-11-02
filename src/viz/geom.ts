@@ -48,3 +48,27 @@ export function hourLabel(hour: number, clock: 'auto' | '12h' | '24h'): string {
   if (hour === 12) return '12p';
   return hour < 12 ? `${hour}a` : `${hour - 12}p`;
 }
+
+/**
+ * Round axis ticks (steps of 1, 2 or 5 × 10ⁿ) from at or below `min` to at or above `max`, about
+ * `count` intervals. Used by the growth charts, whose y-axis isn't anchored at zero.
+ */
+export function niceTicks(min: number, max: number, count = 4): number[] {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return [];
+  if (max < min) [min, max] = [max, min];
+  if (max === min) {
+    // One value: a small window around it.
+    const pad = Math.abs(min) * 0.05 || 1;
+    min -= pad;
+    max += pad;
+  }
+  const raw = (max - min) / Math.max(1, count);
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map((m) => m * mag).find((s) => s >= raw)!;
+  const lo = Math.floor(min / step + 1e-9) * step;
+  const hi = Math.ceil(max / step - 1e-9) * step;
+  const out: number[] = [];
+  const places = Math.max(0, -Math.floor(Math.log10(step)));
+  for (let v = lo; v <= hi + step / 2; v += step) out.push(Number(v.toFixed(places)));
+  return out;
+}

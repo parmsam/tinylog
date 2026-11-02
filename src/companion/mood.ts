@@ -127,6 +127,9 @@ export function momentFor(
     if (count === 1) return say('cheer', ['Music time{to} · {buddy} is swaying', 'First song of the day · la la la']);
     if (count && count % 5 === 0) return say('proud', [`${count} songs today · a tiny music fan`, `${count} songs today · {buddy} wants an encore`]);
   }
+  // Measurements: about being measured, never about the number.
+  if (what === 'log' && card === 'weight') return say('cheer', ['All weighed{to} · {buddy} is impressed', 'On the scale{to} · noted!']);
+  if (what === 'log' && card === 'height') return say('cheer', ['Measured{to} · standing tall', 'All stretched out{to} · noted!']);
   if (what === 'log' && card === 'bath') return say('cheer', ['Squeaky clean{to}!', 'Fresh as a daisy{to}', 'Bath done · {buddy} wants one too']);
   if (card === 'tummy' && what === 'stop' && length >= 3 * MIN) return say('proud', [`Tummy time champ · ${duration(length)}`, `${duration(length)} of tummy time · strong little arms`]);
 

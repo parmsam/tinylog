@@ -7,6 +7,7 @@ import { hourHeatmap } from '../core/heatmap';
 import { patterns } from '../core/stats';
 import { patternsHtml } from '../viz/patternsView';
 import { dayStripSvg } from '../viz/dayStrip';
+import { growthHtml } from '../viz/growthChart';
 import { heatmapTableHtml } from '../viz/heatmapTable';
 import { attachTips, hideTip } from '../viz/tooltip';
 import { weekRingsSvg } from '../viz/weekRings';
@@ -131,6 +132,11 @@ function render(dialog: HTMLDialogElement) {
     </section>
 
     <section class="viz-card">${table(last, range, now)}</section>
+
+    <section class="viz-card" aria-labelledby="growth-title">
+      <h3 id="growth-title">Growth</h3>
+      ${growthHtml(s.events, prefs, now)}
+    </section>
 
     <section class="viz-card">
       <h3>Markdown</h3>

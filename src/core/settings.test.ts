@@ -1,3 +1,4 @@
+import { CARDS } from './cards';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, loadSettings, SETTINGS_KEY } from './settings';
 
@@ -28,7 +29,7 @@ describe('settings', () => {
     expect(loadSettings().hiddenCards).toEqual(['pump', 'books', 'music']);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump', cardsOffered: ['music'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
-    const all = ['feed', 'wet', 'dirty', 'nap', 'night', 'tummy', 'pump', 'fussy', 'spitup', 'bath', 'books', 'doctor'];
+    const all = CARDS.map((c) => c.id);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: all }));
     expect(loadSettings().hiddenCards).toEqual([]);
   });
@@ -40,6 +41,16 @@ describe('settings', () => {
     // Turned on in Settings → Buttons: it stays on.
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: [], cardsOffered: ['music'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
+  });
+
+  it('picks growth units: kept when saved, otherwise matching the volume unit', () => {
+    expect(loadSettings().growthUnits).toBe('metric');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ units: 'oz' }));
+    expect(loadSettings().growthUnits).toBe('imperial');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ units: 'oz', growthUnits: 'metric' }));
+    expect(loadSettings().growthUnits).toBe('metric');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ growthUnits: 'furlongs' }));
+    expect(loadSettings().growthUnits).toBe('metric');
   });
 
   it('keeps a chosen backup reminder interval, including off', () => {

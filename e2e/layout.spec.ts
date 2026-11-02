@@ -41,10 +41,14 @@ test('entry sheet fields never overlap on iPhone, in every state', async ({ page
   await assertClean(s, 'feed (breast)');
   await s.getByText('Bottle', { exact: true }).click();
   await assertClean(s, 'feed (bottle: amount + milk)');
-  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor']) {
+  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '⚖️ Weight', '📏 Height']) {
     await s.getByText(kind, { exact: true }).click();
     await assertClean(s, kind);
   }
+  // Imperial weight: lb and oz side by side.
+  await s.getByText('⚖️ Weight', { exact: true }).click();
+  await s.getByText('lb · oz', { exact: true }).click();
+  await assertClean(s, 'weight (lb + oz)');
   // Timed entry with an end time (Still going unticked): start and end fields both visible.
   await s.getByText('😴 Nap', { exact: true }).click();
   const still = s.getByLabel('Still going');

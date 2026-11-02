@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -25,6 +25,10 @@ export interface Detail {
   diaper?: 'wet' | 'dirty' | 'both';
   sleep?: 'nap' | 'night';
   where?: SleepPlace; // sleep
+  /** Weight in grams (0.1 g steps, so lb/oz round-trip); displayed in the user's growth units. */
+  grams?: number;
+  /** Height (length) in cm (0.01 cm steps, so inches round-trip). */
+  cm?: number;
   note?: string;
 }
 
@@ -56,6 +60,8 @@ export interface LogData {
 }
 
 export type Units = 'ml' | 'oz';
+/** Weight and height: kg + cm, or lb/oz + inches. */
+export type GrowthUnits = 'metric' | 'imperial';
 export type ClockFormat = 'auto' | '12h' | '24h';
 export type ThemeChoice = 'auto' | 'day' | 'dusk' | 'night';
 export type GridMarks = 'dots' | 'checks' | 'crosses';
@@ -67,6 +73,7 @@ export type Background = 'glow' | 'none' | 'sky' | 'fireflies' | 'bubbles' | 'mo
 export interface Settings {
   babyName: string;
   units: Units;
+  growthUnits: GrowthUnits;
   clock: ClockFormat;
   /** Hour (0–23) a "day" starts at, for day views and daily totals. */
   dayStartHour: number;

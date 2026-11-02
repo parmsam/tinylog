@@ -6,6 +6,7 @@ import { app, settings, today } from '../core/log';
 import { toMarkdown } from '../core/markdown';
 import { logCard, startCard, stopCard, toggleCard, type OpResult } from '../core/ops';
 import { patterns } from '../core/stats';
+import { formatHeight, formatWeight, growthSeries, growthUnits } from '../core/growth';
 import { summary } from '../core/status';
 import type { LogEvent } from '../core/types';
 import { undoLast } from './toast';
@@ -31,6 +32,13 @@ export interface ActOptions {
   minL?: number;
   minR?: number;
   min?: number;
+  /** Weight: kg, g, or lb and/or oz (on a weight, oz is weight, not volume). */
+  kg?: number;
+  g?: number;
+  lb?: number;
+  /** Height: cm or inches. */
+  cm?: number;
+  inches?: number;
 }
 
 export interface Entry {
@@ -68,8 +76,9 @@ function toEntry(e: LogEvent, now = Date.now()): Entry {
 /** Runs a verb through the link-action parser, so names, aliases and validation match `?do=` links. */
 function act(verb: 'log' | 'start' | 'stop' | 'toggle', what: string, opts: ActOptions = {}) {
   const q = new URLSearchParams({ do: verb, what: String(what) });
-  const { minutesAgo, ...rest } = opts;
+  const { minutesAgo, inches, ...rest } = opts;
   if (minutesAgo !== undefined) q.set('ago', String(minutesAgo));
+  if (inches !== undefined && inches !== null) q.set('in', String(inches));
   // Option names match link parameters, lower-cased (minL → minl).
   for (const [k, v] of Object.entries(rest)) if (v !== undefined && v !== null) q.set(k.toLowerCase(), String(v));
   const now = Date.now();
@@ -86,6 +95,7 @@ function act(verb: 'log' | 'start' | 'stop' | 'toggle', what: string, opts: ActO
 export const RECIPES: { ask: string; code: string; note: string }[] = [
   { ask: 'When did the baby last eat?', code: 'tinylog.state().last.feed', note: 'minutesAgo, the time (ISO) and a summary like "Breast · L". state() also has what is going on now and today\'s totals.' },
   { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, spitup, bath, books (one per book), music (one per song), doctor (with a note).' },
+  { ask: 'Log a weight from today\'s checkup', code: "tinylog.log('weight', { kg: 6.4 })", note: 'Or { lb: 14, oz: 2 } or { g: 6400 }. Height: tinylog.log(\'height\', { cm: 61.5 }) or { inches: 24.25 }. tinylog.growth() lists every measurement.' },
   { ask: 'Log a 90 ml bottle of formula', code: "tinylog.log('bottle', { ml: 90, milk: 'formula' })", note: 'Breast feeds: tinylog.log(\'feed\', { side: \'L\' }). Plain tinylog.log(\'feed\') picks the other breast, like a tap.' },
   { ask: 'The baby fell asleep / woke up', code: "tinylog.toggle('sleep')", note: '"sleep" is a nap by day and night sleep in the evening; toggle starts it or stops the one running. Add { where: \'bassinet\' } for where.' },
   { ask: 'How has sleep been this week?', code: 'tinylog.patterns(7)', note: 'Descriptive patterns (typical nap length, bedtime window…); each says what it is based on. Not advice.' },
@@ -93,13 +103,14 @@ export const RECIPES: { ask: string; code: string; note: string }[] = [
 ];
 
 const HELP = `tinylog: baby tracker scripting API (window.tinylog). Data stays in this browser.
-All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, spitup, bath, books, music, doctor.
+All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, spitup, bath, books, music, doctor, weight, height.
 
 tinylog.state()                        what's going on now, the last of each thing, today's totals
 tinylog.log(what, opts?)               log it now (timed things toggle); opts:
                                        { minutesAgo, side: 'L'|'R'|'both', ml, oz, method, milk, diaper, note,
                                          minL, minR, min,  (breastfeeding minutes: per side, or a total)
-                                         where: 'bassinet'|'crib'|'held'|'stroller'|'car' }  (sleeps)
+                                         where: 'bassinet'|'crib'|'held'|'stroller'|'car',  (sleeps)
+                                         kg, g, lb, oz  (weight; on a weight oz is weight)  cm, inches  (height) }
 tinylog.start(what, opts?)             start nap / night / tummy / pump / fussy
 tinylog.stop(what, opts?)              stop it (pump: pass ml)
 tinylog.toggle(what, opts?)            start or stop
@@ -107,6 +118,7 @@ tinylog.entries(day?)                  a day's entries ('YYYY-MM-DD', default to
 tinylog.undo()                         undo the last change made in the app (within 5 minutes)
 tinylog.markdown(days = 1)             the last N days as Markdown
 tinylog.patterns(days = 7)             typical naps, bedtime, feeds… (descriptive, not advice)
+tinylog.growth()                       every weight and height, oldest first
 
 Common requests:
 ${RECIPES.map((r) => `- ${r.ask}\n    ${r.code}\n    ${r.note}`).join('\n')}`;
@@ -135,7 +147,7 @@ export function createAgentApi() {
         now: iso(now),
         ongoing,
         awakeMinutes: asleep ? null : wake !== undefined ? Math.round((now - wake) / MIN) : null,
-        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), spitup: last('spitup'), bath: last('bath'), books: last('books'), music: last('music') },
+        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), spitup: last('spitup'), bath: last('bath'), books: last('books'), music: last('music'), weight: last('weight'), height: last('height') },
         today: {
           feeds: t.feeds,
           bottleMl: t.bottleMl,
@@ -169,6 +181,15 @@ export function createAgentApi() {
       const s = app.get();
       const last = today();
       return toMarkdown(s.events, s.notes, addDays(last, -(Math.max(1, Math.round(days)) - 1)), last, settings.get(), Date.now());
+    },
+    growth() {
+      const { events } = app.get();
+      const units = growthUnits(settings.get());
+      const now = Date.now();
+      return {
+        weight: growthSeries(events, 'weight', now).map((p) => ({ at: iso(p.at), grams: p.value, text: formatWeight(p.value, units) })),
+        height: growthSeries(events, 'height', now).map((p) => ({ at: iso(p.at), cm: p.value, text: formatHeight(p.value, units) })),
+      };
     },
     patterns(days = 7) {
       return patterns(app.get().events, today(), Math.max(3, Math.min(60, Math.round(days))), settings.get().dayStartHour, Date.now());

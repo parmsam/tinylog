@@ -26,6 +26,7 @@ export type Reaction =
   | 'books'
   | 'music'
   | 'doctor'
+  | 'growth'
   | 'undo'
   // Moments of the day (see mood.ts)
   | 'morning'
@@ -172,6 +173,10 @@ export class Companion {
       case 'doctor':
         this.prop('plus', 1200);
         this.prop('sparkles', 1200);
+        break;
+      case 'growth': // standing up tall to be measured
+        this.prop('sparkles', 1100);
+        this.body({ scaleY: [{ to: 1.1, duration: 320, ease: 'outQuad' }, { to: 1, duration: 600, ease: 'outElastic(1, .5)' }] });
         break;
       case 'undo':
         this.setFace('o', 600);

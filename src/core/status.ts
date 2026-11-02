@@ -1,9 +1,12 @@
 import { lastFor, lastWake, nextUpcoming, ongoingFor, type CardDef } from './cards';
 import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
+import { formatHeight, formatWeight, growthUnits } from './growth';
 import { SLEEP_PLACES, type LogEvent, type Settings } from './types';
 
-type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'>;
+type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'> & Partial<Pick<Settings, 'growthUnits'>>;
+/** Units for summaries (growth units fall back to matching the volume unit). */
+export type SummaryPrefs = Pick<Settings, 'units'> & Partial<Pick<Settings, 'growthUnits'>>;
 
 const SIDE = { L: 'L', R: 'R', both: 'both sides' } as const;
 
@@ -14,7 +17,7 @@ export function feedMinutes(d: { minL?: number; minR?: number; min?: number } | 
 }
 
 /** One-line description of an event's details, e.g. "Bottle · 90 ml · formula". */
-export function summary(e: LogEvent, prefs: Pick<Settings, 'units'>): string {
+export function summary(e: LogEvent, prefs: SummaryPrefs): string {
   const d = e.detail ?? {};
   const bits: string[] = [];
   switch (e.type) {
@@ -44,6 +47,12 @@ export function summary(e: LogEvent, prefs: Pick<Settings, 'units'>): string {
     case 'pump':
       if (d.side) bits.push(SIDE[d.side]);
       if (d.amount) bits.push(amount(d.amount, prefs.units));
+      break;
+    case 'weight':
+      if (d.grams) bits.push(formatWeight(d.grams, growthUnits(prefs)));
+      break;
+    case 'height':
+      if (d.cm) bits.push(formatHeight(d.cm, growthUnits(prefs)));
       break;
   }
   return bits.join(' · ');
@@ -151,6 +160,12 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
       if (last) return { primary: `last ${shortDate(last.at)}`, secondary: last.detail?.note ?? '', ongoing: false };
       return { primary: 'Add a visit', secondary: '', ongoing: false };
     }
+    case 'weight':
+    case 'height': {
+      // The latest measurement and when it was taken. No change-since-last: deltas read as judgments.
+      if (!last) return { primary: card.id === 'weight' ? 'Add a weight' : 'Add a height', secondary: '', ongoing: false };
+      return { primary: summary(last, prefs) || '—', secondary: `${shortDate(last.at)} · ${ago(last.at, now)}`, ongoing: false };
+    }
   }
 }
 
@@ -198,5 +213,11 @@ function pastStatus(
       return n ? { primary: 'Bath ✓', secondary: '', ongoing: false } : none;
     case 'doctor':
       return n ? { primary: plural(n, 'visit'), secondary: inDay[0].detail?.note ?? '', ongoing: false } : none;
+    case 'weight':
+    case 'height': {
+      if (!n) return none;
+      const latest = inDay.reduce((a, b) => (b.at > a.at ? b : a));
+      return { primary: summary(latest, prefs) || '—', secondary: n > 1 ? `${n} measurements` : '', ongoing: false };
+    }
   }
 }

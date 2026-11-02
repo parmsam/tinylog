@@ -2,7 +2,7 @@ import { CARDS } from '../core/cards';
 
 /** Everything the keyboard can do. The cheat sheet and the README table both come from here. */
 export const SHORTCUTS: [keys: string, what: string][] = [
-  ...CARDS.map((c) => [c.key.toUpperCase(), `${c.emoji} ${c.timed ? `Start / stop ${c.label.toLowerCase()}` : c.sheetFirst ? `Add ${c.label.toLowerCase()} visit` : `Log ${c.label.toLowerCase()}`}`] as [string, string]),
+  ...CARDS.map((c) => [c.key.toUpperCase(), `${c.emoji} ${c.timed ? `Start / stop ${c.label.toLowerCase()}` : c.id === 'doctor' ? 'Add doctor visit' : c.sheetFirst ? `Add ${c.label.toLowerCase()}` : `Log ${c.label.toLowerCase()}`}`] as [string, string]),
   ['U', 'Undo the last action'],
   ['← / →', 'Previous / next day'],
   ['.', 'Back to today'],

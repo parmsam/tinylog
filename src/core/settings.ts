@@ -11,6 +11,7 @@ const OFF_BY_DEFAULT: string[] = CARDS.filter((c) => c.offByDefault).map((c) => 
 export const DEFAULT_SETTINGS: Settings = {
   babyName: '',
   units: 'ml',
+  growthUnits: 'metric',
   clock: 'auto',
   dayStartHour: 0,
   theme: 'auto',
@@ -40,6 +41,8 @@ export function loadSettings(): Settings {
     if (!Array.isArray(s.tipsSeen)) s.tipsSeen = [];
     if (saved.installTipSeen && !s.tipsSeen.includes('install')) s.tipsSeen = [...s.tipsSeen, 'install'];
     delete (s as { installTipSeen?: boolean }).installTipSeen;
+    // Settings saved before weight/height existed: match the volume unit (oz → lb and inches).
+    if (saved.growthUnits !== 'metric' && saved.growthUnits !== 'imperial') s.growthUnits = s.units === 'oz' ? 'imperial' : 'metric';
     if (!['dots', 'checks', 'crosses'].includes(s.gridMarks)) s.gridMarks = 'dots';
     if (!Number.isInteger(s.backupSnoozedAt) || s.backupSnoozedAt < 0) s.backupSnoozedAt = 0;
     if (!Number.isFinite(s.backupLaterAt) || s.backupLaterAt < 0) s.backupLaterAt = 0;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dayRange } from '../core/days';
-import { arcPath, frac, hourLabel, hourMarks, polar } from './geom';
+import { arcPath, frac, hourLabel, hourMarks, niceTicks, polar } from './geom';
 
 describe('geom', () => {
   it('maps a day onto 0–1', () => {
@@ -35,5 +35,17 @@ describe('geom', () => {
     expect(hourLabel(0, '12h')).toBe('12a');
     expect(hourLabel(15, '12h')).toBe('3p');
     expect(hourLabel(6, '24h')).toBe('06');
+  });
+
+  it('picks round axis ticks covering the range', () => {
+    expect(niceTicks(3.4, 7.9)).toEqual([2, 4, 6, 8]);
+    expect(niceTicks(50.5, 62)).toEqual([50, 55, 60, 65]);
+    expect(niceTicks(6.41, 6.62)).toEqual([6.4, 6.5, 6.6, 6.7]);
+    // A single value gets a window around it, and ticks never come out as float noise.
+    const one = niceTicks(7.2, 7.2);
+    expect(one[0]).toBeLessThan(7.2);
+    expect(one[one.length - 1]).toBeGreaterThan(7.2);
+    expect(one.every((v) => String(v).length <= 4)).toBe(true);
+    expect(niceTicks(NaN, 3)).toEqual([]);
   });
 });

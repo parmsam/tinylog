@@ -1,5 +1,6 @@
 import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
+import { cmFrom, gramsFrom, heightInRange, weightInRange } from './growth';
 import type { Detail, SleepPlace, Side } from './types';
 
 /**
@@ -11,6 +12,7 @@ import type { Detail, SleepPlace, Side } from './types';
  *   &ago=15  logs it 15 minutes ago       &side=L|R|both   &milk=breast|formula   &note=…
  *   &minl=12&minr=8 (or &min=20)  breastfeeding length in minutes
  *   &where=bassinet|crib|held|stroller|car  where a sleep happened
+ *   ?do=log&what=weight&kg=7.2 (or &g=7200, &lb=15&oz=14)   ?do=log&what=height&cm=62 (or &in=24.5)
  *
  * Settings never travel in the URL. Parameters are removed once the action has run.
  */
@@ -22,7 +24,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -67,6 +69,13 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   lullaby: 'music',
   doctor: 'doctor',
   checkup: 'doctor',
+  weight: 'weight',
+  weigh: 'weight',
+  weighed: 'weight',
+  'weigh-in': 'weight',
+  height: 'height',
+  length: 'height',
+  measure: 'height',
 };
 
 const SIDES: Record<string, Side> = { l: 'L', left: 'L', r: 'R', right: 'R', both: 'both', b: 'both' };
@@ -100,7 +109,7 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const whatRaw = q.get('what')?.trim().toLowerCase().replace(/\s+/g, '-');
   if (!whatRaw) return { kind: 'invalid', reason: 'say what to log, e.g. &what=wet' };
   const what = WHAT[whatRaw];
-  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music)` };
+  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, weight, height)` };
 
   const agoRaw = q.get('ago');
   const minutesAgo = agoRaw === null ? 0 : Math.round(Number(agoRaw));
@@ -128,10 +137,29 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const diaper = q.get('diaper')?.trim().toLowerCase();
   if (diaper === 'wet' || diaper === 'dirty' || diaper === 'both') detail.diaper = diaper;
 
+  const num = (k: string) => (q.get(k) === null ? undefined : Number(q.get(k)));
+  if (card === 'weight') {
+    const raw = { kg: num('kg'), g: num('g'), lb: num('lb'), oz: num('oz') };
+    if (Object.values(raw).some((v) => v !== undefined && !(v >= 0))) return { kind: 'invalid', reason: 'weight must be a number' };
+    const grams = gramsFrom(raw);
+    if (!grams) return { kind: 'invalid', reason: 'say the weight, e.g. &kg=7.2 or &lb=15&oz=14' };
+    if (!weightInRange(grams)) return { kind: 'invalid', reason: 'that weight looks off (0.3–40 kg)' };
+    detail.grams = grams;
+  } else if (['kg', 'g', 'lb'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'kg, g and lb are for weight' };
+  if (card === 'height') {
+    const raw = { cm: num('cm'), inches: num('in') };
+    if (Object.values(raw).some((v) => v !== undefined && !(v >= 0))) return { kind: 'invalid', reason: 'height must be a number' };
+    const cm = cmFrom(raw);
+    if (!cm) return { kind: 'invalid', reason: 'say the height, e.g. &cm=62 or &in=24.5' };
+    if (!heightInRange(cm)) return { kind: 'invalid', reason: 'that height looks off (20–130 cm)' };
+    detail.cm = cm;
+  } else if (['cm', 'in'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'cm and in are for height' };
+
   const ml = Number(q.get('ml'));
-  const oz = Number(q.get('oz'));
+  // On a weight, oz is part of the weight (above), not a volume.
+  const oz = card === 'weight' ? 0 : Number(q.get('oz'));
   if (q.get('ml') !== null && (!(ml > 0) || ml > 2000)) return { kind: 'invalid', reason: 'ml must be a number' };
-  if (q.get('oz') !== null && (!(oz > 0) || oz > 70)) return { kind: 'invalid', reason: 'oz must be a number' };
+  if (card !== 'weight' && q.get('oz') !== null && (!(oz > 0) || oz > 70)) return { kind: 'invalid', reason: 'oz must be a number' };
   if (ml > 0) detail.amount = Math.round(ml);
   else if (oz > 0) detail.amount = Math.round(oz * ML_PER_OZ);
   // An amount on a feed means a bottle.
