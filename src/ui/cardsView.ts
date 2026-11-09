@@ -1,15 +1,16 @@
-import { CARDS, type CardId } from '../core/cards';
+import { CARDS, orderCards, type CardId } from '../core/cards';
 import { dayKey } from '../core/days';
 import { app, settings } from '../core/log';
 import { cardStatus } from '../core/status';
 import { cardPop } from '../fx/anims';
 import { buzz, hapticTrigger } from '../core/haptics';
 import { holdCard, tapCard } from './actions';
+import { isArranging } from './arrange';
 
 const HOLD_MS = 450;
 
 export function mountCards(host: HTMLElement) {
-  host.innerHTML = CARDS.map(
+  host.innerHTML = orderCards(settings.get().cardOrder).map(
     (c) => `<button type="button" class="card" data-card="${c.id}" style="--c: var(--c-${c.id})">
       <span class="card-ring" aria-hidden="true"></span>
       <span class="card-emoji" aria-hidden="true">${c.emoji}</span>
@@ -29,7 +30,7 @@ export function mountCards(host: HTMLElement) {
     const cancel = () => clearTimeout(timer);
 
     btn.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || isArranging()) return;
       held = false;
       startX = e.clientX;
       startY = e.clientY;
@@ -47,6 +48,7 @@ export function mountCards(host: HTMLElement) {
     btn.addEventListener('pointerleave', cancel);
     btn.addEventListener('contextmenu', (e) => {
       e.preventDefault();
+      if (isArranging()) return;
       if (!held) {
         cancel();
         held = true;
@@ -55,6 +57,8 @@ export function mountCards(host: HTMLElement) {
     });
     // Click also covers keyboard (Enter/Space).
     btn.addEventListener('click', () => {
+      // Arranging: a tap never logs.
+      if (isArranging()) return;
       if (held) {
         held = false;
         return;
@@ -64,6 +68,14 @@ export function mountCards(host: HTMLElement) {
       cardPop(btn);
       tapCard(id);
     });
+  }
+}
+
+/** Puts the buttons in the saved order (after Settings → Reset order, or another tab's change). */
+export function applyCardOrder(host: HTMLElement) {
+  for (const c of orderCards(settings.get().cardOrder)) {
+    const btn = host.querySelector(`[data-card="${c.id}"]`);
+    if (btn) host.append(btn);
   }
 }
 
@@ -79,7 +91,9 @@ export function renderCards(host: HTMLElement, now = Date.now()) {
     btn.classList.toggle('is-ongoing', st.ongoing);
     // A hidden button still shows while its timer runs, so it can be stopped.
     btn.hidden = prefs.hiddenCards.includes(c.id) && !st.ongoing;
-    const hint = !isToday ? 'Tap to add an entry for this day' : c.timed ? (st.ongoing ? 'Tap to stop' : 'Tap to start') : c.sheetFirst ? 'Tap to add' : 'Tap to log now';
-    btn.setAttribute('aria-label', `${c.label}: ${st.primary}${st.secondary ? `, ${st.secondary}` : ''}. ${hint}; hold for details.`);
+    const hint = isArranging()
+      ? 'Arranging: drag to move, or use the arrow keys'
+      : !isToday ? 'Tap to add an entry for this day' : c.timed ? (st.ongoing ? 'Tap to stop' : 'Tap to start') : c.sheetFirst ? 'Tap to add' : 'Tap to log now';
+    btn.setAttribute('aria-label', `${c.label}: ${st.primary}${st.secondary ? `, ${st.secondary}` : ''}. ${hint}${isArranging() ? '.' : '; hold for details.'}`);
   }
 }

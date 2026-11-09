@@ -1278,6 +1278,132 @@ table.totals thead th {
   fill: transparent;
 }
 
+/* Arranging the home-screen buttons (ui/arrange.ts) */
+.cards.arranging {
+  position: relative;
+}
+.cards.arranging .card {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  outline: 1.5px dashed color-mix(in oklab, var(--c) 60%, transparent);
+  outline-offset: -1.5px;
+  animation: arrange-wiggle 0.36s ease-in-out infinite alternate;
+}
+.cards.arranging .card:nth-child(odd) {
+  animation-delay: -0.18s;
+}
+@keyframes arrange-wiggle {
+  from {
+    rotate: -0.8deg;
+  }
+  to {
+    rotate: 0.8deg;
+  }
+}
+/* Night and reduced motion: still, the dashed outline says it's movable. */
+:root[data-theme='night'] .cards.arranging .card {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cards.arranging .card {
+    animation: none;
+  }
+}
+.cards.arranging .card.dragging {
+  animation: none;
+  rotate: none;
+  cursor: grabbing;
+  z-index: 5;
+  scale: 1.04;
+  box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.55);
+}
+.card-hide {
+  position: absolute;
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+/* A bigger touch target than it looks. */
+.card-hide::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+.card-hide svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  fill: none;
+}
+.card-hide:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.cards.has-drag .card-hide {
+  visibility: hidden;
+}
+.arrange-bar {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  translate: -50% 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(560px, calc(100% - 24px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  /* Opaque: buttons scroll underneath it. */
+  background: linear-gradient(var(--surface), var(--surface)), var(--bg);
+  box-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.5);
+}
+.arrange-bar p {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+.arrange-bar [data-arrange-done] {
+  margin-left: auto;
+}
+.arrange-hidden {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  order: 2;
+}
+.arrange-hidden[hidden] {
+  display: none;
+}
+.arrange-hidden-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+/* Room to scroll the last buttons above the bar. */
+body.is-arranging {
+  padding-bottom: 200px;
+}
+
 /* Shortcuts */
 .keys {
   display: grid;

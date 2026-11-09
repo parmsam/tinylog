@@ -484,6 +484,106 @@ test.describe('data', () => {
     await expect(page.evaluate(() => window.tinylog.log('mood'))).rejects.toThrow(/say the mood/);
   });
 
+  test('arrange: drag buttons into a new order, nothing logs, and the order sticks', async ({ page }) => {
+    await open(page);
+    const order = () => page.locator('#cards .card:not([hidden])').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.card));
+    const before = await order();
+    expect(before[0]).toBe('feed');
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings').getByRole('button', { name: 'Arrange buttons' }).click();
+    const bar = page.getByRole('region', { name: 'Arranging buttons' });
+    await expect(bar).toBeVisible();
+
+    // A tap while arranging never logs. (force: the buttons wiggle, so they're never "stable".)
+    await card(page, 'wet').click({ force: true });
+    await expect(entries(page)).toHaveCount(0);
+
+    // Drag Feed onto Bath, once the smooth scroll to the buttons has settled.
+    await expect
+      .poll(async () => {
+        const a = await page.evaluate(() => scrollY);
+        await page.waitForTimeout(150);
+        return a === (await page.evaluate(() => scrollY));
+      })
+      .toBe(true);
+    const from = (await card(page, 'feed').boundingBox())!;
+    const to = (await card(page, 'bath').boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+    await page.mouse.up();
+    const dragged = await order();
+    expect(dragged[0]).not.toBe('feed');
+    // It lands next to Bath (which side depends on the path the pointer took).
+    expect(Math.abs(dragged.indexOf('feed') - dragged.indexOf('bath'))).toBe(1);
+
+    // Keyboard: arrows move the focused button and don't change the day.
+    const first = dragged[0]!;
+    await card(page, first).focus();
+    await page.keyboard.press('ArrowRight');
+    expect((await order())[1]).toBe(first);
+    await expect(page.locator('#day-title')).toContainText('Today');
+    await expect(entries(page)).toHaveCount(0);
+
+    await bar.getByRole('button', { name: 'Done' }).click();
+    await expect(bar).toHaveCount(0);
+    const saved = await order();
+    await page.reload();
+    await expect(page.locator('html[data-ready]')).toBeAttached();
+    expect(await order()).toEqual(saved);
+
+    // Back to normal: a tap logs again. Settings lists the buttons in the new order and can reset it.
+    await card(page, 'wet').click();
+    await expect(entries(page)).toHaveCount(1);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const toggles = await page.locator('#settings [data-card-toggle]').evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
+    expect(toggles.filter((id) => saved.includes(id))).toEqual(saved);
+    await page.locator('#settings').getByRole('button', { name: 'Reset order' }).click();
+    await page.keyboard.press('Escape');
+    expect(await order()).toEqual(before);
+  });
+
+  test('arrange: hide a button with the ×, after confirming, and bring it back from the bar', async ({ page }) => {
+    await open(page);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.locator('#settings').getByRole('button', { name: 'Arrange buttons' }).click();
+    const bar = page.getByRole('region', { name: 'Arranging buttons' });
+    const confirm = page.locator('#confirm');
+
+    // Cancel keeps it, and Escape in the confirmation doesn't end arranging.
+    await page.getByRole('button', { name: 'Hide Bath' }).click();
+    await expect(confirm.getByRole('heading')).toHaveText('Hide 🛁 Bath?');
+    await confirm.getByRole('button', { name: 'Cancel' }).click();
+    await expect(card(page, 'bath')).toBeVisible();
+    await page.getByRole('button', { name: 'Hide Bath' }).click();
+    await page.keyboard.press('Escape');
+    await expect(card(page, 'bath')).toBeVisible();
+    await expect(bar).toBeVisible();
+
+    await page.getByRole('button', { name: 'Hide Bath' }).click();
+    await confirm.getByRole('button', { name: 'Hide' }).click();
+    await expect(card(page, 'bath')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Hide Bath' })).toBeHidden();
+    const showBath = bar.getByRole('button', { name: 'Show Bath' });
+    await expect(showBath).toBeVisible();
+    // Off-by-default Music is listed too.
+    await expect(bar.getByRole('button', { name: 'Show Music' })).toBeVisible();
+
+    await showBath.click();
+    await expect(card(page, 'bath')).toBeVisible();
+    await expect(showBath).toHaveCount(0);
+
+    // Hide it again and leave with Escape: it stays hidden, Settings agrees.
+    await page.getByRole('button', { name: 'Hide Bath' }).click();
+    await confirm.getByRole('button', { name: 'Hide' }).click();
+    await page.keyboard.press('Escape');
+    await expect(bar).toHaveCount(0);
+    await expect(page.locator('.card-hide')).toHaveCount(0);
+    await expect(card(page, 'bath')).toBeHidden();
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page.locator('#settings [data-card-toggle][value="bath"]')).not.toBeChecked();
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

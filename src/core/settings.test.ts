@@ -43,6 +43,14 @@ describe('settings', () => {
     expect(loadSettings().hiddenCards).toEqual([]);
   });
 
+  it('keeps a saved button order, without unknown or repeated ids', () => {
+    expect(loadSettings().cardOrder).toEqual([]);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ cardOrder: ['bath', 'nope', 'feed', 'bath'] }));
+    expect(loadSettings().cardOrder).toEqual(['bath', 'feed']);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ cardOrder: 'bath' }));
+    expect(loadSettings().cardOrder).toEqual([]);
+  });
+
   it('picks growth units: kept when saved, otherwise matching the volume unit', () => {
     expect(loadSettings().growthUnits).toBe('metric');
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ units: 'oz' }));

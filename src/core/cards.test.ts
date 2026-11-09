@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cardById, cardFor, feedDefaults, lastFor, lastWake, nextUpcoming, ongoingFor } from './cards';
+import { CARDS, cardById, cardFor, feedDefaults, lastFor, lastWake, nextUpcoming, ongoingFor, orderCards } from './cards';
 import { createEvent, patchEvent } from './events';
 
 const H = 3_600_000;
@@ -45,5 +45,29 @@ describe('cards', () => {
     const nap = patchEvent(createEvent('sleep', H, { sleep: 'nap' }, 0), { endAt: 2 * H }, 0);
     const night = createEvent('sleep', 5 * H, { sleep: 'night' }, 0);
     expect(lastWake([nap, night], 6 * H)).toBe(2 * H);
+  });
+});
+
+describe('orderCards', () => {
+  const ids = (order: string[]) => orderCards(order).map((c) => c.id);
+  it('uses the default order when nothing is saved', () => {
+    expect(ids([])).toEqual(CARDS.map((c) => c.id));
+  });
+
+  it('follows a saved order, dropping unknown and repeated ids', () => {
+    const saved = ['bath', 'feed', 'nope', 'bath', ...CARDS.map((c) => c.id).filter((id) => id !== 'bath' && id !== 'feed')];
+    const out = ids(saved);
+    expect(out.slice(0, 2)).toEqual(['bath', 'feed']);
+    expect(out).toHaveLength(CARDS.length);
+    expect(new Set(out).size).toBe(CARDS.length);
+  });
+
+  it('puts a card missing from the saved order (new in an update) after its default neighbour', () => {
+    // Saved before Height and My mood existed, with Weight moved to the top.
+    const saved = ['weight', ...CARDS.map((c) => c.id).filter((id) => !['weight', 'height', 'mood'].includes(id))];
+    const out = ids(saved);
+    expect(out.slice(0, 3)).toEqual(['weight', 'height', 'mood']);
+    // A missing first card goes first.
+    expect(ids(CARDS.slice(1).map((c) => c.id))[0]).toBe('feed');
   });
 });

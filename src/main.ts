@@ -3,7 +3,8 @@ import { CARDS } from './core/cards';
 import { addDays, dayKey } from './core/days';
 import { app, init, settings, setupPersistence, today } from './core/log';
 import { tapCard } from './ui/actions';
-import { mountCards, renderCards } from './ui/cardsView';
+import { applyCardOrder, mountCards, renderCards } from './ui/cardsView';
+import { isArranging } from './ui/arrange';
 import { goToDay, mountDayView, renderDayView } from './ui/dayView';
 import { setupPwa } from './ui/pwa';
 import { setupInstall } from './ui/install';
@@ -106,6 +107,7 @@ settings.subscribe((s, prev) => {
   if (s.background !== prev.background) applyBackground(s.background);
   if (s.haptics !== prev.haptics) setHapticTriggersEnabled(s.haptics);
   if (s.dayStartHour !== prev.dayStartHour) app.set({ day: dayKey(Date.now(), s.dayStartHour) });
+  if (s.cardOrder !== prev.cardOrder && !isArranging()) applyCardOrder(cardsEl);
   render();
 });
 
@@ -127,6 +129,8 @@ document.addEventListener('visibilitychange', render);
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (document.querySelector('dialog[open]')) return;
+  // Arranging buttons: keys move them (see arrange.ts), never log or change the day.
+  if (isArranging()) return;
   const el = e.target as HTMLElement;
   if (el.closest('input, textarea, select, [contenteditable]')) return;
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;

@@ -3,7 +3,8 @@ import { coins, nextMilestone } from '../core/coins';
 import { BACKUP_DAY_CHOICES, DEFAULT_SETTINGS } from '../core/settings';
 import { shortDate } from '../core/format';
 import { app, importData, settings, snapshot } from '../core/log';
-import { CARDS } from '../core/cards';
+import { orderCards } from '../core/cards';
+import { enterArrange } from './arrange';
 import type { Settings } from '../core/types';
 import { copyText, downloadText } from './clipboard';
 import { storageStatus } from './persist';
@@ -161,10 +162,12 @@ export function openSettings() {
     ${seg('theme', [['auto', 'Auto'], ['day', 'Day'], ['dusk', 'Dusk'], ['night', 'Night']], s.theme, 'Theme')}
     <p class="hint">Auto switches to the dim, warm night theme from 9 PM to 6 AM.</p>
     ${seg('gridMarks', [['dots', '● Dots'], ['checks', '✓ Checks'], ['crosses', '✕ Crosses']], s.gridMarks, 'Grid marks (feeds and diapers)')}
-    <fieldset class="field"><legend>Buttons</legend><div class="seg card-toggles">${CARDS.map(
+    <fieldset class="field"><legend>Buttons</legend><div class="seg card-toggles">${orderCards(s.cardOrder).map(
       (c) => `<label><input type="checkbox" data-card-toggle value="${c.id}" ${s.hiddenCards.includes(c.id) ? '' : 'checked'} /><span>${c.emoji} ${c.label}</span></label>`,
     ).join('')}</div>
-      <p class="hint">Pick the buttons you use. Turned-off ones leave the home screen, but past entries, links and keys still work.</p></fieldset>
+      <p class="hint">Pick the buttons you use. Turned-off ones leave the home screen, but past entries, links and keys still work.</p>
+      <div class="btn-row"><button type="button" class="btn" data-arrange>Arrange buttons</button>${s.cardOrder.length ? '<button type="button" class="btn" data-order-reset>Reset order</button>' : ''}</div>
+      <p class="hint">Arrange: drag the buttons into the order you like on the home screen, and hide or bring back buttons right there.</p></fieldset>
     <fieldset class="field"><legend>Background</legend><div class="scene-picker">${BACKGROUNDS.map(
       ([id, label]) =>
         `<label class="scene-tile"><input type="radio" name="background" value="${id}" ${id === s.background ? 'checked' : ''} />${PREVIEWS[id]}<span>${label}</span></label>`,
@@ -259,7 +262,14 @@ export function openSettings() {
   dialog.onclick = (e) => {
     const t = e.target as HTMLElement;
     if (t === dialog || t.closest('[data-close]')) dialog.close();
-    else if (t.closest('[data-rewards]')) {
+    else if (t.closest('[data-arrange]')) {
+      dialog.close();
+      enterArrange(document.getElementById('cards')!);
+    } else if (t.closest('[data-order-reset]')) {
+      settings.set({ cardOrder: [] });
+      openSettings();
+      toast('Buttons are back in the default order');
+    } else if (t.closest('[data-rewards]')) {
       dialog.close();
       openRewards();
     }

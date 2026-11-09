@@ -27,6 +27,7 @@ On iPhone, Safari can clear data for sites that aren't installed, so installing 
 - **"When did we last…?" cards.** Tap a card to log it now. Timed things (nap, night sleep, tummy time, pump, fussy) are tap to start, tap to stop, and keep running across reloads.
 - **Logging late is normal.** Every log shows a note with **Undo** and **−5m / −15m / −30m**. Hold a card to add details first: breast side and minutes per side, bottle amount, pump volume, a note.
 - **Weight and height.** ⚖️ and 📏 cards ask for the number. Type it in kg or lb + oz, cm or inches, whatever the doctor's note says, and it's converted for you. Trends charts them over time with a table of every measurement.
+- **Arrange the buttons.** Settings → Buttons → Arrange buttons: drag them into your order right on the home screen (arrow keys work too), tap × to hide one (it asks first), and bring hidden ones back from the bar. Nothing logs while you arrange.
 - **My mood.** A 🌷 card for the parent: tap to check in (very low to great, plus optional feelings like anxious or overwhelmed), to keep an eye on postpartum mood. Trends shows your check-ins with their own Markdown export; they stay out of the baby's log. A "Need support?" note with helpline numbers is always one tap away. It describes, never diagnoses.
 - **Your buttons.** Settings → Buttons hides the cards you don't use.
 - **One day at a time.** Step back through days to fill in or fix entries. A night that crosses midnight shows on both days, and each day has its own note.

@@ -79,6 +79,28 @@ export const CARDS: readonly CardDef[] = [
   { id: 'mood', label: 'My mood', emoji: '🌷', type: 'mood', timed: false, sheetFirst: true, matches: of('mood'), key: 'i' },
 ];
 
+/**
+ * The cards in the order the home screen shows them: the saved order, with unknown ids dropped. A card
+ * missing from it (new in an update) goes right after the card it follows by default, so it lands
+ * near its neighbours instead of at the end.
+ */
+export function orderCards(order: readonly string[]): CardDef[] {
+  const out = order.map((id) => CARDS.find((c) => c.id === id)).filter((c, i, all): c is CardDef => !!c && all.indexOf(c) === i);
+  CARDS.forEach((card, i) => {
+    if (out.includes(card)) return;
+    let at = 0;
+    for (let j = i - 1; j >= 0; j--) {
+      const k = out.indexOf(CARDS[j]);
+      if (k >= 0) {
+        at = k + 1;
+        break;
+      }
+    }
+    out.splice(at, 0, card);
+  });
+  return out;
+}
+
 export const cardById = (id: CardId) => CARDS.find((c) => c.id === id)!;
 
 /** The card an event is shown under (for its emoji, label and color). */

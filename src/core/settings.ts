@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   background: 'glow',
   hiddenCards: [...OFF_BY_DEFAULT],
   cardsOffered: [...OFF_BY_DEFAULT],
+  cardOrder: [],
   splash: true,
   confirmDeletes: true,
 };
@@ -63,6 +64,7 @@ export function loadSettings(): Settings {
     s.hiddenCards = Array.isArray(s.hiddenCards) ? [...new Set(s.hiddenCards.filter((id) => ids.includes(id)))] : [];
     // From the saved copy only: settings saved before a card existed haven't offered it yet.
     s.cardsOffered = Array.isArray(saved.cardsOffered) ? saved.cardsOffered.filter((id) => ids.includes(id)) : [];
+    s.cardOrder = Array.isArray(s.cardOrder) ? [...new Set(s.cardOrder.filter((id) => ids.includes(id)))] : [];
     offerNewCards(s);
     if (s.hiddenCards.length >= ids.length) s.hiddenCards = [];
     if (!Number.isInteger(s.dayStartHour) || s.dayStartHour < 0 || s.dayStartHour > 12) s.dayStartHour = 0;
