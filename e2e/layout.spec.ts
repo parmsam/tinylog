@@ -41,10 +41,14 @@ test('entry sheet fields never overlap on iPhone, in every state', async ({ page
   await assertClean(s, 'feed (breast)');
   await s.getByText('Bottle', { exact: true }).click();
   await assertClean(s, 'feed (bottle: amount + milk)');
-  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '⚖️ Weight', '📏 Height']) {
+  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '⚖️ Weight', '📏 Height', '🌷 My mood']) {
     await s.getByText(kind, { exact: true }).click();
     await assertClean(s, kind);
   }
+  // Mood with the support note open: faces, feeling chips and the note all fit.
+  await s.getByText('🌷 My mood', { exact: true }).click();
+  await s.getByText('Need support?').click();
+  await assertClean(s, 'mood (support open)');
   // Imperial weight: lb and oz side by side.
   await s.getByText('⚖️ Weight', { exact: true }).click();
   await s.getByText('lb · oz', { exact: true }).click();

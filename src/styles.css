@@ -1218,6 +1218,66 @@ table.totals thead th {
   display: none;
 }
 
+/* Mood check-in (sheet + Trends) */
+.mood-seg span {
+  flex-direction: column;
+  gap: 2px;
+  min-width: 56px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+}
+.mood-seg .mood-face {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.seg.chips span {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-weight: 600;
+}
+.support {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin: 12px 0 4px;
+  font-size: 0.9rem;
+}
+.support summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.support p,
+.support ul {
+  margin: 8px 0 0;
+}
+.support ul {
+  padding-left: 1.1em;
+}
+.support a {
+  color: inherit;
+  font-weight: 700;
+}
+.mood-chart .mc-grid {
+  stroke: var(--v-grid);
+  stroke-width: 1;
+}
+.mood-chart .mc-tick {
+  fill: var(--muted);
+  font-size: 10px;
+}
+.mood-chart .mc-face {
+  font-size: 13px;
+}
+.mood-chart .mc-dot {
+  fill: var(--v-ink);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.mood-chart .mc-hit {
+  fill: transparent;
+}
+
 /* Shortcuts */
 .keys {
   display: grid;

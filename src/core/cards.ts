@@ -18,7 +18,7 @@ export interface CardDef {
   offByDefault?: boolean;
 }
 
-export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor' | 'weight' | 'height';
+export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor' | 'weight' | 'height' | 'mood';
 
 const of = (type: EventType) => (e: LogEvent) => e.type === type;
 
@@ -75,6 +75,8 @@ export const CARDS: readonly CardDef[] = [
   // Measurements: tapping opens the sheet, since they need a number.
   { id: 'weight', label: 'Weight', emoji: '⚖️', type: 'weight', timed: false, sheetFirst: true, matches: of('weight'), key: 'e' },
   { id: 'height', label: 'Height', emoji: '📏', type: 'height', timed: false, sheetFirst: true, matches: of('height'), key: 'h' },
+  // The parent's own check-in (postpartum mood). Tapping opens the sheet to pick how you feel.
+  { id: 'mood', label: 'My mood', emoji: '🌷', type: 'mood', timed: false, sheetFirst: true, matches: of('mood'), key: 'i' },
 ];
 
 export const cardById = (id: CardId) => CARDS.find((c) => c.id === id)!;

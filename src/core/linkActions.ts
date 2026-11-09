@@ -1,6 +1,7 @@
 import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
 import { cmFrom, gramsFrom, heightInRange, weightInRange } from './growth';
+import { FEELINGS, parseFeelings, parseMood } from './wellbeing';
 import type { Detail, SleepPlace, Side } from './types';
 
 /**
@@ -13,6 +14,7 @@ import type { Detail, SleepPlace, Side } from './types';
  *   &minl=12&minr=8 (or &min=20)  breastfeeding length in minutes
  *   &where=bassinet|crib|held|stroller|car  where a sleep happened
  *   ?do=log&what=weight&kg=7.2 (or &g=7200, &lb=15&oz=14)   ?do=log&what=height&cm=62 (or &in=24.5)
+ *   ?do=log&what=mood&mood=low (1–5 or very-low|low|okay|good|great)  &feelings=anxious,tearful
  *
  * Settings never travel in the URL. Parameters are removed once the action has run.
  */
@@ -24,7 +26,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -76,6 +78,12 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   height: 'height',
   length: 'height',
   measure: 'height',
+  mood: 'mood',
+  'my-mood': 'mood',
+  feeling: 'mood',
+  feelings: 'mood',
+  'check-in': 'mood',
+  checkin: 'mood',
 };
 
 const SIDES: Record<string, Side> = { l: 'L', left: 'L', r: 'R', right: 'R', both: 'both', b: 'both' };
@@ -109,7 +117,7 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const whatRaw = q.get('what')?.trim().toLowerCase().replace(/\s+/g, '-');
   if (!whatRaw) return { kind: 'invalid', reason: 'say what to log, e.g. &what=wet' };
   const what = WHAT[whatRaw];
-  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, weight, height)` };
+  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, weight, height, mood)` };
 
   const agoRaw = q.get('ago');
   const minutesAgo = agoRaw === null ? 0 : Math.round(Number(agoRaw));
@@ -154,6 +162,15 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
     if (!heightInRange(cm)) return { kind: 'invalid', reason: 'that height looks off (20–130 cm)' };
     detail.cm = cm;
   } else if (['cm', 'in'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'cm and in are for height' };
+
+  if (card === 'mood') {
+    const mood = parseMood(q.get('mood'));
+    if (!mood) return { kind: 'invalid', reason: 'say the mood, e.g. &mood=3 (1–5) or &mood=low (very-low, low, okay, good, great)' };
+    detail.mood = mood;
+    const { feelings, bad } = parseFeelings(q.get('feelings'));
+    if (bad.length) return { kind: 'invalid', reason: `feelings are ${FEELINGS.map(([f]) => f).join(', ')}` };
+    if (feelings.length) detail.feelings = feelings;
+  } else if (q.get('mood') !== null || q.get('feelings') !== null) return { kind: 'invalid', reason: 'mood and feelings are for a mood check-in (&what=mood)' };
 
   const ml = Number(q.get('ml'));
   // On a weight, oz is part of the weight (above), not a volume.

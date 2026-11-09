@@ -26,6 +26,7 @@ export function logCard(id: CardId, { at = Date.now(), detail }: OpOptions = {})
   // Measurements need a number; a tap opens the sheet for one instead of coming here.
   if (id === 'weight' && !detail?.grams) return { kind: 'noop', card: id, reason: 'Weight needs a number (kg, g, lb or oz)' };
   if (id === 'height' && !detail?.cm) return { kind: 'noop', card: id, reason: 'Height needs a number (cm or in)' };
+  if (id === 'mood' && !detail?.mood) return { kind: 'noop', card: id, reason: 'A mood check-in needs a mood (1–5, or very-low, low, okay, good, great)' };
   const base = card.id === 'feed' ? feedDefaults(app.get().events, at) : card.preset;
   const merged = card.id === 'feed' && detail?.method === 'bottle' ? { ...detail } : { ...base, ...detail };
   const event = addEvent(createEvent(card.type, at, merged, Date.now()));

@@ -39,6 +39,7 @@
   --c-books: #c3d96b;
   --c-music: #e79ad8;
   --c-doctor: #f5cd6a;
+  --c-mood: #f2a3b3;
 
   /* Chart series: fewer, validated colors (dataviz validator, dark surface #221c30, adjacent order feed → sleep → tummy → diaper → pump → fussy).
      Charts give every series its own lane and a distinct mark shape, since sleep/diaper and tummy/pump are too close all-pairs. */
@@ -96,6 +97,7 @@
   --c-books: #7f9a1f;
   --c-music: #b4529f;
   --c-doctor: #c9971a;
+  --c-mood: #c75b74;
 
   /* Chart series, light surface #fffaf5 (validated). */
   --puff: #ffffff;
@@ -143,6 +145,7 @@
   --c-books: #b0a868;
   --c-music: #c08ca0;
   --c-doctor: #c9a060;
+  --c-mood: #c48e96;
   --muted: color-mix(in oklab, var(--text) 58%, transparent);
   --danger: #d77b5f;
 }

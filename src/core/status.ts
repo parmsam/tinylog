@@ -2,6 +2,7 @@ import { lastFor, lastWake, nextUpcoming, ongoingFor, type CardDef } from './car
 import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
 import { formatHeight, formatWeight, growthUnits } from './growth';
+import { moodInfo, moodSummary } from './wellbeing';
 import { SLEEP_PLACES, type LogEvent, type Settings } from './types';
 
 type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'> & Partial<Pick<Settings, 'growthUnits'>>;
@@ -54,6 +55,11 @@ export function summary(e: LogEvent, prefs: SummaryPrefs): string {
     case 'height':
       if (d.cm) bits.push(formatHeight(d.cm, growthUnits(prefs)));
       break;
+    case 'mood': {
+      const m = moodSummary(d.mood, d.feelings);
+      if (m) bits.push(m);
+      break;
+    }
   }
   return bits.join(' · ');
 }
@@ -166,6 +172,13 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
       if (!last) return { primary: card.id === 'weight' ? 'Add a weight' : 'Add a height', secondary: '', ongoing: false };
       return { primary: summary(last, prefs) || '—', secondary: `${shortDate(last.at)} · ${ago(last.at, now)}`, ongoing: false };
     }
+    case 'mood': {
+      // Today's latest check-in; an earlier day's mood isn't carried onto today's card.
+      const latest = inDay.filter((e) => e.at <= now).reduce<LogEvent | undefined>((a, b) => (!a || b.at > a.at ? b : a), undefined);
+      const m = moodInfo(latest?.detail?.mood);
+      if (!latest || !m) return { primary: 'How are you?', secondary: last ? `last check-in ${shortDate(last.at)}` : 'tap to check in', ongoing: false };
+      return { primary: `${m.emoji} ${m.label}`, secondary: `${t(latest.at)}${inDay.length > 1 ? ` · ${inDay.length} today` : ''}`, ongoing: false };
+    }
   }
 }
 
@@ -218,6 +231,11 @@ function pastStatus(
       if (!n) return none;
       const latest = inDay.reduce((a, b) => (b.at > a.at ? b : a));
       return { primary: summary(latest, prefs) || '—', secondary: n > 1 ? `${n} measurements` : '', ongoing: false };
+    }
+    case 'mood': {
+      if (!n) return none;
+      const m = moodInfo(inDay.reduce((a, b) => (b.at > a.at ? b : a)).detail?.mood);
+      return { primary: m ? `${m.emoji} ${m.label}` : '—', secondary: n > 1 ? plural(n, 'check-in') : '', ongoing: false };
     }
   }
 }

@@ -27,6 +27,7 @@ On iPhone, Safari can clear data for sites that aren't installed, so installing 
 - **"When did we last…?" cards.** Tap a card to log it now. Timed things (nap, night sleep, tummy time, pump, fussy) are tap to start, tap to stop, and keep running across reloads.
 - **Logging late is normal.** Every log shows a note with **Undo** and **−5m / −15m / −30m**. Hold a card to add details first: breast side and minutes per side, bottle amount, pump volume, a note.
 - **Weight and height.** ⚖️ and 📏 cards ask for the number. Type it in kg or lb + oz, cm or inches, whatever the doctor's note says, and it's converted for you. Trends charts them over time with a table of every measurement.
+- **My mood.** A 🌷 card for the parent: tap to check in (very low to great, plus optional feelings like anxious or overwhelmed), to keep an eye on postpartum mood. Trends shows your check-ins with their own Markdown export; they stay out of the baby's log. A "Need support?" note with helpline numbers is always one tap away. It describes, never diagnoses.
 - **Your buttons.** Settings → Buttons hides the cards you don't use.
 - **One day at a time.** Step back through days to fill in or fix entries. A night that crosses midnight shows on both days, and each day has its own note.
 
@@ -100,6 +101,7 @@ Any link with `?do=` logs something when opened, with the usual Undo. **Settings
 | `?do=log&what=wet&ago=15` | Log it as 15 minutes ago |
 | `?do=log&what=weight&kg=6.4` | Log a weight (`lb=14&oz=2` or `g=6400` work too) |
 | `?do=log&what=height&cm=61.5` | Log a height (`in=24.25` works too) |
+| `?do=log&what=mood&mood=low&feelings=anxious` | Log a mood check-in (`mood` 1–5 or very-low, low, okay, good, great) |
 
 - **iPhone:** in the Shortcuts app, tap New Shortcut → **Open URLs**, paste a link and name it "Wet diaper". Then say "Hey Siri, wet diaper". Links open in Safari, which has its own storage, separate from the Home Screen app. So if you log by Siri, either use tinylog in Safari on that phone or merge the two with Share with partner.
 - **Android and desktop:** long-press the installed app's icon for Feed, Wet, Dirty and Sleep.

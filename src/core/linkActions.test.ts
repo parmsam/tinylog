@@ -47,6 +47,20 @@ describe('parseLinkAction', () => {
     expect(stripLinkAction('https://x.test/tinylog/?do=log&what=weight&lb=15&oz=14&keep=1')).toBe('/tinylog/?keep=1');
   });
 
+  it('takes a mood check-in with optional feelings', () => {
+    expect(p('?do=log&what=mood&mood=2')).toMatchObject({ card: 'mood', detail: { mood: 2 } });
+    expect(p('?do=log&what=check-in&mood=very-low&feelings=anxious,Tearful')).toMatchObject({ card: 'mood', detail: { mood: 1, feelings: ['anxious', 'tearful'] } });
+    expect(p('?do=log&what=my mood&mood=great')).toMatchObject({ card: 'mood', detail: { mood: 5 } });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=mood&mood=3&feelings=calm&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
+  it('explains mood mistakes', () => {
+    expect(p('?do=log&what=mood')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('say the mood') });
+    expect(p('?do=log&what=mood&mood=7')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('say the mood') });
+    expect(p('?do=log&what=mood&mood=3&feelings=happy')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('feelings are calm') });
+    expect(p('?do=log&what=wet&mood=3')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('mood check-in') });
+  });
+
   it('understands feed details and amounts', () => {
     expect(p('?do=log&what=bottle&oz=3&milk=formula')).toMatchObject({ card: 'feed', detail: { method: 'bottle', amount: 89, milk: 'formula' } });
     expect(p('?do=log&what=feed&ml=90')).toMatchObject({ detail: { method: 'bottle', amount: 90 } });

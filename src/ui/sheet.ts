@@ -3,7 +3,9 @@ import { createEvent } from '../core/events';
 import { fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
 import { cmFrom, CM_PER_IN, formatHeight, formatWeight, gramsFrom, growthUnits, heightInRange, toLbOz, weightInRange } from '../core/growth';
 import { addEvent, app, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import { SLEEP_PLACES, type Detail, type GrowthUnits, type LogEvent } from '../core/types';
+import { SLEEP_PLACES, type Detail, type Feeling, type GrowthUnits, type LogEvent } from '../core/types';
+import { FEELINGS, MOODS, parseMood } from '../core/wellbeing';
+import { supportHtml } from '../viz/moodChart';
 import { toast } from './toast';
 import { companionReact } from './companion';
 import { requestPersistence } from './persist';
@@ -39,6 +41,23 @@ function seg<T extends string>(name: string, options: [T, string][], value: T | 
         `<label><input type="radio" name="${name}" value="${v}" ${v === value ? 'checked' : ''} /><span>${label}</span></label>`,
     )
     .join('')}</div></fieldset>`;
+}
+
+/** Pick any number of options (checkboxes styled like `seg`). */
+function chips<T extends string>(name: string, options: readonly (readonly [T, string])[], values: readonly T[] | undefined, legend: string) {
+  return `<fieldset class="field"><legend>${legend}</legend><div class="seg chips">${options
+    .map(([v, label]) => `<label><input type="checkbox" name="${name}" value="${v}" ${values?.includes(v) ? 'checked' : ''} /><span>${label}</span></label>`)
+    .join('')}</div></fieldset>`;
+}
+
+function moodFields(d: Detail): string {
+  const faces = seg(
+    'mood',
+    MOODS.map((m) => [String(m.level), `<span class="mood-face" aria-hidden="true">${m.emoji}</span>${m.label}`] as [string, string]),
+    d.mood ? String(d.mood) : undefined,
+    'How are you feeling?',
+  ).replace('class="seg"', 'class="seg mood-seg"');
+  return faces + chips('feelings', FEELINGS, d.feelings, 'Any of these? (optional)') + supportHtml();
 }
 
 function amountField(ml: number | undefined, label: string) {
@@ -129,6 +148,8 @@ function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits): string {
       return unitSeg(card, units) + weightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
     case 'height':
       return unitSeg(card, units) + heightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
+    case 'mood':
+      return moodFields(d);
     default:
       return '';
   }
@@ -153,7 +174,7 @@ function render(dialog: HTMLDialogElement, draft: Draft, existing: LogEvent | un
         <label class="check"><input type="checkbox" name="ongoing" ${draft.ongoing ? 'checked' : ''} /> Still going</label>
       </div>`
     : '';
-  const notePh = card.id === 'doctor' ? 'What is the visit for? Weight, questions, vaccines…' : 'optional';
+  const notePh = card.id === 'doctor' ? 'What is the visit for? Weight, questions, vaccines…' : card.id === 'mood' ? 'optional · anything on your mind' : 'optional';
 
   dialog.innerHTML = `<form novalidate>
     <div class="sheet-head"><h2 id="sheet-title">${title}</h2>
@@ -208,6 +229,12 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   else if (draft.detail.grams) detail.grams = draft.detail.grams;
   if (f.has('cm') || f.has('inches')) detail.cm = cmFrom({ cm: n('cm'), inches: n('inches') });
   else if (draft.detail.cm) detail.cm = draft.detail.cm;
+  const mood = parseMood(str('mood'));
+  if (mood) detail.mood = mood;
+  if (f.has('mood') || cardId === 'mood') {
+    const feelings = f.getAll('feelings').map(String) as Feeling[];
+    if (feelings.length) detail.feelings = feelings;
+  }
   const amount = parseFloat(str('amount') ?? '');
   if (amount > 0) detail.amount = toMl(amount, settings.get().units);
   // Switching cards in the picker resets card-specific choices to that card's preset.
@@ -254,6 +281,10 @@ function detailFor(card: CardDef, d: Detail): Detail {
       break;
     case 'height':
       out.cm = d.cm;
+      break;
+    case 'mood':
+      out.mood = d.mood;
+      if (d.feelings?.length) out.feelings = d.feelings;
       break;
   }
   return out;
@@ -332,6 +363,7 @@ export function openSheet(opts: SheetOpts) {
       if (!draft.detail.grams) return fail('Enter the weight.');
       if (!weightInRange(draft.detail.grams)) return fail('That weight looks off. Check the number, and the units in Settings.');
     }
+    if (chosen.id === 'mood' && !draft.detail.mood) return fail('Pick how you’re feeling.');
     if (chosen.id === 'height') {
       if (!draft.detail.cm) return fail('Enter the height.');
       if (!heightInRange(draft.detail.cm)) return fail('That height looks off. Check the number, and the units in Settings.');

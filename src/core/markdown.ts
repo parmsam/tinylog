@@ -59,7 +59,10 @@ export function toMarkdown(
   const range = fromDay === toDay ? dayTitle(dayDate(toDay)) : `${dayTitle(dayDate(fromDay))} – ${dayTitle(dayDate(toDay))}`;
   const out = [`# ${name ? `${name}'s log` : 'Baby log'} · ${range}`, ''];
   for (let day = toDay; day >= fromDay; day = addDays(day, -1)) {
-    const list = eventsForDay(events, day, prefs.dayStartHour, now).sort((a, b) => a.at - b.at);
+    // The parent's mood check-ins stay out of the baby's log (it's for checkups); they have their own export in Trends.
+    const list = eventsForDay(events, day, prefs.dayStartHour, now)
+      .filter((e) => e.type !== 'mood')
+      .sort((a, b) => a.at - b.at);
     const note = notes[day]?.text?.trim();
     out.push(`## ${dayTitle(dayDate(day))}`, '');
     if (!list.length && !note) {

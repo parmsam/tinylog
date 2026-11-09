@@ -183,6 +183,7 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
   doctor: { log: 'doctor' },
   weight: { log: 'growth' },
   height: { log: 'growth' },
+  mood: { log: 'settled' }, // a soft sigh and hearts, the same whatever the mood
 };
 
 /**

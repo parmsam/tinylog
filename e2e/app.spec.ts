@@ -445,6 +445,45 @@ test.describe('data', () => {
     expect(g.height[0].cm).toBe(60.96);
   });
 
+  test('my mood: a tap asks how you feel; check-ins have their own place in Trends, outside the baby log', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'mood')).toContainText('How are you?');
+    await card(page, 'mood').click();
+    const s = page.locator('#sheet form');
+    // Saving without picking a mood explains instead of logging an empty check-in.
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(s.getByRole('alert')).toHaveText('Pick how you’re feeling.');
+    // The face is decoration (aria-hidden): the choice is announced as just "Low".
+    await s.locator('label').filter({ has: page.getByRole('radio', { name: 'Low', exact: true }) }).click();
+    await s.getByText('Anxious', { exact: true }).click();
+    await s.getByText('Tearful', { exact: true }).click();
+    // Support contacts are always there, folded away.
+    await s.getByText('Need support?').click();
+    await expect(s.locator('.support a[href="tel:+18338526262"]')).toBeVisible();
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'mood')).toContainText('😕 Low');
+    await expect(entries(page).first()).toContainText('Low · anxious, tearful');
+
+    // Kept out of the baby's Markdown log.
+    const md = await page.evaluate(() => window.tinylog.markdown(1));
+    expect(md).not.toContain('anxious');
+
+    // Trends: a dot per check-in with a tooltip, and the table.
+    await page.keyboard.press('g');
+    const mood = page.locator('#trends section', { hasText: 'My mood' });
+    await expect(mood.locator('.mood-chart [data-tip]')).toHaveCount(1);
+    await expect(mood.locator('.mood-table tbody tr')).toContainText('Anxious, Tearful');
+  });
+
+  test('my mood links and API', async ({ page }) => {
+    await open(page, {}, './?do=log&what=mood&mood=good&feelings=calm');
+    await expect(card(page, 'mood')).toContainText('🙂 Good');
+    const r = await page.evaluate(() => window.tinylog.log('mood', { mood: 2, feelings: ['lonely'] }));
+    expect(r).toMatchObject({ result: 'logged', entry: { what: 'mood', summary: 'Low · lonely' } });
+    expect(await page.evaluate(() => window.tinylog.state().last.mood)).toMatchObject({ summary: 'Low · lonely' });
+    await expect(page.evaluate(() => window.tinylog.log('mood'))).rejects.toThrow(/say the mood/);
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

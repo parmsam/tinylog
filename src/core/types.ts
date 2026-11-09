@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -11,6 +11,9 @@ export const SLEEP_PLACES: [SleepPlace, string][] = [
   ['stroller', 'Stroller'],
   ['car', 'Car'],
 ];
+
+export type MoodLevel = 1 | 2 | 3 | 4 | 5;
+export type Feeling = 'calm' | 'hopeful' | 'connected' | 'anxious' | 'tearful' | 'irritable' | 'overwhelmed' | 'numb' | 'lonely';
 
 /** Optional detail. Nothing here is ever required to log an event. */
 export interface Detail {
@@ -29,6 +32,10 @@ export interface Detail {
   grams?: number;
   /** Height (length) in cm (0.01 cm steps, so inches round-trip). */
   cm?: number;
+  /** A parent's mood check-in: 1 (very low) to 5 (great). */
+  mood?: MoodLevel;
+  /** Mood check-in: any feelings picked, optional. */
+  feelings?: Feeling[];
   note?: string;
 }
 

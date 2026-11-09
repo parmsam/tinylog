@@ -8,6 +8,8 @@ import { patterns } from '../core/stats';
 import { patternsHtml } from '../viz/patternsView';
 import { dayStripSvg } from '../viz/dayStrip';
 import { growthHtml } from '../viz/growthChart';
+import { moodHtml, supportHtml } from '../viz/moodChart';
+import { moodMarkdown } from '../core/wellbeing';
 import { heatmapTableHtml } from '../viz/heatmapTable';
 import { attachTips, hideTip } from '../viz/tooltip';
 import { weekRingsSvg } from '../viz/weekRings';
@@ -95,11 +97,19 @@ export async function copyMarkdown(days: number) {
   toast(ok ? `Copied ${days === 1 ? 'today' : `the last ${days} days`} as Markdown` : "Couldn't copy. Try Download instead.");
 }
 
+async function copyMoodMarkdown(days: number) {
+  const last = today();
+  const ok = await copyText(moodMarkdown(app.get().events, addDays(last, -(days - 1)), last, settings.get()));
+  toast(ok ? `Copied ${days} days of check-ins` : "Couldn't copy.");
+}
+
 function render(dialog: HTMLDialogElement) {
   const now = Date.now();
   const last = today(now);
   const s = app.get();
   const prefs = settings.get();
+  // The mood card is the parent's own: shown when its button is on or there are check-ins.
+  const showMood = !prefs.hiddenCards.includes('mood') || s.events.some((e) => e.type === 'mood' && !e.deleted);
   dialog.innerHTML = `<div class="trends">
     <div class="sheet-head"><h2 id="trends-title">Trends</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -138,6 +148,13 @@ function render(dialog: HTMLDialogElement) {
       ${growthHtml(s.events, prefs, now)}
     </section>
 
+    ${showMood ? `<section class="viz-card" aria-labelledby="mood-title">
+      <h3 id="mood-title">🌷 My mood</h3>
+      ${moodHtml(s.events, last, range, prefs)}
+      <div class="btn-row"><button type="button" class="btn" data-mood-copy>Copy check-ins as Markdown</button></div>
+      ${supportHtml()}
+    </section>` : ''}
+
     <section class="viz-card">
       <h3>Markdown</h3>
       <p class="hint">A readable log of the last ${range} days, with totals and day notes. Paste it into Notes or Obsidian, or bring it to a checkup.</p>
@@ -171,6 +188,7 @@ export function openTrends() {
     const t = e.target as HTMLElement;
     if (t === dialog || t.closest('[data-close]')) dialog.close();
     else if (t.closest('[data-md-copy]')) void copyMarkdown(range);
+    else if (t.closest('[data-mood-copy]')) void copyMoodMarkdown(range);
     else if (t.closest('[data-md-download]')) {
       const md = markdownFor(range);
       downloadText(md.name, md.text);
