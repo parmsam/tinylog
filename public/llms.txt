@@ -18,7 +18,7 @@ Open the app with a `do` query parameter to log something. The parameters are re
 - Sleep place: `&where=bassinet|crib|held|stroller|car` on nap, night or sleep (e.g. `?do=start&what=nap&where=bassinet`)
 - Weight: `?do=log&what=weight&kg=7.2`, or `&g=7200`, or `&lb=15&oz=14` (on a weight, `oz` is part of the weight)
 - Height: `?do=log&what=height&cm=62` or `&in=24.5`
-- Mood (the parent's own check-in): `?do=log&what=mood&mood=low`, `mood` is 1–5 or very-low, low, okay, good, great; optional `&feelings=anxious,tearful` (calm, hopeful, connected, anxious, tearful, irritable, overwhelmed, numb, lonely). Aliases: my-mood, feeling, check-in
+- Mood (the parent's own check-in): `?do=log&what=mood&mood=low`, `mood` is 1–5 or very-low, low, okay, good, great; optional `&feelings=anxious,tearful` (calm, hopeful, connected, anxious, tearful, irritable, overwhelmed, numb, lonely). Aliases: parent-mood, mom-mood, my-mood, feeling, check-in
 - `&note=…` on anything (e.g. a doctor visit)
 
 Examples: `?do=log&what=bottle&ml=90&milk=formula`, `?do=toggle&what=sleep`, `?do=log&what=both&ago=10`.

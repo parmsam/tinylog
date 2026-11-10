@@ -14,7 +14,7 @@ export function mountCards(host: HTMLElement) {
     (c) => `<button type="button" class="card" data-card="${c.id}" style="--c: var(--c-${c.id})">
       <span class="card-ring" aria-hidden="true"></span>
       <span class="card-emoji" aria-hidden="true">${c.emoji}</span>
-      <span class="card-label">${c.label}</span>
+      <span class="card-label">${c.label}${c.tag ? ` <span class="card-tag">${c.tag}</span>` : ''}</span>
       <span class="card-primary"></span>
       <span class="card-secondary"></span>
     </button>`,
@@ -94,6 +94,6 @@ export function renderCards(host: HTMLElement, now = Date.now()) {
     const hint = isArranging()
       ? 'Arranging: drag to move, or use the arrow keys'
       : !isToday ? 'Tap to add an entry for this day' : c.timed ? (st.ongoing ? 'Tap to stop' : 'Tap to start') : c.sheetFirst ? 'Tap to add' : 'Tap to log now';
-    btn.setAttribute('aria-label', `${c.label}: ${st.primary}${st.secondary ? `, ${st.secondary}` : ''}. ${hint}${isArranging() ? '.' : '; hold for details.'}`);
+    btn.setAttribute('aria-label', `${c.label}${c.tag ? ` (${c.tag.toLowerCase()})` : ''}: ${st.primary}${st.secondary ? `, ${st.secondary}` : ''}. ${hint}${isArranging() ? '.' : '; hold for details.'}`);
   }
 }

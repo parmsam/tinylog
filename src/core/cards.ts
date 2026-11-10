@@ -14,6 +14,8 @@ export interface CardDef {
   /** Does an event belong to this card? */
   matches(e: LogEvent): boolean;
   key: string;
+  /** A small pill next to the label, e.g. "For you" on the parent's own card. */
+  tag?: string;
   /** Starts hidden on the home screen (once per phone; Settings → Buttons turns it on). */
   offByDefault?: boolean;
 }
@@ -75,8 +77,8 @@ export const CARDS: readonly CardDef[] = [
   // Measurements: tapping opens the sheet, since they need a number.
   { id: 'weight', label: 'Weight', emoji: '⚖️', type: 'weight', timed: false, sheetFirst: true, matches: of('weight'), key: 'e' },
   { id: 'height', label: 'Height', emoji: '📏', type: 'height', timed: false, sheetFirst: true, matches: of('height'), key: 'h' },
-  // The parent's own check-in (postpartum mood). Tapping opens the sheet to pick how you feel.
-  { id: 'mood', label: 'My mood', emoji: '🌷', type: 'mood', timed: false, sheetFirst: true, matches: of('mood'), key: 'i' },
+  // The parent's own check-in (postpartum mood), not the baby's: the label and a "For you" tag say so.
+  { id: 'mood', label: 'Parent mood', emoji: '🌷', type: 'mood', timed: false, sheetFirst: true, matches: of('mood'), key: 'i', tag: 'For you' },
 ];
 
 /**

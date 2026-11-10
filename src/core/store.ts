@@ -23,21 +23,3 @@ export function createStore<T extends object>(initial: T): Store<T> {
     },
   };
 }
-
-/** Persists a store on change, coalescing bursts of updates. */
-export function persist<T extends object>(store: Store<T>, save: (s: T) => void, delay = 150): void {
-  let handle: number | undefined;
-  const flush = () => {
-    handle = undefined;
-    save(store.get());
-  };
-  store.subscribe(() => {
-    if (handle === undefined) handle = window.setTimeout(flush, delay);
-  });
-  window.addEventListener('pagehide', () => {
-    if (handle !== undefined) {
-      clearTimeout(handle);
-      flush();
-    }
-  });
-}

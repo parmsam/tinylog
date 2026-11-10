@@ -43,7 +43,7 @@ describe('describing a check-in', () => {
   });
 });
 
-describe('the My mood card', () => {
+describe('the Parent mood card', () => {
   const now = at(21);
   const status = (events: ReturnType<typeof createEvent>[], day = '2026-09-30') => cardStatus(cardById('mood'), events, day, now, prefs);
 

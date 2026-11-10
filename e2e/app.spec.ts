@@ -448,9 +448,14 @@ test.describe('data', () => {
   test('my mood: a tap asks how you feel; check-ins have their own place in Trends, outside the baby log', async ({ page }) => {
     await open(page);
     await expect(card(page, 'mood')).toContainText('How are you?');
+    // It's clearly the parent's, not the baby's.
+    await expect(card(page, 'mood')).toContainText('Parent mood');
+    await expect(card(page, 'mood').locator('.card-tag')).toHaveText('For you');
+    await expect(card(page, 'mood')).toHaveAttribute('aria-label', /^Parent mood \(for you\):/);
     await card(page, 'mood').click();
     const s = page.locator('#sheet form');
     // Saving without picking a mood explains instead of logging an empty check-in.
+    await expect(s).toContainText('This one’s about you, not the baby.');
     await s.getByRole('button', { name: 'Save' }).click();
     await expect(s.getByRole('alert')).toHaveText('Pick how you’re feeling.');
     // The face is decoration (aria-hidden): the choice is announced as just "Low".
@@ -470,7 +475,7 @@ test.describe('data', () => {
 
     // Trends: a dot per check-in with a tooltip, and the table.
     await page.keyboard.press('g');
-    const mood = page.locator('#trends section', { hasText: 'My mood' });
+    const mood = page.locator('#trends section', { hasText: 'Parent mood' });
     await expect(mood.locator('.mood-chart [data-tip]')).toHaveCount(1);
     await expect(mood.locator('.mood-table tbody tr')).toContainText('Anxious, Tearful');
   });
@@ -485,6 +490,8 @@ test.describe('data', () => {
   });
 
   test('arrange: drag buttons into a new order, nothing logs, and the order sticks', async ({ page }) => {
+    // Reduced motion: no wiggle and no smooth scroll, so buttons stay put for the pointer.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page);
     const order = () => page.locator('#cards .card:not([hidden])').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.card));
     const before = await order();
@@ -494,18 +501,11 @@ test.describe('data', () => {
     const bar = page.getByRole('region', { name: 'Arranging buttons' });
     await expect(bar).toBeVisible();
 
-    // A tap while arranging never logs. (force: the buttons wiggle, so they're never "stable".)
-    await card(page, 'wet').click({ force: true });
+    // A tap while arranging never logs.
+    await card(page, 'wet').click();
     await expect(entries(page)).toHaveCount(0);
 
-    // Drag Feed onto Bath, once the smooth scroll to the buttons has settled.
-    await expect
-      .poll(async () => {
-        const a = await page.evaluate(() => scrollY);
-        await page.waitForTimeout(150);
-        return a === (await page.evaluate(() => scrollY));
-      })
-      .toBe(true);
+    // Drag Feed onto Bath.
     const from = (await card(page, 'feed').boundingBox())!;
     const to = (await card(page, 'bath').boundingBox())!;
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
@@ -544,6 +544,7 @@ test.describe('data', () => {
   });
 
   test('arrange: hide a button with the ×, after confirming, and bring it back from the bar', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.locator('#settings').getByRole('button', { name: 'Arrange buttons' }).click();

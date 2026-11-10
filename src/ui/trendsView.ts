@@ -149,7 +149,8 @@ function render(dialog: HTMLDialogElement) {
     </section>
 
     ${showMood ? `<section class="viz-card" aria-labelledby="mood-title">
-      <h3 id="mood-title">🌷 My mood</h3>
+      <h3 id="mood-title">🌷 Parent mood</h3>
+      <p class="hint">Your own check-ins, not the baby’s.</p>
       ${moodHtml(s.events, last, range, prefs)}
       <div class="btn-row"><button type="button" class="btn" data-mood-copy>Copy check-ins as Markdown</button></div>
       ${supportHtml()}

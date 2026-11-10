@@ -80,6 +80,8 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   measure: 'height',
   mood: 'mood',
   'my-mood': 'mood',
+  'parent-mood': 'mood',
+  'mom-mood': 'mood',
   feeling: 'mood',
   feelings: 'mood',
   'check-in': 'mood',

@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import { _resetDb, loadAll, readMirror, writeIdb } from './db';
 import { createEvent } from './events';
-import { addEvent, app, deleteEvent, flushMirror, init, setupPersistence } from './log';
+import { addEvent, app, deleteEvent, flushMirror, init, settings, setupPersistence } from './log';
+import { SETTINGS_KEY } from './settings';
 
 setupPersistence();
 
@@ -50,5 +51,12 @@ describe('log', () => {
     document.dispatchEvent(new Event('visibilitychange'));
     expect(readMirror()?.events.map((x) => x.id)).toContain(e.id);
     expect((await loadAll()).events.map((x) => x.id)).toContain(e.id);
+  });
+});
+
+describe('settings persistence', () => {
+  it('writes a change right away, not later (a page can go away without a pagehide)', () => {
+    settings.set({ cardOrder: ['bath', 'feed'] });
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)!).cardOrder).toEqual(['bath', 'feed']);
   });
 });

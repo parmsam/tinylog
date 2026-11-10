@@ -35,13 +35,13 @@ export function moodChartSvg(points: MoodPoint[], from: number, to: number, pref
   return `<svg class="mood-chart" viewBox="0 0 ${W} ${H}" aria-hidden="true">${rows}${dates}${marks}</svg>`;
 }
 
-/** The Trends "My mood" card: the chart, and every check-in as a table (the text equivalent). */
+/** The Trends "Parent mood" card: the chart, and every check-in as a table (the text equivalent). */
 export function moodHtml(events: LogEvent[], lastDay: string, days: number, prefs: Prefs): string {
   const [from] = dayRange(addDays(lastDay, -(days - 1)), prefs.dayStartHour);
   const [, to] = dayRange(lastDay, prefs.dayStartHour);
   const points = moodSeries(events, from, to);
   if (!points.length)
-    return `<p class="hint">Tap 🌷 My mood to check in with yourself, as often or as rarely as you like. Check-ins from the last ${days} days show up here. They stay on this phone and out of the baby’s Markdown log.</p>`;
+    return `<p class="hint">Tap 🌷 Parent mood to check in with yourself, as often or as rarely as you like. Check-ins from the last ${days} days show up here. They stay on this phone and out of the baby’s Markdown log.</p>`;
   const body = [...points]
     .reverse()
     .map((p) => {

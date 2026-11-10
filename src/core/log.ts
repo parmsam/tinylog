@@ -2,7 +2,7 @@ import { loadAll, writeIdb, writeMirror } from './db';
 import { dayKey } from './days';
 import { mergeData, patchEvent } from './events';
 import { loadSettings, saveSettings } from './settings';
-import { createStore, persist } from './store';
+import { createStore } from './store';
 import type { DayNote, LogData, LogEvent, Settings } from './types';
 
 /** The app's data, in memory. Every change goes through the functions below, which also persist it. */
@@ -30,7 +30,9 @@ export const app = createStore<AppState>({
 });
 
 export function setupPersistence() {
-  persist(settings, saveSettings);
+  // Settings are small: write each change right away. A delayed write was lost when the page went
+  // away without a pagehide (iOS suspending a Home Screen app, WebKit reloads), e.g. a fresh button order.
+  settings.subscribe(saveSettings);
   window.addEventListener('pagehide', flushMirror);
   // iOS often suspends (and later kills) a Home Screen app without a pagehide: write the copy when it's hidden.
   document.addEventListener('visibilitychange', () => {

@@ -63,7 +63,7 @@ describe('orderCards', () => {
   });
 
   it('puts a card missing from the saved order (new in an update) after its default neighbour', () => {
-    // Saved before Height and My mood existed, with Weight moved to the top.
+    // Saved before Height and Parent mood existed, with Weight moved to the top.
     const saved = ['weight', ...CARDS.map((c) => c.id).filter((id) => !['weight', 'height', 'mood'].includes(id))];
     const out = ids(saved);
     expect(out.slice(0, 3)).toEqual(['weight', 'height', 'mood']);

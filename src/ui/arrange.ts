@@ -22,7 +22,7 @@ export const isArranging = () => arranging;
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const visibleCards = () => (host ? [...host.querySelectorAll<HTMLElement>('.card:not([hidden])')] : []);
-const label = (el: HTMLElement) => el.querySelector('.card-label')?.textContent ?? '';
+const label = (el: HTMLElement) => cardById(el.dataset.card as CardId).label;
 
 function save() {
   if (!host) return;

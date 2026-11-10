@@ -272,6 +272,22 @@ button {
   font-size: 0.95rem;
   color: color-mix(in oklab, var(--c) 70%, var(--text));
 }
+.card-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  vertical-align: 1px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  background: color-mix(in oklab, var(--c) 28%, transparent);
+  white-space: nowrap;
+}
+.mood-for {
+  margin-top: 0;
+}
 .card-primary {
   grid-column: 1 / -1;
   margin-top: 10px;

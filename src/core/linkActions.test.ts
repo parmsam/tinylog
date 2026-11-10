@@ -51,6 +51,7 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=mood&mood=2')).toMatchObject({ card: 'mood', detail: { mood: 2 } });
     expect(p('?do=log&what=check-in&mood=very-low&feelings=anxious,Tearful')).toMatchObject({ card: 'mood', detail: { mood: 1, feelings: ['anxious', 'tearful'] } });
     expect(p('?do=log&what=my mood&mood=great')).toMatchObject({ card: 'mood', detail: { mood: 5 } });
+    expect(p('?do=log&what=parent-mood&mood=ok')).toMatchObject({ card: 'mood', detail: { mood: 3 } });
     expect(stripLinkAction('https://x.test/tinylog/?do=log&what=mood&mood=3&feelings=calm&keep=1')).toBe('/tinylog/?keep=1');
   });
 

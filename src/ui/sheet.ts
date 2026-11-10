@@ -57,7 +57,7 @@ function moodFields(d: Detail): string {
     d.mood ? String(d.mood) : undefined,
     'How are you feeling?',
   ).replace('class="seg"', 'class="seg mood-seg"');
-  return faces + chips('feelings', FEELINGS, d.feelings, 'Any of these? (optional)') + supportHtml();
+  return `<p class="hint mood-for">This one’s about you, not the baby.</p>` + faces + chips('feelings', FEELINGS, d.feelings, 'Any of these? (optional)') + supportHtml();
 }
 
 function amountField(ml: number | undefined, label: string) {
