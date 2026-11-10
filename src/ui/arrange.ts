@@ -17,6 +17,8 @@ let bar: HTMLElement | null = null;
 let live: HTMLElement | null = null;
 let unsubscribe: (() => void) | null = null;
 let pinRaf = 0;
+let resizeObs: ResizeObserver | null = null;
+let mutationObs: MutationObserver | null = null;
 
 export const isArranging = () => arranging;
 
@@ -38,7 +40,19 @@ function placeHides() {
   host?.querySelectorAll<HTMLElement>('.card-hide').forEach((x) => host!.querySelector(`.card[data-card="${x.dataset.hide}"]`)?.after(x));
 }
 
-/** Keeps every × on its button's top-right corner (buttons move, appear and disappear while arranging). */
+/**
+ * Keeps every × on its button's top-right corner. Runs only when something changed (a button
+ * moved, hid, showed or resized), at most once a frame: reading positions every frame kept the
+ * browser re-laying out the page, which costs battery on a phone and stalls slow machines.
+ */
+function schedulePin() {
+  if (pinRaf || !host) return;
+  pinRaf = requestAnimationFrame(() => {
+    pinRaf = 0;
+    pinHides();
+  });
+}
+
 function pinHides() {
   if (!host) return;
   for (const x of host.querySelectorAll<HTMLElement>('.card-hide')) {
@@ -48,7 +62,21 @@ function pinHides() {
     x.style.left = `${card.offsetLeft + card.offsetWidth - 22}px`;
     x.style.top = `${card.offsetTop - 10}px`;
   }
-  pinRaf = requestAnimationFrame(pinHides);
+}
+
+/** Watch for anything that moves the buttons: size changes, and buttons moved, hidden or shown. */
+function watchLayout() {
+  if (!host) return;
+  resizeObs = new ResizeObserver(schedulePin);
+  resizeObs.observe(host);
+  host.querySelectorAll('.card').forEach((c) => resizeObs!.observe(c));
+  // The ×s themselves change too (moved, hidden): ignore those, or pinning would wake itself up.
+  const isHide = (n: Node) => n instanceof HTMLElement && n.classList.contains('card-hide');
+  mutationObs = new MutationObserver((records) => {
+    if (records.some((r) => (r.type === 'attributes' ? !isHide(r.target) : [...r.addedNodes, ...r.removedNodes].some((n) => !isHide(n))))) schedulePin();
+  });
+  mutationObs.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  window.addEventListener('resize', schedulePin);
 }
 
 async function hide(id: CardId) {
@@ -277,6 +305,7 @@ export function enterArrange(cards: HTMLElement) {
   }
   placeHides();
   pinHides();
+  watchLayout();
   renderHidden();
   unsubscribe = settings.subscribe((s, prev) => {
     if (s.hiddenCards !== prev.hiddenCards || s.cardOrder !== prev.cardOrder) renderHidden();
@@ -305,6 +334,11 @@ export function exitArrange() {
   document.removeEventListener('pointercancel', onUp);
   document.removeEventListener('keydown', onKey, true);
   cancelAnimationFrame(pinRaf);
+  pinRaf = 0;
+  resizeObs?.disconnect();
+  mutationObs?.disconnect();
+  resizeObs = mutationObs = null;
+  window.removeEventListener('resize', schedulePin);
   host.querySelectorAll('.card-hide').forEach((x) => x.remove());
   host.classList.remove('has-drag');
   unsubscribe?.();

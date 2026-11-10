@@ -107,11 +107,10 @@ test.describe('the sheet', () => {
     const box = (await feed.boundingBox())!;
     await page.mouse.move(box.x + 20, box.y + 20);
     await page.mouse.down();
-    await page.waitForTimeout(600);
-    await page.mouse.up();
-
+    // Hold until the long press has opened the sheet.
     const sheet = page.locator('#sheet');
     await expect(sheet).toBeVisible();
+    await page.mouse.up();
     await sheet.getByText('Bottle', { exact: true }).click();
     await sheet.getByLabel('Amount (ml)').fill('90');
     await sheet.getByText('Formula').click();
@@ -489,7 +488,27 @@ test.describe('data', () => {
     await expect(page.evaluate(() => window.tinylog.log('mood'))).rejects.toThrow(/say the mood/);
   });
 
+  /** Every visible button's × sits on that button's top-right corner. */
+  const hidesPinned = (page: import('@playwright/test').Page) =>
+    expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>('#cards .card:not([hidden])')].every((c) => {
+            const x = document.querySelector<HTMLElement>(`.card-hide[data-hide="${c.dataset.card}"]`);
+            if (!x || x.hidden) return false;
+            const a = c.getBoundingClientRect();
+            const b = x.getBoundingClientRect();
+            const cx = b.left + b.width / 2;
+            const cy = b.top + b.height / 2;
+            return Math.abs(cx - a.right) < 24 && Math.abs(cy - a.top) < 24;
+          }),
+        ),
+      )
+      .toBe(true);
+
   test('arrange: drag buttons into a new order, nothing logs, and the order sticks', async ({ page }) => {
+    // Many steps; CI's WebKit runner takes seconds per click.
+    test.slow();
     // Reduced motion: no wiggle and no smooth scroll, so buttons stay put for the pointer.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page);
@@ -518,10 +537,12 @@ test.describe('data', () => {
     expect(Math.abs(dragged.indexOf('feed') - dragged.indexOf('bath'))).toBe(1);
 
     // Keyboard: arrows move the focused button and don't change the day.
+    await hidesPinned(page);
     const first = dragged[0]!;
     await card(page, first).focus();
     await page.keyboard.press('ArrowRight');
     expect((await order())[1]).toBe(first);
+    await hidesPinned(page);
     await expect(page.locator('#day-title')).toContainText('Today');
     await expect(entries(page)).toHaveCount(0);
 
@@ -544,6 +565,7 @@ test.describe('data', () => {
   });
 
   test('arrange: hide a button with the ×, after confirming, and bring it back from the bar', async ({ page }) => {
+    test.slow();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();
@@ -565,6 +587,8 @@ test.describe('data', () => {
     await confirm.getByRole('button', { name: 'Hide' }).click();
     await expect(card(page, 'bath')).toBeHidden();
     await expect(page.getByRole('button', { name: 'Hide Bath' })).toBeHidden();
+    // The buttons after it moved up; their ×s followed.
+    await hidesPinned(page);
     const showBath = bar.getByRole('button', { name: 'Show Bath' });
     await expect(showBath).toBeVisible();
     // Off-by-default Music is listed too.
@@ -725,9 +749,10 @@ test('breastfeeding length: per side, or one total, optional', async ({ page }) 
   const box = (await feed.boundingBox())!;
   await page.mouse.move(box.x + 20, box.y + 20);
   await page.mouse.down();
-  await page.waitForTimeout(600);
-  await page.mouse.up();
+  // Hold until the long press has opened the sheet (a fixed wait was too short on a busy CI runner).
   const sheet = page.locator('#sheet');
+  await expect(sheet).toBeVisible();
+  await page.mouse.up();
   await sheet.getByText('Both', { exact: true }).click();
   await sheet.getByLabel('Left (min)').fill('12');
   await sheet.getByLabel('Right (min)').fill('8');
