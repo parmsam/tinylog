@@ -27,6 +27,12 @@ describe('dayTotals', () => {
     expect(totalsLine(t, { units: 'ml' })).toBe('2 spit-ups · 1 book · 2 songs');
   });
 
+  it('counts medicine doses', () => {
+    const t = dayTotals([createEvent('med', at(9), { med: 'Vitamin D' }, 0), createEvent('med', at(21), { med: 'Paracetamol' }, 0)], '2026-09-30', 0, now);
+    expect(t.meds).toBe(2);
+    expect(totalsLine(t, { units: 'ml' })).toBe('2 medicine doses');
+  });
+
   it('adds up a day, splitting a night that started the evening before', () => {
     const t = dayTotals(events, '2026-09-30', 0, now);
     expect(t).toMatchObject({ feeds: 2, breastFeeds: 1, bottleMl: 90, wet: 2, dirty: 1, naps: 1, pumps: 1, pumpMl: 120, baths: 0 });

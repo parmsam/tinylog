@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'med' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -11,6 +11,9 @@ export const SLEEP_PLACES: [SleepPlace, string][] = [
   ['stroller', 'Stroller'],
   ['car', 'Car'],
 ];
+
+/** Unit of a medicine dose. */
+export type DoseUnit = 'ml' | 'drops' | 'mg';
 
 export type MoodLevel = 1 | 2 | 3 | 4 | 5;
 export type Feeling = 'calm' | 'hopeful' | 'connected' | 'anxious' | 'tearful' | 'irritable' | 'overwhelmed' | 'numb' | 'lonely';
@@ -36,6 +39,11 @@ export interface Detail {
   mood?: MoodLevel;
   /** Mood check-in: any feelings picked, optional. */
   feelings?: Feeling[];
+  /** Medicine or vitamin given (free text, e.g. "Vitamin D"). */
+  med?: string;
+  /** Medicine: the dose, optional, in `doseUnit`. */
+  dose?: number;
+  doseUnit?: DoseUnit;
   note?: string;
 }
 

@@ -35,13 +35,20 @@ async function assertClean(root: Locator, label: string) {
 const sheet = (page: Page) => page.locator('#sheet form');
 
 test('entry sheet fields never overlap on iPhone, in every state', async ({ page }) => {
-  await open(page, { events: [ev('pump', Date.now() - 20 * MIN, { endAt: Date.now() - 5 * MIN, detail: { side: 'L', amount: 90 } })] });
+  await open(page, {
+    events: [
+      ev('pump', Date.now() - 20 * MIN, { endAt: Date.now() - 5 * MIN, detail: { side: 'L', amount: 90 } }),
+      // Recent medicines, so the medicine sheet shows its one-tap buttons (one with a long name).
+      ev('med', Date.now() - 90 * MIN, { detail: { med: 'Vitamin D', dose: 1, doseUnit: 'drops' } }),
+      ev('med', Date.now() - 60 * MIN, { detail: { med: 'Infant paracetamol suspension 120 mg/5 ml', dose: 2.5, doseUnit: 'ml' } }),
+    ],
+  });
   await page.getByRole('button', { name: '+ Add entry' }).click();
   const s = sheet(page);
   await assertClean(s, 'feed (breast)');
   await s.getByText('Bottle', { exact: true }).click();
   await assertClean(s, 'feed (bottle: amount + milk)');
-  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '⚖️ Weight', '📏 Height', '🌷 Parent mood']) {
+  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '💊 Medicine', '⚖️ Weight', '📏 Height', '🌷 Parent mood']) {
     await s.getByText(kind, { exact: true }).click();
     await assertClean(s, kind);
   }

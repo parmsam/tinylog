@@ -2,6 +2,7 @@ import { lastFor, lastWake, nextUpcoming, ongoingFor, type CardDef } from './car
 import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
 import { formatHeight, formatWeight, growthUnits } from './growth';
+import { medKey, medSummary } from './meds';
 import { moodInfo, moodSummary } from './wellbeing';
 import { SLEEP_PLACES, type LogEvent, type Settings } from './types';
 
@@ -57,6 +58,11 @@ export function summary(e: LogEvent, prefs: SummaryPrefs): string {
       break;
     case 'mood': {
       const m = moodSummary(d.mood, d.feelings);
+      if (m) bits.push(m);
+      break;
+    }
+    case 'med': {
+      const m = medSummary(d);
       if (m) bits.push(m);
       break;
     }
@@ -179,6 +185,13 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
       if (!latest || !m) return { primary: 'How are you?', secondary: last ? `last check-in ${shortDate(last.at)}` : 'tap to check in', ongoing: false };
       return { primary: `${m.emoji} ${m.label}`, secondary: `${t(latest.at)}${inDay.length > 1 ? ` · ${inDay.length} today` : ''}`, ongoing: false };
     }
+    case 'med': {
+      // When the last medicine was given, and what. Never a "next dose": that's for the doctor or the label.
+      if (!last) return { primary: 'Add a medicine', secondary: 'or a vitamin', ongoing: false };
+      const name = medSummary({ med: last.detail?.med }) || 'Medicine';
+      const n = inDay.filter((e) => e.at <= now).length;
+      return { primary: ago(last.at, now), secondary: `${name} · ${t(last.at)}${n > 1 ? ` · ${n} today` : ''}`, ongoing: false };
+    }
   }
 }
 
@@ -236,6 +249,11 @@ function pastStatus(
       if (!n) return none;
       const m = moodInfo(inDay.reduce((a, b) => (b.at > a.at ? b : a)).detail?.mood);
       return { primary: m ? `${m.emoji} ${m.label}` : '—', secondary: n > 1 ? plural(n, 'check-in') : '', ongoing: false };
+    }
+    case 'med': {
+      if (!n) return none;
+      const names = [...new Map(inDay.map((e) => [medKey(e.detail?.med ?? ''), medSummary({ med: e.detail?.med })])).values()].filter(Boolean);
+      return { primary: plural(n, 'dose'), secondary: names.join(', '), ongoing: false };
     }
   }
 }

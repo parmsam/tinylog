@@ -288,6 +288,36 @@ button {
 .mood-for {
   margin-top: 0;
 }
+/* Medicine: recent ones, one tap to fill in. */
+.med-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.med-pick {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+}
+.med-pick-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.med-pick-ago {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.med-pick[aria-pressed='true'] {
+  border-color: var(--text);
+  background: color-mix(in oklab, var(--c-med) 28%, var(--surface));
+}
 .card-primary {
   grid-column: 1 / -1;
   margin-top: 10px;

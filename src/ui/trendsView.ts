@@ -75,11 +75,12 @@ function table(lastDay: string, days: number, now: number): string {
       <td>${dash(t.spitups)}</td>
       <td>${dash(t.books)}</td>
       <td>${dash(t.songs)}</td>
+      <td>${dash(t.meds)}</td>
     </tr>`;
   }).join('');
   return `<div class="table-wrap"><table class="totals">
     <caption>Daily totals</caption>
-    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Fussy</th><th scope="col">Pump</th><th scope="col">Spit-ups</th><th scope="col">Books</th><th scope="col">Songs</th></tr></thead>
+    <thead><tr><th scope="col">Day</th><th scope="col">Sleep</th><th scope="col">Naps</th><th scope="col">Feeds</th><th scope="col">Bottle</th><th scope="col">Wet</th><th scope="col">Dirty</th><th scope="col">Tummy</th><th scope="col">Fussy</th><th scope="col">Pump</th><th scope="col">Spit-ups</th><th scope="col">Books</th><th scope="col">Songs</th><th scope="col">Medicine</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
 

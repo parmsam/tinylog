@@ -1,6 +1,7 @@
 import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
 import { cmFrom, gramsFrom, heightInRange, weightInRange } from './growth';
+import { cleanMedName, parseDose, parseDoseUnit } from './meds';
 import { FEELINGS, parseFeelings, parseMood } from './wellbeing';
 import type { Detail, SleepPlace, Side } from './types';
 
@@ -15,6 +16,7 @@ import type { Detail, SleepPlace, Side } from './types';
  *   &where=bassinet|crib|held|stroller|car  where a sleep happened
  *   ?do=log&what=weight&kg=7.2 (or &g=7200, &lb=15&oz=14)   ?do=log&what=height&cm=62 (or &in=24.5)
  *   ?do=log&what=mood&mood=low (1–5 or very-low|low|okay|good|great)  &feelings=anxious,tearful
+ *   ?do=log&what=medicine&name=Vitamin+D&dose=1&unit=drops (unit ml|drops|mg; &ml=2.5 is a dose in ml)
  *
  * Settings never travel in the URL. Parameters are removed once the action has run.
  */
@@ -26,7 +28,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings', 'name', 'dose', 'unit'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -86,6 +88,13 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   feelings: 'mood',
   'check-in': 'mood',
   checkin: 'mood',
+  med: 'med',
+  meds: 'med',
+  medicine: 'med',
+  medicines: 'med',
+  medication: 'med',
+  vitamin: 'med',
+  vitamins: 'med',
 };
 
 const SIDES: Record<string, Side> = { l: 'L', left: 'L', r: 'R', right: 'R', both: 'both', b: 'both' };
@@ -119,7 +128,7 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const whatRaw = q.get('what')?.trim().toLowerCase().replace(/\s+/g, '-');
   if (!whatRaw) return { kind: 'invalid', reason: 'say what to log, e.g. &what=wet' };
   const what = WHAT[whatRaw];
-  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, weight, height, mood)` };
+  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, medicine, weight, height, mood)` };
 
   const agoRaw = q.get('ago');
   const minutesAgo = agoRaw === null ? 0 : Math.round(Number(agoRaw));
@@ -174,10 +183,26 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
     if (feelings.length) detail.feelings = feelings;
   } else if (q.get('mood') !== null || q.get('feelings') !== null) return { kind: 'invalid', reason: 'mood and feelings are for a mood check-in (&what=mood)' };
 
-  const ml = Number(q.get('ml'));
+  if (card === 'med') {
+    // A plain "vitamin" link is logged as "Vitamin" (never guessed further); anything else needs a name.
+    const name = cleanMedName(q.get('name')) || (whatRaw.startsWith('vitamin') ? 'Vitamin' : '');
+    if (!name) return { kind: 'invalid', reason: 'say which medicine, e.g. &name=Vitamin+D' };
+    detail.med = name;
+    // &ml=2.5 on a medicine is the dose in ml, not a bottle.
+    const rawDose = q.get('dose') ?? q.get('ml');
+    const dose = parseDose(rawDose);
+    if (rawDose !== null && !dose) return { kind: 'invalid', reason: 'dose must be a number, e.g. &dose=2.5' };
+    const rawUnit = q.get('unit');
+    const unit = q.get('dose') === null && q.get('ml') !== null ? 'ml' : parseDoseUnit(rawUnit);
+    if (rawUnit !== null && !unit) return { kind: 'invalid', reason: 'unit is ml, drops or mg' };
+    if (dose) detail.dose = dose;
+    if (dose && unit) detail.doseUnit = unit;
+  } else if (['name', 'dose', 'unit'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'name, dose and unit are for a medicine (&what=medicine)' };
+
+  const ml = card === 'med' ? 0 : Number(q.get('ml'));
   // On a weight, oz is part of the weight (above), not a volume.
   const oz = card === 'weight' ? 0 : Number(q.get('oz'));
-  if (q.get('ml') !== null && (!(ml > 0) || ml > 2000)) return { kind: 'invalid', reason: 'ml must be a number' };
+  if (card !== 'med' && q.get('ml') !== null && (!(ml > 0) || ml > 2000)) return { kind: 'invalid', reason: 'ml must be a number' };
   if (card !== 'weight' && q.get('oz') !== null && (!(oz > 0) || oz > 70)) return { kind: 'invalid', reason: 'oz must be a number' };
   if (ml > 0) detail.amount = Math.round(ml);
   else if (oz > 0) detail.amount = Math.round(oz * ML_PER_OZ);

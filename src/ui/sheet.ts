@@ -1,9 +1,10 @@
 import { CARDS, cardById, cardFor, lastFor, type CardDef, type CardId } from '../core/cards';
 import { createEvent } from '../core/events';
-import { fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
+import { ago, fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
 import { cmFrom, CM_PER_IN, formatHeight, formatWeight, gramsFrom, growthUnits, heightInRange, toLbOz, weightInRange } from '../core/growth';
+import { cleanMedName, DOSE_UNITS, formatDose, MAX_MED_NAME, parseDose, recentMeds } from '../core/meds';
 import { addEvent, app, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import { SLEEP_PLACES, type Detail, type Feeling, type GrowthUnits, type LogEvent } from '../core/types';
+import { SLEEP_PLACES, type Detail, type DoseUnit, type Feeling, type GrowthUnits, type LogEvent } from '../core/types';
 import { FEELINGS, MOODS, parseMood } from '../core/wellbeing';
 import { supportHtml } from '../viz/moodChart';
 import { toast } from './toast';
@@ -58,6 +59,32 @@ function moodFields(d: Detail): string {
     'How are you feeling?',
   ).replace('class="seg"', 'class="seg mood-seg"');
   return `<p class="hint mood-for">This one’s about you, not the baby.</p>` + faces + chips('feelings', FEELINGS, d.feelings, 'Any of these? (optional)') + supportHtml();
+}
+
+/**
+ * Medicine: recently given ones are one tap away (fills in the name and its last dose, to check
+ * before saving), or type any name. The dose is optional. Nothing here suggests a dose or a time.
+ */
+function medFields(d: Detail): string {
+  const now = Date.now();
+  const recent = recentMeds(app.get().events, now);
+  const picks = recent.length
+    ? `<fieldset class="field"><legend>Recent</legend><div class="med-picks">${recent
+        .map(
+          (m) =>
+            `<button type="button" class="med-pick" aria-pressed="false" data-med="${esc(m.name)}" data-dose="${m.dose ?? ''}" data-unit="${m.doseUnit ?? ''}">
+              <span class="med-pick-name">${esc([m.name, formatDose(m.dose, m.doseUnit)].filter(Boolean).join(' · '))}</span>
+              <span class="med-pick-ago">${ago(m.at, now)}</span></button>`,
+        )
+        .join('')}</div></fieldset>`
+    : '';
+  const names = recentMeds(app.get().events, now, 50);
+  return `${picks}
+    <label class="field"><span class="field-label">Which medicine?</span>
+      <input type="text" name="med" list="med-names" maxlength="${MAX_MED_NAME}" autocomplete="off" autocapitalize="words" enterkeyhint="done" value="${esc(d.med ?? '')}" placeholder="e.g. Vitamin D" /></label>
+    <datalist id="med-names">${names.map((m) => `<option value="${esc(m.name)}"></option>`).join('')}</datalist>
+    <div class="row">${numField('dose', 'Dose', d.dose, 'any', 'optional')}${seg('doseUnit', DOSE_UNITS, d.doseUnit, 'Unit')}</div>
+    <p class="hint">A record of what was given. For doses and timing, follow the label or your doctor.</p>`;
 }
 
 function amountField(ml: number | undefined, label: string) {
@@ -150,6 +177,8 @@ function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits): string {
       return unitSeg(card, units) + heightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
     case 'mood':
       return moodFields(d);
+    case 'med':
+      return medFields(d);
     default:
       return '';
   }
@@ -235,6 +264,12 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
     const feelings = f.getAll('feelings').map(String) as Feeling[];
     if (feelings.length) detail.feelings = feelings;
   }
+  const med = cleanMedName(str('med'));
+  if (med) detail.med = med;
+  const dose = parseDose(str('dose'));
+  if (dose) detail.dose = dose;
+  const doseUnit = str('doseUnit') as DoseUnit | undefined;
+  if (doseUnit) detail.doseUnit = doseUnit;
   const amount = parseFloat(str('amount') ?? '');
   if (amount > 0) detail.amount = toMl(amount, settings.get().units);
   // Switching cards in the picker resets card-specific choices to that card's preset.
@@ -285,6 +320,11 @@ function detailFor(card: CardDef, d: Detail): Detail {
     case 'mood':
       out.mood = d.mood;
       if (d.feelings?.length) out.feelings = d.feelings;
+      break;
+    case 'med':
+      out.med = d.med;
+      // A unit only means something with a dose.
+      if (d.dose) Object.assign(out, { dose: d.dose, doseUnit: d.doseUnit });
       break;
   }
   return out;
@@ -339,6 +379,16 @@ export function openSheet(opts: SheetOpts) {
 
   dialog.onclick = (e) => {
     const t = e.target as HTMLElement;
+    const pick = t.closest<HTMLElement>('[data-med]');
+    if (pick) {
+      // Fill in a recent medicine and its last dose; the person checks it and saves.
+      const f = form();
+      f.querySelector<HTMLInputElement>('[name="med"]')!.value = pick.dataset.med ?? '';
+      f.querySelector<HTMLInputElement>('[name="dose"]')!.value = pick.dataset.dose ?? '';
+      f.querySelectorAll<HTMLInputElement>('[name="doseUnit"]').forEach((r) => (r.checked = r.value === pick.dataset.unit));
+      f.querySelectorAll('.med-pick').forEach((b) => b.setAttribute('aria-pressed', String(b === pick)));
+      return;
+    }
     if (t === dialog || t.closest('[data-close]')) dialog.close();
     else if (t.closest('[data-delete]') && existing) {
       void removeEntry(existing.id, { beforeToast: () => dialog.close() });
@@ -364,6 +414,7 @@ export function openSheet(opts: SheetOpts) {
       if (!weightInRange(draft.detail.grams)) return fail('That weight looks off. Check the number, and the units in Settings.');
     }
     if (chosen.id === 'mood' && !draft.detail.mood) return fail('Pick how you’re feeling.');
+    if (chosen.id === 'med' && !draft.detail.med) return fail('Name the medicine, or pick a recent one.');
     if (chosen.id === 'height') {
       if (!draft.detail.cm) return fail('Enter the height.');
       if (!heightInRange(draft.detail.cm)) return fail('That height looks off. Check the number, and the units in Settings.');

@@ -30,6 +30,26 @@ describe('summary', () => {
   });
 });
 
+describe('medicine', () => {
+  it('summarises the name and dose', () => {
+    expect(summary(createEvent('med', 0, { med: 'Vitamin D', dose: 1, doseUnit: 'drops' }, 0), prefs)).toBe('Vitamin D · 1 drop');
+  });
+
+  it('shows when the last one was given, never when the next is due', () => {
+    expect(status('med', [])).toMatchObject({ primary: 'Add a medicine' });
+    const events = [createEvent('med', at(7), { med: 'Vitamin D' }, 0), createEvent('med', at(9, 10), { med: 'Paracetamol', dose: 2.5, doseUnit: 'ml' }, 0)];
+    expect(status('med', events)).toMatchObject({ primary: '1h ago', secondary: 'Paracetamol · 09:10 · 2 today' });
+    expect(status('med', events.slice(0, 1), '2026-09-29')).toMatchObject({ primary: '—' });
+    expect(status('med', events, '2026-09-30').primary).not.toMatch(/next|due/i);
+  });
+
+  it('lists a past day’s doses and medicines', () => {
+    const later = (id: Parameters<typeof cardById>[0], events: ReturnType<typeof createEvent>[], day: string) => cardStatus(cardById(id), events, day, at(10, 0, 31) + 86_400_000, prefs);
+    const events = [createEvent('med', at(7), { med: 'Vitamin D' }, 0), createEvent('med', at(9), { med: 'vitamin d' }, 0), createEvent('med', at(12), { med: 'Paracetamol' }, 0)];
+    expect(later('med', events, '2026-09-30')).toMatchObject({ primary: '3 doses', secondary: 'vitamin d, Paracetamol' });
+  });
+});
+
 describe('cardStatus today', () => {
   it('shows how long ago the last feed was and which side is next', () => {
     const s = status('feed', [createEvent('feed', at(8, 32), { method: 'breast', side: 'L' }, 0)]);

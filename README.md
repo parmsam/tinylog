@@ -1,6 +1,6 @@
 # 🌙 tinylog
 
-An absurdly beautiful baby tracker that keeps everything on your phone. One tap logs a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, spit-up, bath, book, song or doctor visit, and there are lovely ways to see the day.
+An absurdly beautiful baby tracker that keeps everything on your phone. One tap logs a feed, diaper, nap, night sleep, tummy time, pump, fussy spell, spit-up, bath, book, song, medicine or doctor visit, and there are lovely ways to see the day.
 
 **[Open the app →](https://parmsam.github.io/tinylog/)** It's free, with no account and no ads, and it works offline.
 
@@ -28,6 +28,7 @@ On iPhone, Safari can clear data for sites that aren't installed, so installing 
 - **Logging late is normal.** Every log shows a note with **Undo** and **−5m / −15m / −30m**. Hold a card to add details first: breast side and minutes per side, bottle amount, pump volume, a note.
 - **Weight and height.** ⚖️ and 📏 cards ask for the number. Type it in kg or lb + oz, cm or inches, whatever the doctor's note says, and it's converted for you. Trends charts them over time with a table of every measurement.
 - **Arrange the buttons.** Settings → Buttons → Arrange buttons: drag them into your order right on the home screen (arrow keys work too), tap × to hide one (it asks first), and bring hidden ones back from the bar. Nothing logs while you arrange.
+- **Medicine.** A 💊 card for medicines and vitamins: tap, pick one you've given before (it fills in the last dose) or type a name, and the dose if you like. The card shows when the last one was given; it never suggests a dose or when the next one is due.
 - **Parent mood.** A 🌷 card for the parent, tagged "For you" so it's not mistaken for the baby's: tap to check in (very low to great, plus optional feelings like anxious or overwhelmed), to keep an eye on postpartum mood. Trends shows your check-ins with their own Markdown export; they stay out of the baby's log. A "Need support?" note with helpline numbers is always one tap away. It describes, never diagnoses.
 - **Your buttons.** Settings → Buttons hides the cards you don't use.
 - **One day at a time.** Step back through days to fill in or fix entries. A night that crosses midnight shows on both days, and each day has its own note.
@@ -83,7 +84,7 @@ Press <kbd>?</kbd> in the app to see them all.
 | <kbd>F</kbd> <kbd>W</kbd> <kbd>D</kbd> | Feed, wet diaper, dirty diaper |
 | <kbd>N</kbd> <kbd>S</kbd> | Start / stop a nap, night sleep |
 | <kbd>T</kbd> <kbd>P</kbd> <kbd>C</kbd> | Start / stop tummy time, pump, fussy |
-| <kbd>X</kbd> <kbd>B</kbd> <kbd>L</kbd> <kbd>J</kbd> <kbd>O</kbd> | Spit-up, bath, book, song, doctor visit |
+| <kbd>X</kbd> <kbd>B</kbd> <kbd>L</kbd> <kbd>J</kbd> <kbd>O</kbd> <kbd>V</kbd> | Spit-up, bath, book, song, doctor visit, medicine |
 | <kbd>U</kbd> | Undo |
 | <kbd>←</kbd> <kbd>→</kbd> <kbd>.</kbd> | Previous / next day, back to today |
 | <kbd>G</kbd> <kbd>A</kbd> <kbd>R</kbd> <kbd>K</kbd> | Trends, bedside display, day recap, coins & rewards |
@@ -102,6 +103,7 @@ Any link with `?do=` logs something when opened, with the usual Undo. **Settings
 | `?do=log&what=wet&ago=15` | Log it as 15 minutes ago |
 | `?do=log&what=weight&kg=6.4` | Log a weight (`lb=14&oz=2` or `g=6400` work too) |
 | `?do=log&what=height&cm=61.5` | Log a height (`in=24.25` works too) |
+| `?do=log&what=medicine&name=Vitamin+D&dose=1&unit=drops` | Log a medicine (`dose` and `unit` ml, drops or mg are optional) |
 | `?do=log&what=mood&mood=low&feelings=anxious` | Log a mood check-in (`mood` 1–5 or very-low, low, okay, good, great) |
 
 - **iPhone:** in the Shortcuts app, tap New Shortcut → **Open URLs**, paste a link and name it "Wet diaper". Then say "Hey Siri, wet diaper". Links open in Safari, which has its own storage, separate from the Home Screen app. So if you log by Siri, either use tinylog in Safari on that phone or merge the two with Share with partner.

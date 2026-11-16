@@ -488,6 +488,45 @@ test.describe('data', () => {
     await expect(page.evaluate(() => window.tinylog.log('mood'))).rejects.toThrow(/say the mood/);
   });
 
+  test('medicine: a tap asks which one; recent ones fill in their last dose', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'med')).toContainText('Add a medicine');
+    await card(page, 'med').click();
+    const s = page.locator('#sheet form');
+    // Saving without a name explains instead of logging an unnamed medicine.
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(s.getByRole('alert')).toHaveText('Name the medicine, or pick a recent one.');
+    await s.getByLabel('Which medicine?').fill('Vitamin D');
+    await s.getByLabel('Dose').fill('1');
+    await s.getByText('drops', { exact: true }).click();
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'med')).toContainText('Vitamin D');
+    await expect(entries(page).first()).toContainText('Vitamin D · 1 drop');
+
+    // Next time it's one tap to fill in, then Save.
+    await page.keyboard.press('v');
+    await s.locator('.med-pick', { hasText: 'Vitamin D · 1 drop' }).click();
+    await expect(s.getByLabel('Which medicine?')).toHaveValue('Vitamin D');
+    await expect(s.getByLabel('Dose')).toHaveValue('1');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'med')).toContainText('2 today');
+
+    // In the baby's Markdown log (it's for the doctor), and the Trends table.
+    const md = await page.evaluate(() => window.tinylog.markdown(1));
+    expect(md).toContain('Vitamin D · 1 drop');
+    expect(md).toContain('2 medicine doses');
+  });
+
+  test('medicine links and API', async ({ page }) => {
+    await open(page, {}, './?do=log&what=medicine&name=Paracetamol&ml=2.5');
+    await expect(card(page, 'med')).toContainText('Paracetamol');
+    const r = await page.evaluate(() => window.tinylog.log('medicine', { name: 'Vitamin D', dose: 1, unit: 'drops' }));
+    expect(r).toMatchObject({ result: 'logged', entry: { what: 'med', summary: 'Vitamin D · 1 drop' } });
+    expect(await page.evaluate(() => window.tinylog.state().last.med)).toMatchObject({ summary: 'Vitamin D · 1 drop' });
+    expect(await page.evaluate(() => window.tinylog.state().today.meds)).toBe(2);
+    await expect(page.evaluate(() => window.tinylog.log('medicine'))).rejects.toThrow(/which medicine/);
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

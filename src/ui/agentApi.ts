@@ -43,6 +43,10 @@ export interface ActOptions {
   mood?: number | string;
   /** Mood check-in: e.g. ['anxious', 'tearful'] (or a comma-separated string). */
   feelings?: string[] | string;
+  /** Medicine: its name (needed), and optionally a dose and its unit. */
+  name?: string;
+  dose?: number;
+  unit?: 'ml' | 'drops' | 'mg';
 }
 
 export interface Entry {
@@ -101,6 +105,7 @@ export const RECIPES: { ask: string; code: string; note: string }[] = [
   { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, spitup, bath, books (one per book), music (one per song), doctor (with a note).' },
   { ask: 'Log a weight from today\'s checkup', code: "tinylog.log('weight', { kg: 6.4 })", note: 'Or { lb: 14, oz: 2 } or { g: 6400 }. Height: tinylog.log(\'height\', { cm: 61.5 }) or { inches: 24.25 }. tinylog.growth() lists every measurement.' },
   { ask: 'Log how I\'m feeling', code: "tinylog.log('mood', { mood: 'low', feelings: ['anxious', 'tearful'] })", note: 'The parent\'s own check-in: mood 1–5 or very-low, low, okay, good, great; feelings are optional (calm, hopeful, connected, anxious, tearful, irritable, overwhelmed, numb, lonely). Kept out of markdown(); it describes, never diagnoses.' },
+  { ask: 'Log a dose of vitamin D', code: "tinylog.log('medicine', { name: 'Vitamin D', dose: 1, unit: 'drops' })", note: 'Any medicine or vitamin by name; dose and unit (ml, drops, mg) are optional. state().last.med says when one was last given. Record what was given; never suggest a dose or when the next one is due.' },
   { ask: 'Log a 90 ml bottle of formula', code: "tinylog.log('bottle', { ml: 90, milk: 'formula' })", note: 'Breast feeds: tinylog.log(\'feed\', { side: \'L\' }). Plain tinylog.log(\'feed\') picks the other breast, like a tap.' },
   { ask: 'The baby fell asleep / woke up', code: "tinylog.toggle('sleep')", note: '"sleep" is a nap by day and night sleep in the evening; toggle starts it or stops the one running. Add { where: \'bassinet\' } for where.' },
   { ask: 'How has sleep been this week?', code: 'tinylog.patterns(7)', note: 'Descriptive patterns (typical nap length, bedtime window…); each says what it is based on. Not advice.' },
@@ -108,7 +113,7 @@ export const RECIPES: { ask: string; code: string; note: string }[] = [
 ];
 
 const HELP = `tinylog: baby tracker scripting API (window.tinylog). Data stays in this browser.
-All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, spitup, bath, books, music, doctor, weight, height, mood.
+All calls are synchronous. Names: feed, bottle, breast, wet, dirty, both, nap, night, sleep, tummy, pump, fussy, spitup, bath, books, music, doctor, medicine, weight, height, mood.
 
 tinylog.state()                        what's going on now, the last of each thing, today's totals
 tinylog.log(what, opts?)               log it now (timed things toggle); opts:
@@ -116,7 +121,8 @@ tinylog.log(what, opts?)               log it now (timed things toggle); opts:
                                          minL, minR, min,  (breastfeeding minutes: per side, or a total)
                                          where: 'bassinet'|'crib'|'held'|'stroller'|'car',  (sleeps)
                                          kg, g, lb, oz  (weight; on a weight oz is weight)  cm, inches  (height),
-                                         mood: 1-5|'very-low'|'low'|'okay'|'good'|'great', feelings: [...]  (mood check-in) }
+                                         mood: 1-5|'very-low'|'low'|'okay'|'good'|'great', feelings: [...]  (mood check-in),
+                                         name, dose, unit: 'ml'|'drops'|'mg'  (medicine; name needed) }
 tinylog.start(what, opts?)             start nap / night / tummy / pump / fussy
 tinylog.stop(what, opts?)              stop it (pump: pass ml)
 tinylog.toggle(what, opts?)            start or stop
@@ -153,7 +159,7 @@ export function createAgentApi() {
         now: iso(now),
         ongoing,
         awakeMinutes: asleep ? null : wake !== undefined ? Math.round((now - wake) / MIN) : null,
-        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), spitup: last('spitup'), bath: last('bath'), books: last('books'), music: last('music'), weight: last('weight'), height: last('height'), mood: last('mood') },
+        last: { feed: last('feed'), wet: last('wet'), dirty: last('dirty'), nap: last('nap'), night: last('night'), tummy: last('tummy'), pump: last('pump'), spitup: last('spitup'), bath: last('bath'), books: last('books'), music: last('music'), med: last('med'), weight: last('weight'), height: last('height'), mood: last('mood') },
         today: {
           feeds: t.feeds,
           bottleMl: t.bottleMl,
@@ -167,6 +173,7 @@ export function createAgentApi() {
           spitups: t.spitups,
           books: t.books,
           songs: t.songs,
+          meds: t.meds,
         },
       };
     },

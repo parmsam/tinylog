@@ -62,6 +62,25 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=wet&mood=3')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('mood check-in') });
   });
 
+  it('takes a medicine by name, with an optional dose', () => {
+    expect(p('?do=log&what=medicine&name=Vitamin+D&dose=1&unit=drops')).toMatchObject({ card: 'med', detail: { med: 'Vitamin D', dose: 1, doseUnit: 'drops' } });
+    expect(p('?do=log&what=med&name=Gripe%20water')).toEqual({ kind: 'log', card: 'med', detail: { med: 'Gripe water' }, minutesAgo: 0 });
+    // &ml on a medicine is its dose, not a bottle.
+    const ml = p('?do=log&what=medication&name=Paracetamol&ml=2.5');
+    expect(ml).toMatchObject({ card: 'med', detail: { med: 'Paracetamol', dose: 2.5, doseUnit: 'ml' } });
+    expect(ml && 'detail' in ml && ml.detail.amount).toBeUndefined();
+    // A bare vitamin link is just "Vitamin", never guessed further.
+    expect(p('?do=log&what=vitamin')).toMatchObject({ card: 'med', detail: { med: 'Vitamin' } });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=med&name=A&dose=1&unit=ml&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
+  it('explains medicine mistakes', () => {
+    expect(p('?do=log&what=medicine')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('which medicine') });
+    expect(p('?do=log&what=medicine&name=A&dose=lots')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('dose must be a number') });
+    expect(p('?do=log&what=medicine&name=A&dose=1&unit=tsp')).toMatchObject({ kind: 'invalid', reason: 'unit is ml, drops or mg' });
+    expect(p('?do=log&what=wet&name=A')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('for a medicine') });
+  });
+
   it('understands feed details and amounts', () => {
     expect(p('?do=log&what=bottle&oz=3&milk=formula')).toMatchObject({ card: 'feed', detail: { method: 'bottle', amount: 89, milk: 'formula' } });
     expect(p('?do=log&what=feed&ml=90')).toMatchObject({ detail: { method: 'bottle', amount: 90 } });
