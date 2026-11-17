@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   babyName: '',
   units: 'ml',
   growthUnits: 'metric',
+  tempUnit: 'C',
   clock: 'auto',
   dayStartHour: 0,
   theme: 'auto',
@@ -44,6 +45,8 @@ export function loadSettings(): Settings {
     delete (s as { installTipSeen?: boolean }).installTipSeen;
     // Settings saved before weight/height existed: match the volume unit (oz → lb and inches).
     if (saved.growthUnits !== 'metric' && saved.growthUnits !== 'imperial') s.growthUnits = s.units === 'oz' ? 'imperial' : 'metric';
+    // Settings saved before temperature existed: °F alongside lb, otherwise °C.
+    if (saved.tempUnit !== 'C' && saved.tempUnit !== 'F') s.tempUnit = s.growthUnits === 'imperial' ? 'F' : 'C';
     if (!['dots', 'checks', 'crosses'].includes(s.gridMarks)) s.gridMarks = 'dots';
     if (!Number.isInteger(s.backupSnoozedAt) || s.backupSnoozedAt < 0) s.backupSnoozedAt = 0;
     if (!Number.isFinite(s.backupLaterAt) || s.backupLaterAt < 0) s.backupLaterAt = 0;

@@ -81,6 +81,25 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=wet&name=A')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('for a medicine') });
   });
 
+  it('takes a temperature in °C or °F, and where', () => {
+    expect(p('?do=log&what=temp&c=37.8&site=ear')).toEqual({ kind: 'log', card: 'temp', detail: { tempC: 37.8, tempSite: 'ear' }, minutesAgo: 0 });
+    expect(p('?do=log&what=fever&f=100.4')).toMatchObject({ card: 'temp', detail: { tempC: 38 } });
+    expect(p('?do=log&what=temperature')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('say the reading') });
+    expect(p('?do=log&what=temp&c=99')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('looks off') });
+    expect(p('?do=log&what=temp&c=hot')).toMatchObject({ kind: 'invalid', reason: 'temperature must be a number' });
+    expect(p('?do=log&what=temp&c=37&site=toe')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('site is') });
+    expect(p('?do=log&what=wet&c=37')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('for a temperature') });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=temp&c=37&site=ear&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
+  it('takes vaccines, with or without names', () => {
+    expect(p('?do=log&what=vaccines&vaccines=DTaP,Hib,%20PCV')).toEqual({ kind: 'log', card: 'vaccine', detail: { vaccines: ['DTaP', 'Hib', 'PCV'] }, minutesAgo: 0 });
+    expect(p('?do=log&what=shots')).toEqual({ kind: 'log', card: 'vaccine', detail: {}, minutesAgo: 0 });
+    expect(p('?do=log&what=immunization&vaccines=MMR')).toMatchObject({ card: 'vaccine', detail: { vaccines: ['MMR'] } });
+    expect(p('?do=log&what=wet&vaccines=MMR')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('&what=vaccines') });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=vaccine&vaccines=A&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
   it('understands feed details and amounts', () => {
     expect(p('?do=log&what=bottle&oz=3&milk=formula')).toMatchObject({ card: 'feed', detail: { method: 'bottle', amount: 89, milk: 'formula' } });
     expect(p('?do=log&what=feed&ml=90')).toMatchObject({ detail: { method: 'bottle', amount: 90 } });

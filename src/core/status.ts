@@ -3,12 +3,14 @@ import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
 import { formatHeight, formatWeight, growthUnits } from './growth';
 import { medKey, medSummary } from './meds';
+import { parseVaccines, vaccineSummary } from './vaccines';
+import { tempSummary, tempUnit } from './temperature';
 import { moodInfo, moodSummary } from './wellbeing';
 import { SLEEP_PLACES, type LogEvent, type Settings } from './types';
 
-type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'> & Partial<Pick<Settings, 'growthUnits'>>;
+type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour'> & Partial<Pick<Settings, 'growthUnits' | 'tempUnit'>>;
 /** Units for summaries (growth units fall back to matching the volume unit). */
-export type SummaryPrefs = Pick<Settings, 'units'> & Partial<Pick<Settings, 'growthUnits'>>;
+export type SummaryPrefs = Pick<Settings, 'units'> & Partial<Pick<Settings, 'growthUnits' | 'tempUnit'>>;
 
 const SIDE = { L: 'L', R: 'R', both: 'both sides' } as const;
 
@@ -64,6 +66,14 @@ export function summary(e: LogEvent, prefs: SummaryPrefs): string {
     case 'med': {
       const m = medSummary(d);
       if (m) bits.push(m);
+      break;
+    }
+    case 'vaccine':
+      bits.push(vaccineSummary(d.vaccines));
+      break;
+    case 'temp': {
+      const s = tempSummary(d, tempUnit(prefs));
+      if (s) bits.push(s);
       break;
     }
   }
@@ -192,6 +202,17 @@ export function cardStatus(card: CardDef, events: LogEvent[], day: string, now: 
       const n = inDay.filter((e) => e.at <= now).length;
       return { primary: ago(last.at, now), secondary: `${name} · ${t(last.at)}${n > 1 ? ` · ${n} today` : ''}`, ongoing: false };
     }
+    case 'vaccine': {
+      // The last vaccines given and when. Never what's due next: that's for the baby's doctor.
+      if (!last) return { primary: 'Add vaccines', secondary: 'a record of shots given', ongoing: false };
+      return { primary: `last ${shortDate(last.at)}`, secondary: vaccineSummary(last.detail?.vaccines), ongoing: false };
+    }
+    case 'temp': {
+      // The latest reading as it was taken. No labels or thresholds: that's for the doctor.
+      if (!last) return { primary: 'Add a reading', secondary: '', ongoing: false };
+      const n = inDay.filter((e) => e.at <= now).length;
+      return { primary: summary(last, prefs) || '—', secondary: `${ago(last.at, now)} · ${t(last.at)}${n > 1 ? ` · ${n} today` : ''}`, ongoing: false };
+    }
   }
 }
 
@@ -254,6 +275,16 @@ function pastStatus(
       if (!n) return none;
       const names = [...new Map(inDay.map((e) => [medKey(e.detail?.med ?? ''), medSummary({ med: e.detail?.med })])).values()].filter(Boolean);
       return { primary: plural(n, 'dose'), secondary: names.join(', '), ongoing: false };
+    }
+    case 'vaccine': {
+      if (!n) return none;
+      const names = parseVaccines(inDay.flatMap((e) => e.detail?.vaccines ?? []), Infinity);
+      return { primary: names.length ? plural(names.length, 'vaccine') : 'Vaccines', secondary: names.join(', '), ongoing: false };
+    }
+    case 'temp': {
+      if (!n) return none;
+      const latest = inDay.reduce((a, b) => (b.at > a.at ? b : a));
+      return { primary: summary(latest, prefs) || '—', secondary: n > 1 ? plural(n, 'reading') : '', ongoing: false };
     }
   }
 }

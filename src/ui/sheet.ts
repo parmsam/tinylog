@@ -3,8 +3,10 @@ import { createEvent } from '../core/events';
 import { ago, fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format';
 import { cmFrom, CM_PER_IN, formatHeight, formatWeight, gramsFrom, growthUnits, heightInRange, toLbOz, weightInRange } from '../core/growth';
 import { cleanMedName, DOSE_UNITS, formatDose, MAX_MED_NAME, parseDose, recentMeds } from '../core/meds';
+import { formatTemp, parseTempSite, TEMP_SITES, tempFrom, tempIn, tempInRange, tempUnit } from '../core/temperature';
+import { MAX_VACCINE_NAME, parseVaccines, vaccineOptions } from '../core/vaccines';
 import { addEvent, app, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import { SLEEP_PLACES, type Detail, type DoseUnit, type Feeling, type GrowthUnits, type LogEvent } from '../core/types';
+import { SLEEP_PLACES, type Detail, type DoseUnit, type Feeling, type GrowthUnits, type LogEvent, type TempUnit } from '../core/types';
 import { FEELINGS, MOODS, parseMood } from '../core/wellbeing';
 import { supportHtml } from '../viz/moodChart';
 import { toast } from './toast';
@@ -31,6 +33,8 @@ interface Draft {
   detail: Detail;
   /** Units for typing a weight or height. Starts at the setting; switchable per entry, since providers mix kg and lb. */
   growthUnits: GrowthUnits;
+  /** Unit for typing a temperature: starts at the setting, switchable per entry. */
+  tempUnit: TempUnit;
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -85,6 +89,35 @@ function medFields(d: Detail): string {
     <datalist id="med-names">${names.map((m) => `<option value="${esc(m.name)}"></option>`).join('')}</datalist>
     <div class="row">${numField('dose', 'Dose', d.dose, 'any', 'optional')}${seg('doseUnit', DOSE_UNITS, d.doseUnit, 'Unit')}</div>
     <p class="hint">A record of what was given. For doses and timing, follow the label or your doctor.</p>`;
+}
+
+/**
+ * Vaccines: tick any given at this visit (common names plus every name used before), and type others.
+ * Naming them is optional. Nothing here says what's due or when.
+ */
+function vaccineFields(d: Detail): string {
+  const picked = new Set((d.vaccines ?? []).map((v) => v.toLowerCase()));
+  const options = vaccineOptions(app.get().events, d.vaccines);
+  return `<fieldset class="field"><legend>Which vaccines? (optional)</legend><div class="seg chips vaccine-chips">${options
+    .map((v) => `<label><input type="checkbox" name="vaccines" value="${esc(v)}" ${picked.has(v.toLowerCase()) ? 'checked' : ''} /><span>${esc(v)}</span></label>`)
+    .join('')}</div></fieldset>
+    <label class="field"><span class="field-label">Others</span>
+      <input type="text" name="vaccineOther" maxlength="${MAX_VACCINE_NAME * 3}" autocomplete="off" enterkeyhint="done" placeholder="optional · e.g. 6-in-1, MenB" /></label>
+    <p class="hint">Names differ by country; use whatever is on the baby’s record. A record of what was given: for what’s due and when, ask your doctor.</p>`;
+}
+
+/** Temperature: the reading in either unit (with the other shown live) and, optionally, where it was taken. */
+function tempFields(d: Detail, unit: TempUnit): string {
+  const name = unit === 'F' ? 'tf' : 'tc';
+  return `${seg('tunit', [['C', '°C'], ['F', '°F']] as [TempUnit, string][], unit, 'Units')}
+    ${numField(name, `Temperature (°${unit})`, d.tempC ? tempIn(d.tempC, unit) : undefined, '0.1', unit === 'F' ? 'e.g. 98.6' : 'e.g. 37.0')}
+    <p class="hint conv" data-conv aria-live="polite">${tempConversion(d, unit)}</p>
+    ${seg('tempSite', TEMP_SITES, d.tempSite, 'Where (optional)')}
+    <p class="hint">A record of the reading. If you’re worried about a temperature, call your doctor.</p>`;
+}
+
+function tempConversion(d: Detail, unit: TempUnit): string {
+  return d.tempC ? `= ${formatTemp(d.tempC, unit === 'C' ? 'F' : 'C')}` : '';
 }
 
 function amountField(ml: number | undefined, label: string) {
@@ -149,7 +182,7 @@ function conversion(card: CardDef, d: Detail, units: GrowthUnits): string {
   return '';
 }
 
-function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits): string {
+function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits, tUnit: TempUnit): string {
   switch (card.id) {
     case 'feed': {
       const method = d.method ?? 'breast';
@@ -179,6 +212,10 @@ function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits): string {
       return moodFields(d);
     case 'med':
       return medFields(d);
+    case 'vaccine':
+      return vaccineFields(d);
+    case 'temp':
+      return tempFields(d, tUnit);
     default:
       return '';
   }
@@ -203,14 +240,14 @@ function render(dialog: HTMLDialogElement, draft: Draft, existing: LogEvent | un
         <label class="check"><input type="checkbox" name="ongoing" ${draft.ongoing ? 'checked' : ''} /> Still going</label>
       </div>`
     : '';
-  const notePh = card.id === 'doctor' ? 'What is the visit for? Weight, questions, vaccines…' : card.id === 'mood' ? 'optional · anything on your mind' : 'optional';
+  const notePh = card.id === 'doctor' ? 'What is the visit for? Weight, questions, vaccines…' : card.id === 'mood' ? 'optional · anything on your mind' : card.id === 'vaccine' ? 'optional · e.g. lot numbers, how it went' : 'optional';
 
   dialog.innerHTML = `<form novalidate>
     <div class="sheet-head"><h2 id="sheet-title">${title}</h2>
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     ${picker}
-    ${fieldsFor(card, draft.detail, draft.growthUnits)}
+    ${fieldsFor(card, draft.detail, draft.growthUnits, draft.tempUnit)}
     <div class="${card.timed ? 'row' : ''}">
       <label class="field"><span class="field-label">${timeLabel}</span>
         <input type="datetime-local" name="at" value="${draft.at}" required /></label>
@@ -258,6 +295,10 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   else if (draft.detail.grams) detail.grams = draft.detail.grams;
   if (f.has('cm') || f.has('inches')) detail.cm = cmFrom({ cm: n('cm'), inches: n('inches') });
   else if (draft.detail.cm) detail.cm = draft.detail.cm;
+  if (f.has('tc') || f.has('tf')) detail.tempC = tempFrom({ c: n('tc'), f: n('tf') });
+  else if (draft.detail.tempC) detail.tempC = draft.detail.tempC;
+  const tempSite = parseTempSite(str('tempSite'));
+  if (tempSite) detail.tempSite = tempSite;
   const mood = parseMood(str('mood'));
   if (mood) detail.mood = mood;
   if (f.has('mood') || cardId === 'mood') {
@@ -270,6 +311,10 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   if (dose) detail.dose = dose;
   const doseUnit = str('doseUnit') as DoseUnit | undefined;
   if (doseUnit) detail.doseUnit = doseUnit;
+  if (f.has('vaccineOther') || cardId === 'vaccine') {
+    const vaccines = parseVaccines([...f.getAll('vaccines').map(String), ...(str('vaccineOther') ?? '').split(/[,;\n]/)]);
+    if (vaccines.length) detail.vaccines = vaccines;
+  }
   const amount = parseFloat(str('amount') ?? '');
   if (amount > 0) detail.amount = toMl(amount, settings.get().units);
   // Switching cards in the picker resets card-specific choices to that card's preset.
@@ -277,6 +322,7 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   return {
     cardId,
     growthUnits: (str('gunit') as GrowthUnits | undefined) ?? draft.growthUnits,
+    tempUnit: (str('tunit') as TempUnit | undefined) ?? draft.tempUnit,
     at: str('at') ?? draft.at,
     endAt: str('endAt') ?? draft.endAt,
     ongoing: f.get('ongoing') === 'on',
@@ -326,6 +372,13 @@ function detailFor(card: CardDef, d: Detail): Detail {
       // A unit only means something with a dose.
       if (d.dose) Object.assign(out, { dose: d.dose, doseUnit: d.doseUnit });
       break;
+    case 'vaccine':
+      if (d.vaccines?.length) out.vaccines = d.vaccines;
+      break;
+    case 'temp':
+      out.tempC = d.tempC;
+      if (d.tempSite) out.tempSite = d.tempSite;
+      break;
   }
   return out;
 }
@@ -353,6 +406,7 @@ export function openSheet(opts: SheetOpts) {
     ongoing: existing ? existing.endAt === undefined : !!opts.ongoing,
     detail: { ...card.preset, ...(existing?.detail ?? opts.detail) },
     growthUnits: growthUnits(settings.get()),
+    tempUnit: tempUnit(settings.get()),
   };
   draft = withEnd(draft);
   render(dialog, draft, existing);
@@ -361,7 +415,7 @@ export function openSheet(opts: SheetOpts) {
 
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
-    if (['card', 'method', 'ongoing', 'side', 'gunit'].includes(t.name)) {
+    if (['card', 'method', 'ongoing', 'side', 'gunit', 'tunit'].includes(t.name)) {
       draft = withEnd(read(form(), draft));
       render(dialog, draft, existing);
       form().querySelector<HTMLElement>(`[name="${t.name}"]:checked, [name="${t.name}"]`)?.focus();
@@ -371,10 +425,10 @@ export function openSheet(opts: SheetOpts) {
   // Live conversion while typing a weight or height.
   dialog.oninput = (e) => {
     const t = e.target as HTMLInputElement;
-    if (!['kg', 'lb', 'wOz', 'cm', 'inches'].includes(t.name)) return;
+    if (!['kg', 'lb', 'wOz', 'cm', 'inches', 'tc', 'tf'].includes(t.name)) return;
     const d = read(form(), draft);
     const out = dialog.querySelector<HTMLElement>('[data-conv]');
-    if (out) out.textContent = conversion(cardById(d.cardId), d.detail, d.growthUnits);
+    if (out) out.textContent = d.cardId === 'temp' ? tempConversion(d.detail, d.tempUnit) : conversion(cardById(d.cardId), d.detail, d.growthUnits);
   };
 
   dialog.onclick = (e) => {
@@ -414,6 +468,10 @@ export function openSheet(opts: SheetOpts) {
       if (!weightInRange(draft.detail.grams)) return fail('That weight looks off. Check the number, and the units in Settings.');
     }
     if (chosen.id === 'mood' && !draft.detail.mood) return fail('Pick how you’re feeling.');
+    if (chosen.id === 'temp') {
+      if (!draft.detail.tempC) return fail('Enter the temperature.');
+      if (!tempInRange(draft.detail.tempC)) return fail('That temperature looks off. Check the number and the °C / °F switch.');
+    }
     if (chosen.id === 'med' && !draft.detail.med) return fail('Name the medicine, or pick a recent one.');
     if (chosen.id === 'height') {
       if (!draft.detail.cm) return fail('Enter the height.');

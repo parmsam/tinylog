@@ -134,6 +134,10 @@ export function momentFor(
   if (what === 'log' && card === 'mood') return say('settled', ['Thanks for checking in', 'Checked in · {buddy} is here with you', 'Noted · one moment at a time']);
   // Medicines: about being looked after, never about the medicine or the dose.
   if (what === 'log' && card === 'med') return say('settled', ['Noted{to} · all looked after', 'Medicine noted · {buddy} sends a hug', 'All noted{to}']);
+  // Temperature: company, never about the number.
+  if (what === 'log' && card === 'temp') return say('settled', ['Noted{to} · {buddy} is keeping you company', 'Reading noted · {buddy} sends a hug', 'All noted{to}']);
+  // Vaccines: a brave day and a cuddle, never about which ones or what's next.
+  if (what === 'log' && card === 'vaccine') return say('settled', ['So brave{to} · {buddy} sends a hug', 'All done{to} · extra cuddles', 'Big day{to} · noted']);
   if (what === 'log' && card === 'bath') return say('cheer', ['Squeaky clean{to}!', 'Fresh as a daisy{to}', 'Bath done · {buddy} wants one too']);
   if (card === 'tummy' && what === 'stop' && length >= 3 * MIN) return say('proud', [`Tummy time champ · ${duration(length)}`, `${duration(length)} of tummy time · strong little arms`]);
 

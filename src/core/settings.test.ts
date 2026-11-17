@@ -26,8 +26,8 @@ describe('settings', () => {
 
   it('keeps hidden buttons, dropping unknown ids and never hiding them all', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: ['pump', 'books', 'nope', 'pump'] }));
-    expect(loadSettings().hiddenCards).toEqual(['pump', 'books', 'music']);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump', cardsOffered: ['music'] }));
+    expect(loadSettings().hiddenCards).toEqual(['pump', 'books', 'music', 'vaccine']);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: 'pump', cardsOffered: ['music', 'vaccine'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
     const all = CARDS.map((c) => c.id);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: all }));
@@ -35,12 +35,25 @@ describe('settings', () => {
   });
 
   it('starts off-by-default buttons hidden once, on new and existing phones, then respects the choice', () => {
-    expect(loadSettings()).toMatchObject({ hiddenCards: ['music'], cardsOffered: ['music'] });
+    expect(loadSettings()).toMatchObject({ hiddenCards: ['music', 'vaccine'], cardsOffered: ['music', 'vaccine'] });
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ babyName: 'Pip', hiddenCards: ['pump'] }));
-    expect(loadSettings()).toMatchObject({ hiddenCards: ['pump', 'music'], cardsOffered: ['music'] });
+    expect(loadSettings()).toMatchObject({ hiddenCards: ['pump', 'music', 'vaccine'], cardsOffered: ['music', 'vaccine'] });
     // Turned on in Settings → Buttons: it stays on.
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: [], cardsOffered: ['music'] }));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: [], cardsOffered: ['music', 'vaccine'] }));
     expect(loadSettings().hiddenCards).toEqual([]);
+    // A phone that already turned Music on gets the newer off-by-default Vaccines hidden, Music left on.
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ hiddenCards: [], cardsOffered: ['music'] }));
+    expect(loadSettings()).toMatchObject({ hiddenCards: ['vaccine'], cardsOffered: ['music', 'vaccine'] });
+  });
+
+  it('picks a temperature unit for older settings from the weight units', () => {
+    expect(loadSettings().tempUnit).toBe('C');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ growthUnits: 'imperial' }));
+    expect(loadSettings().tempUnit).toBe('F');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ growthUnits: 'imperial', tempUnit: 'C' }));
+    expect(loadSettings().tempUnit).toBe('C');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ tempUnit: 'K' }));
+    expect(loadSettings().tempUnit).toBe('C');
   });
 
   it('keeps a saved button order, without unknown or repeated ids', () => {

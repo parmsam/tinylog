@@ -9,7 +9,7 @@ Source: https://github.com/parmsam/tinylog
 
 Open the app with a `do` query parameter to log something. The parameters are removed from the URL once it has run, and the app shows what it did with an Undo button. Settings never travel in the URL.
 
-- `?do=log&what=wet`: log it now. `what` is one of feed, bottle, breast, wet, dirty, both, spitup, bath, books (one per book read), music (one per song), doctor, medicine (needs `&name`, below), weight, height (these two need a number, below), mood (needs `&mood`, below) (and for timed things below, `log` toggles)
+- `?do=log&what=wet`: log it now. `what` is one of feed, bottle, breast, wet, dirty, both, spitup, bath, books (one per book read), music (one per song), doctor, medicine (needs `&name`, below), vaccines, temp (needs a reading, below), weight, height (these two need a number, below), mood (needs `&mood`, below) (and for timed things below, `log` toggles)
 - `?do=start&what=nap` / `?do=stop&what=nap` / `?do=toggle&what=nap`: timed things are nap, night, sleep, tummy, pump, fussy. `sleep` means night sleep from 7 PM to 6 AM and a nap otherwise
 - `&ago=15`: it happened 15 minutes ago (0–1440)
 - Feeds: `&side=L|R|both`, `&method=breast|bottle`, `&milk=breast|formula`, `&ml=90` or `&oz=3` (an amount means a bottle). A plain feed picks the other breast, or the same kind of bottle as last time
@@ -19,6 +19,8 @@ Open the app with a `do` query parameter to log something. The parameters are re
 - Weight: `?do=log&what=weight&kg=7.2`, or `&g=7200`, or `&lb=15&oz=14` (on a weight, `oz` is part of the weight)
 - Height: `?do=log&what=height&cm=62` or `&in=24.5`
 - Medicine or vitamin: `?do=log&what=medicine&name=Vitamin+D`, optional `&dose=1&unit=drops` (unit ml, drops or mg; `&ml=2.5` is a dose in ml). Aliases: med, meds, medication, vitamin (a bare `what=vitamin` is logged as "Vitamin"). It records what was given; it never suggests a dose or the next time
+- Vaccines: `?do=log&what=vaccines`, optionally `&vaccines=DTaP,Hib,PCV` (any names, comma-separated). Aliases: vaccine, vaccination, shots, immunization, jabs. A record of what was given; it never says what's due
+- Temperature: `?do=log&what=temp&c=37.8` or `&f=100.1`, optional `&site=forehead|ear|armpit|rectal|mouth`. Aliases: temperature, fever, thermometer. The reading is shown as is, never labelled
 - Mood (the parent's own check-in): `?do=log&what=mood&mood=low`, `mood` is 1–5 or very-low, low, okay, good, great; optional `&feelings=anxious,tearful` (calm, hopeful, connected, anxious, tearful, irritable, overwhelmed, numb, lonely). Aliases: parent-mood, mom-mood, my-mood, feeling, check-in
 - `&note=…` on anything (e.g. a doctor visit)
 
@@ -31,8 +33,8 @@ On iPhone, links open in Safari, and iOS keeps a Home Screen web app's data sepa
 When you control the page (Playwright `page.evaluate`, DevTools, a browser agent), use `window.tinylog`. Calls are synchronous, return plain JSON-safe data, and throw an Error with a readable message on bad input. Names and options are the same as the link actions.
 
 - `tinylog.help()`: this reference as text
-- `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, spitup, bath, books, music, med, weight, height, mood }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl, spitups, books, songs, meds } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
-- `tinylog.log(what, opts?)`, `tinylog.start(what, opts?)`, `tinylog.stop(what, opts?)`, `tinylog.toggle(what, opts?)`: opts are `{ minutesAgo, side, ml, oz, method, milk, diaper, note, minL, minR, min, where, kg, g, lb, cm, inches, mood, feelings, name, dose, unit }` (weight: kg, g, or lb and/or oz; height: cm or inches; mood: 1–5 or a word, feelings: a list; medicine: name, and optionally dose and unit). Returns `{ result: 'logged' | 'started' | 'stopped' | 'switched', entry }` or `{ result: 'nothing-to-do', reason }`
+- `tinylog.state()`: `{ baby, now, ongoing: [{ what, since, minutes }], awakeMinutes, last: { feed, wet, dirty, nap, night, tummy, pump, spitup, bath, books, music, med, vaccine, temp, weight, height, mood }, today: { feeds, bottleMl, wet, dirty, sleepMinutes, naps, tummyMinutes, fussyMinutes, pumpMl, spitups, books, songs, meds, vaccines } }`; each `last.*` is `{ at, minutesAgo, summary }` or null
+- `tinylog.log(what, opts?)`, `tinylog.start(what, opts?)`, `tinylog.stop(what, opts?)`, `tinylog.toggle(what, opts?)`: opts are `{ minutesAgo, side, ml, oz, method, milk, diaper, note, minL, minR, min, where, kg, g, lb, cm, inches, mood, feelings, name, dose, unit, vaccines, c, f, site }` (weight: kg, g, or lb and/or oz; height: cm or inches; mood: 1–5 or a word, feelings: a list; medicine: name, and optionally dose and unit; vaccines: a list, optional; temp: c or f, and optionally site). Returns `{ result: 'logged' | 'started' | 'stopped' | 'switched', entry }` or `{ result: 'nothing-to-do', reason }`
 - `tinylog.entries(day?)`: a day's entries (`'YYYY-MM-DD'`, default today) as `{ id, what, label, start, end, minutes, ongoing, summary, note }`
 - `tinylog.undo()`: undo the last change made in the app (within 5 minutes)
 - `tinylog.markdown(days = 1)`: the last N days as Markdown, with totals and day notes (mood check-ins are left out)
@@ -51,6 +53,10 @@ When you control the page (Playwright `page.evaluate`, DevTools, a browser agent
   `tinylog.toggle('sleep')`, or `tinylog.toggle('sleep', { where: 'bassinet' })` to say where.
 - Log a dose of vitamin D
   `tinylog.log('medicine', { name: 'Vitamin D', dose: 1, unit: 'drops' })`. `tinylog.state().last.med` says when a medicine was last given. Record what was given; don't suggest doses or when the next one is due, point to the label or the baby's doctor.
+- Log a temperature
+  `tinylog.log('temp', { c: 37.8, site: 'ear' })` (or `{ f: 100.1 }`). Report the reading as it is; don't call it a fever or say what to do. If they're worried, point them to the baby's doctor.
+- Log the vaccines from today's checkup
+  `tinylog.log('vaccines', { vaccines: ['DTaP', 'Hib', 'PCV'] })`. `tinylog.state().last.vaccine` has the last ones. Never say which vaccines are due or when.
 - Log a weight from today's checkup
   `tinylog.log('weight', { kg: 6.4 })` (or `{ lb: 14, oz: 2 }`), and `tinylog.log('height', { cm: 61.5 })`. `tinylog.growth()` lists them all.
 - Log how I'm feeling

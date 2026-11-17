@@ -1,6 +1,6 @@
 import type { DayNote, EventType, LogData, LogEvent } from './types';
 
-const TYPES: ReadonlySet<EventType> = new Set(['feed', 'diaper', 'sleep', 'tummy', 'pump', 'fussy', 'spitup', 'bath', 'book', 'music', 'doctor', 'weight', 'height', 'mood', 'med', 'note']);
+const TYPES: ReadonlySet<EventType> = new Set(['feed', 'diaper', 'sleep', 'tummy', 'pump', 'fussy', 'spitup', 'bath', 'book', 'music', 'doctor', 'weight', 'height', 'mood', 'med', 'vaccine', 'temp', 'note']);
 
 export interface Backup extends LogData {
   app: 'tinylog';

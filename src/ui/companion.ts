@@ -182,6 +182,8 @@ const REACTIONS: Record<CardId, { log?: Reaction; start?: Reaction; stop?: React
   music: { log: 'music' },
   doctor: { log: 'doctor' },
   med: { log: 'doctor' }, // a little nod, the same for any medicine
+  vaccine: { log: 'doctor' },
+  temp: { log: 'doctor' }, // the same nod whatever the reading
   weight: { log: 'growth' },
   height: { log: 'growth' },
   mood: { log: 'settled' }, // a soft sigh and hearts, the same whatever the mood

@@ -1,4 +1,4 @@
-export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'med' | 'note';
+export type EventType = 'feed' | 'diaper' | 'sleep' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'book' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'med' | 'vaccine' | 'temp' | 'note';
 
 export type Side = 'L' | 'R' | 'both';
 
@@ -11,6 +11,10 @@ export const SLEEP_PLACES: [SleepPlace, string][] = [
   ['stroller', 'Stroller'],
   ['car', 'Car'],
 ];
+
+/** Body temperature unit, and where a reading was taken. */
+export type TempUnit = 'C' | 'F';
+export type TempSite = 'forehead' | 'ear' | 'armpit' | 'rectal' | 'mouth';
 
 /** Unit of a medicine dose. */
 export type DoseUnit = 'ml' | 'drops' | 'mg';
@@ -44,6 +48,11 @@ export interface Detail {
   /** Medicine: the dose, optional, in `doseUnit`. */
   dose?: number;
   doseUnit?: DoseUnit;
+  /** Vaccines given at one visit (free text, e.g. "DTaP"); none named is fine. */
+  vaccines?: string[];
+  /** Body temperature in °C (to 0.01, so °F readings round-trip), and optionally where it was taken. */
+  tempC?: number;
+  tempSite?: TempSite;
   note?: string;
 }
 
@@ -89,6 +98,8 @@ export interface Settings {
   babyName: string;
   units: Units;
   growthUnits: GrowthUnits;
+  /** Body temperature: °C or °F. */
+  tempUnit: TempUnit;
   clock: ClockFormat;
   /** Hour (0–23) a "day" starts at, for day views and daily totals. */
   dayStartHour: number;

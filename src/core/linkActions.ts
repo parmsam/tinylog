@@ -2,6 +2,8 @@ import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
 import { cmFrom, gramsFrom, heightInRange, weightInRange } from './growth';
 import { cleanMedName, parseDose, parseDoseUnit } from './meds';
+import { parseVaccines } from './vaccines';
+import { parseTempSite, tempFrom, tempInRange } from './temperature';
 import { FEELINGS, parseFeelings, parseMood } from './wellbeing';
 import type { Detail, SleepPlace, Side } from './types';
 
@@ -17,6 +19,8 @@ import type { Detail, SleepPlace, Side } from './types';
  *   ?do=log&what=weight&kg=7.2 (or &g=7200, &lb=15&oz=14)   ?do=log&what=height&cm=62 (or &in=24.5)
  *   ?do=log&what=mood&mood=low (1–5 or very-low|low|okay|good|great)  &feelings=anxious,tearful
  *   ?do=log&what=medicine&name=Vitamin+D&dose=1&unit=drops (unit ml|drops|mg; &ml=2.5 is a dose in ml)
+ *   ?do=log&what=vaccines&vaccines=DTaP,Hib,PCV (names optional)
+ *   ?do=log&what=temp&c=37.8 (or &f=100.1)  &site=forehead|ear|armpit|rectal|mouth
  *
  * Settings never travel in the URL. Parameters are removed once the action has run.
  */
@@ -28,7 +32,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings', 'name', 'dose', 'unit'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings', 'name', 'dose', 'unit', 'vaccines', 'c', 'f', 'site'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -95,6 +99,20 @@ const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
   medication: 'med',
   vitamin: 'med',
   vitamins: 'med',
+  vaccine: 'vaccine',
+  vaccines: 'vaccine',
+  vaccination: 'vaccine',
+  vaccinations: 'vaccine',
+  shot: 'vaccine',
+  shots: 'vaccine',
+  immunization: 'vaccine',
+  immunisation: 'vaccine',
+  jab: 'vaccine',
+  jabs: 'vaccine',
+  temp: 'temp',
+  temperature: 'temp',
+  fever: 'temp',
+  thermometer: 'temp',
 };
 
 const SIDES: Record<string, Side> = { l: 'L', left: 'L', r: 'R', right: 'R', both: 'both', b: 'both' };
@@ -128,7 +146,7 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   const whatRaw = q.get('what')?.trim().toLowerCase().replace(/\s+/g, '-');
   if (!whatRaw) return { kind: 'invalid', reason: 'say what to log, e.g. &what=wet' };
   const what = WHAT[whatRaw];
-  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, medicine, weight, height, mood)` };
+  if (!what) return { kind: 'invalid', reason: `don't know “${whatRaw}” (try feed, wet, dirty, nap, night, tummy, pump, fussy, spitup, bath, books, music, medicine, vaccines, temp, weight, height, mood)` };
 
   const agoRaw = q.get('ago');
   const minutesAgo = agoRaw === null ? 0 : Math.round(Number(agoRaw));
@@ -198,6 +216,25 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
     if (dose) detail.dose = dose;
     if (dose && unit) detail.doseUnit = unit;
   } else if (['name', 'dose', 'unit'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'name, dose and unit are for a medicine (&what=medicine)' };
+
+  if (card === 'vaccine') {
+    // Which ones is optional: "shots today" is worth logging even before the names are to hand.
+    const vaccines = parseVaccines(q.get('vaccines'));
+    if (vaccines.length) detail.vaccines = vaccines;
+  } else if (q.get('vaccines') !== null) return { kind: 'invalid', reason: 'vaccines are for &what=vaccines' };
+
+  if (card === 'temp') {
+    const raw = { c: num('c'), f: num('f') };
+    if (Object.values(raw).some((v) => v !== undefined && !(v >= 0))) return { kind: 'invalid', reason: 'temperature must be a number' };
+    const tempC = tempFrom(raw);
+    if (!tempC) return { kind: 'invalid', reason: 'say the reading, e.g. &c=37.8 or &f=100.1' };
+    if (!tempInRange(tempC)) return { kind: 'invalid', reason: 'that temperature looks off (30–45 °C, 86–113 °F)' };
+    detail.tempC = tempC;
+    const rawSite = q.get('site');
+    const site = parseTempSite(rawSite);
+    if (rawSite !== null && !site) return { kind: 'invalid', reason: 'site is forehead, ear, armpit, rectal or mouth' };
+    if (site) detail.tempSite = site;
+  } else if (['c', 'f', 'site'].some((k) => q.get(k) !== null)) return { kind: 'invalid', reason: 'c, f and site are for a temperature (&what=temp)' };
 
   const ml = card === 'med' ? 0 : Number(q.get('ml'));
   // On a weight, oz is part of the weight (above), not a volume.

@@ -41,6 +41,8 @@ test('entry sheet fields never overlap on iPhone, in every state', async ({ page
       // Recent medicines, so the medicine sheet shows its one-tap buttons (one with a long name).
       ev('med', Date.now() - 90 * MIN, { detail: { med: 'Vitamin D', dose: 1, doseUnit: 'drops' } }),
       ev('med', Date.now() - 60 * MIN, { detail: { med: 'Infant paracetamol suspension 120 mg/5 ml', dose: 2.5, doseUnit: 'ml' } }),
+      // A long vaccine name typed before, so the vaccine sheet shows it as a tick box.
+      ev('vaccine', Date.now() - 2 * 24 * 60 * MIN, { detail: { vaccines: ['Meningococcal B (Bexsero) booster'] } }),
     ],
   });
   await page.getByRole('button', { name: '+ Add entry' }).click();
@@ -48,7 +50,7 @@ test('entry sheet fields never overlap on iPhone, in every state', async ({ page
   await assertClean(s, 'feed (breast)');
   await s.getByText('Bottle', { exact: true }).click();
   await assertClean(s, 'feed (bottle: amount + milk)');
-  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '💊 Medicine', '⚖️ Weight', '📏 Height', '🌷 Parent mood']) {
+  for (const kind of ['💧 Wet', '😴 Nap', '🌙 Night sleep', '🤸 Tummy time', '🫗 Pump', '😣 Fussy', '🫧 Spit-up', '🛁 Bath', '📚 Books', '🎵 Music', '🩺 Doctor', '💊 Medicine', '💉 Vaccines', '🌡️ Temperature', '⚖️ Weight', '📏 Height', '🌷 Parent mood']) {
     await s.getByText(kind, { exact: true }).click();
     await assertClean(s, kind);
   }

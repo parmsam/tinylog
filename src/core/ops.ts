@@ -27,6 +27,7 @@ export function logCard(id: CardId, { at = Date.now(), detail }: OpOptions = {})
   if (id === 'weight' && !detail?.grams) return { kind: 'noop', card: id, reason: 'Weight needs a number (kg, g, lb or oz)' };
   if (id === 'height' && !detail?.cm) return { kind: 'noop', card: id, reason: 'Height needs a number (cm or in)' };
   if (id === 'mood' && !detail?.mood) return { kind: 'noop', card: id, reason: 'A mood check-in needs a mood (1–5, or very-low, low, okay, good, great)' };
+  if (id === 'temp' && !detail?.tempC) return { kind: 'noop', card: id, reason: 'A temperature needs a reading (°C or °F)' };
   if (id === 'med' && !detail?.med?.trim()) return { kind: 'noop', card: id, reason: 'A medicine needs a name (e.g. Vitamin D)' };
   const base = card.id === 'feed' ? feedDefaults(app.get().events, at) : card.preset;
   const merged = card.id === 'feed' && detail?.method === 'bottle' ? { ...detail } : { ...base, ...detail };

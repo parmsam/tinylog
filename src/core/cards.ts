@@ -20,7 +20,7 @@ export interface CardDef {
   offByDefault?: boolean;
 }
 
-export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'med';
+export type CardId = 'feed' | 'wet' | 'dirty' | 'nap' | 'night' | 'tummy' | 'pump' | 'fussy' | 'spitup' | 'bath' | 'books' | 'music' | 'doctor' | 'weight' | 'height' | 'mood' | 'med' | 'vaccine' | 'temp';
 
 const of = (type: EventType) => (e: LogEvent) => e.type === type;
 
@@ -76,7 +76,10 @@ export const CARDS: readonly CardDef[] = [
   { id: 'doctor', label: 'Doctor', emoji: '🩺', type: 'doctor', timed: false, sheetFirst: true, matches: of('doctor'), key: 'o' },
   // Medicines and vitamins: tapping opens the sheet to pick or name one (recent ones are a tap away).
   { id: 'med', label: 'Medicine', emoji: '💊', type: 'med', timed: false, sheetFirst: true, matches: of('med'), key: 'v' },
+  // Vaccines: tapping opens the sheet to tick which ones (any number per visit, or none named). Rare, so off by default.
+  { id: 'vaccine', label: 'Vaccines', emoji: '💉', type: 'vaccine', timed: false, sheetFirst: true, matches: of('vaccine'), key: 'z', offByDefault: true },
   // Measurements: tapping opens the sheet, since they need a number.
+  { id: 'temp', label: 'Temperature', emoji: '🌡️', type: 'temp', timed: false, sheetFirst: true, matches: of('temp'), key: 'y' },
   { id: 'weight', label: 'Weight', emoji: '⚖️', type: 'weight', timed: false, sheetFirst: true, matches: of('weight'), key: 'e' },
   { id: 'height', label: 'Height', emoji: '📏', type: 'height', timed: false, sheetFirst: true, matches: of('height'), key: 'h' },
   // The parent's own check-in (postpartum mood), not the baby's: the label and a "For you" tag say so.

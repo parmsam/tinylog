@@ -527,6 +527,79 @@ test.describe('data', () => {
     await expect(page.evaluate(() => window.tinylog.log('medicine'))).rejects.toThrow(/which medicine/);
   });
 
+  test('temperature: a tap asks for the reading, in °C or °F', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'temp')).toContainText('Add a reading');
+    await card(page, 'temp').click();
+    const s = page.locator('#sheet form');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(s.getByRole('alert')).toHaveText('Enter the temperature.');
+    // Typed in °F, shown in °C too; flipping the switch converts what's typed.
+    await s.getByText('°F', { exact: true }).click();
+    await s.getByLabel('Temperature (°F)').fill('100.4');
+    await expect(s.locator('[data-conv]')).toHaveText('= 38.0 °C');
+    await s.getByText('°C', { exact: true }).click();
+    await expect(s.getByLabel('Temperature (°C)')).toHaveValue('38');
+    await s.getByText('Ear', { exact: true }).click();
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(card(page, 'temp')).toContainText('38.0 °C · ear');
+    await expect(entries(page).first()).toContainText('38.0 °C · ear');
+
+    // A °F reading typed into °C is caught.
+    await page.keyboard.press('y');
+    await s.getByLabel('Temperature (°C)').fill('99');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(s.getByRole('alert')).toContainText('looks off');
+  });
+
+  test('temperature links, API and the °F setting', async ({ page }) => {
+    await open(page, { settings: { tempUnit: 'F' } }, './?do=log&what=temp&c=37.5&site=armpit');
+    await expect(card(page, 'temp')).toContainText('99.5 °F · armpit');
+    const r = await page.evaluate(() => window.tinylog.log('temp', { f: 101.3 }));
+    expect(r).toMatchObject({ result: 'logged', entry: { what: 'temp', summary: '101.3 °F' } });
+    expect(await page.evaluate(() => window.tinylog.state().last.temp)).toMatchObject({ summary: '101.3 °F' });
+    await expect(page.evaluate(() => window.tinylog.log('temp'))).rejects.toThrow(/say the reading/);
+    expect(await page.evaluate(() => window.tinylog.markdown(1))).toContain('101.3 °F');
+  });
+
+  test('vaccines: off by default; tick or type which, and Trends keeps the record', async ({ page }) => {
+    await open(page);
+    await expect(card(page, 'vaccine')).toBeHidden();
+    // The key still works with the button hidden.
+    await page.keyboard.press('z');
+    const s = page.locator('#sheet form');
+    await s.getByText('DTaP', { exact: true }).click();
+    await s.getByText('Hib', { exact: true }).click();
+    await s.getByLabel('Others').fill('MenB, dtap');
+    await s.getByLabel('Note').fill('left thigh');
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(entries(page).first()).toContainText('DTaP, Hib, MenB');
+
+    // A name typed before is a tick box next time; none named is fine too.
+    await page.keyboard.press('z');
+    await expect(s.getByText('MenB', { exact: true })).toBeVisible();
+    await s.getByRole('button', { name: 'Save' }).click();
+    await expect(entries(page).first()).toContainText('Vaccines');
+
+    const md = await page.evaluate(() => window.tinylog.markdown(1));
+    expect(md).toContain('DTaP, Hib, MenB');
+    expect(md).toContain('4 vaccines');
+
+    await page.keyboard.press('g');
+    const table = page.locator('#trends .vaccine-table');
+    await expect(table).toContainText('DTaP, Hib, MenB');
+    await expect(table).toContainText('left thigh');
+  });
+
+  test('vaccine links and API', async ({ page }) => {
+    await open(page, { settings: { hiddenCards: [], cardsOffered: ['music', 'vaccine'] } }, './?do=log&what=shots&vaccines=MMR,Chickenpox');
+    await expect(card(page, 'vaccine')).toContainText('MMR, Chickenpox');
+    const r = await page.evaluate(() => window.tinylog.log('vaccines', { vaccines: ['Flu'] }));
+    expect(r).toMatchObject({ result: 'logged', entry: { what: 'vaccine', summary: 'Flu' } });
+    expect(await page.evaluate(() => window.tinylog.state().last.vaccine)).toMatchObject({ summary: 'Flu' });
+    expect(await page.evaluate(() => window.tinylog.state().today.vaccines)).toBe(3);
+  });
+
   test('settings: buttons can be turned off, and stay off after a reload', async ({ page }) => {
     await open(page);
     await page.getByRole('button', { name: 'Settings' }).click();

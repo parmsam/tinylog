@@ -50,6 +50,37 @@ describe('medicine', () => {
   });
 });
 
+describe('temperature', () => {
+  it('shows the latest reading in the chosen unit, with no label', () => {
+    expect(status('temp', [])).toMatchObject({ primary: 'Add a reading' });
+    const events = [createEvent('temp', at(7), { tempC: 37.2 }, 0), createEvent('temp', at(9, 10), { tempC: 38, tempSite: 'ear' }, 0)];
+    expect(status('temp', events)).toMatchObject({ primary: '38.0 °C · ear', secondary: '1h ago · 09:10 · 2 today' });
+    expect(cardStatus(cardById('temp'), events, '2026-09-30', now, { ...prefs, tempUnit: 'F' }).primary).toBe('100.4 °F · ear');
+    expect(JSON.stringify(status('temp', events))).not.toMatch(/fever|high|normal/i);
+    const later = cardStatus(cardById('temp'), events, '2026-09-30', at(10, 0, 31) + 86_400_000, prefs);
+    expect(later).toMatchObject({ primary: '38.0 °C · ear', secondary: '2 readings' });
+  });
+});
+
+describe('vaccines', () => {
+  it('summarises the names, or just "Vaccines"', () => {
+    expect(summary(createEvent('vaccine', 0, { vaccines: ['DTaP', 'Hib'] }, 0), prefs)).toBe('DTaP, Hib');
+    expect(summary(createEvent('vaccine', 0, {}, 0), prefs)).toBe('Vaccines');
+  });
+
+  it('shows the last ones given, never what is due', () => {
+    expect(status('vaccine', [])).toMatchObject({ primary: 'Add vaccines' });
+    const s = status('vaccine', [createEvent('vaccine', at(9, 0, 2), { vaccines: ['Hep B'] }, 0)]);
+    expect(s).toMatchObject({ primary: expect.stringMatching(/^last /), secondary: 'Hep B' });
+    expect(`${s.primary} ${s.secondary}`).not.toMatch(/next|due/i);
+  });
+
+  it('lists a past day’s vaccines', () => {
+    const later = cardStatus(cardById('vaccine'), [createEvent('vaccine', at(9), { vaccines: ['DTaP', 'Hib'] }, 0), createEvent('vaccine', at(9, 30), { vaccines: ['hib', 'PCV'] }, 0)], '2026-09-30', at(10, 0, 31) + 86_400_000, prefs);
+    expect(later).toMatchObject({ primary: '3 vaccines', secondary: 'DTaP, Hib, PCV' });
+  });
+});
+
 describe('cardStatus today', () => {
   it('shows how long ago the last feed was and which side is next', () => {
     const s = status('feed', [createEvent('feed', at(8, 32), { method: 'breast', side: 'L' }, 0)]);

@@ -1282,6 +1282,14 @@ table.totals thead th {
   padding: 6px 12px;
   font-weight: 600;
 }
+/* Vaccines: names typed before can be long. */
+.vaccine-chips span {
+  overflow-wrap: anywhere;
+}
+.vaccine-table td {
+  white-space: normal;
+  min-width: 8em;
+}
 .support {
   border: 1px solid var(--border);
   border-radius: 14px;

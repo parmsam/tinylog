@@ -10,6 +10,7 @@ import { dayStripSvg } from '../viz/dayStrip';
 import { growthHtml } from '../viz/growthChart';
 import { moodHtml, supportHtml } from '../viz/moodChart';
 import { moodMarkdown } from '../core/wellbeing';
+import { vaccineRecord } from '../core/vaccines';
 import { heatmapTableHtml } from '../viz/heatmapTable';
 import { attachTips, hideTip } from '../viz/tooltip';
 import { weekRingsSvg } from '../viz/weekRings';
@@ -104,6 +105,22 @@ async function copyMoodMarkdown(days: number) {
   toast(ok ? `Copied ${days} days of check-ins` : "Couldn't copy.");
 }
 
+const escHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+const fullDate = (ts: number) => new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+/** The baby's vaccine record: every visit with shots, newest first. A table only, no chart. */
+function vaccineHtml(now: number): string {
+  const rows = vaccineRecord(app.get().events, now, settings.get().dayStartHour);
+  if (!rows.length) return '<p class="hint">Add vaccines with the 💉 Vaccines button (or on a past day) and they’re listed here, ready for a checkup.</p>';
+  const body = rows
+    .map((r) => `<tr><th scope="row">${fullDate(r.at)}</th><td>${escHtml(r.vaccines.join(', ') || '—')}</td><td>${escHtml(r.notes.join(' · ')) || '—'}</td></tr>`)
+    .join('');
+  return `<div class="table-wrap"><table class="totals vaccine-table">
+    <caption>Vaccines given</caption>
+    <thead><tr><th scope="col">Date</th><th scope="col">Vaccines</th><th scope="col">Note</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
 function render(dialog: HTMLDialogElement) {
   const now = Date.now();
   const last = today(now);
@@ -147,6 +164,12 @@ function render(dialog: HTMLDialogElement) {
     <section class="viz-card" aria-labelledby="growth-title">
       <h3 id="growth-title">Growth</h3>
       ${growthHtml(s.events, prefs, now)}
+    </section>
+
+    <section class="viz-card" aria-labelledby="vaccine-title">
+      <h3 id="vaccine-title">💉 Vaccines</h3>
+      <p class="hint">What was given and when, as logged here. The baby’s official record is with the doctor.</p>
+      ${vaccineHtml(now)}
     </section>
 
     ${showMood ? `<section class="viz-card" aria-labelledby="mood-title">

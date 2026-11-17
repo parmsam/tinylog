@@ -1,4 +1,5 @@
 import { dayRange, overlap } from './days';
+import { shotCount } from './vaccines';
 import { feedMinutes } from './status';
 import type { LogEvent } from './types';
 
@@ -31,6 +32,8 @@ export interface DayTotals {
   songs: number;
   /** Medicines and vitamins given (one entry per dose). */
   meds: number;
+  /** Vaccines given (each named one, or one per entry with none named). */
+  vaccines: number;
   doctor: number;
 }
 
@@ -58,6 +61,7 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
     books: 0,
     songs: 0,
     meds: 0,
+    vaccines: 0,
     doctor: 0,
   };
   for (const e of events) {
@@ -115,6 +119,9 @@ export function dayTotals(events: LogEvent[], day: string, dayStartHour: number,
         break;
       case 'med':
         if (starts) t.meds++;
+        break;
+      case 'vaccine':
+        if (starts) t.vaccines += shotCount(e);
         break;
       case 'doctor':
         if (starts) t.doctor++;

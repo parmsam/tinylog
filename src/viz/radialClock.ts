@@ -107,6 +107,8 @@ export function radialClockSvg(events: LogEvent[], day: string, now: number, pre
       case 'book':
       case 'music':
       case 'med':
+      case 'vaccine':
+      case 'temp':
       case 'doctor':
       case 'weight':
       case 'height': {
