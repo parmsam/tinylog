@@ -2,7 +2,7 @@ import { cardFor } from './cards';
 import { addDays, dayDate, dayRange, eventsForDay } from './days';
 import { dayTotals, type DayTotals } from './daily';
 import { amount, clockTime, dayTitle, duration } from './format';
-import { summary } from './status';
+import { entryLabel, entrySummary } from './status';
 import type { DayNote, LogEvent, Settings } from './types';
 
 type Prefs = Pick<Settings, 'units' | 'clock' | 'dayStartHour' | 'babyName'>;
@@ -41,10 +41,10 @@ function eventLine(e: LogEvent, dayStart: number, prefs: Prefs): string {
     if (e.endAt === undefined) bits.push('still going');
     else bits.push(`until ${clockTime(e.endAt, prefs.clock)} (${duration(e.endAt - e.at)})`);
   }
-  const s = summary(e, prefs);
-  if (s && e.type !== 'diaper') bits.push(s);
+  const s = entrySummary(e, prefs);
+  if (s) bits.push(s);
   if (e.detail?.note) bits.push(e.detail.note.replace(/\s+/g, ' '));
-  const label = e.type === 'diaper' ? `${summary(e, prefs)} diaper` : card.label;
+  const label = entryLabel(e, card);
   return `- ${time} ${card.emoji} **${label}**${bits.length ? ` — ${bits.join(' · ')}` : ''}`;
 }
 

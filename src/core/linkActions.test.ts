@@ -16,6 +16,16 @@ describe('parseLinkAction', () => {
     expect(p('?do=log&what=both')).toMatchObject({ card: 'dirty', detail: { diaper: 'both' } });
   });
 
+  it('takes a dirty diaper\'s color and size, only on a dirty one', () => {
+    expect(p('?do=log&what=dirty&color=green&size=small')).toEqual({ kind: 'log', card: 'dirty', detail: { poopColor: 'green', poopAmount: 'small' }, minutesAgo: 0 });
+    expect(p('?do=log&what=both&color=Yellow')).toMatchObject({ card: 'dirty', detail: { diaper: 'both', poopColor: 'yellow' } });
+    expect(p('?do=log&what=diaper&diaper=dirty&size=large')).toMatchObject({ detail: { diaper: 'dirty', poopAmount: 'large' } });
+    expect(p('?do=log&what=wet&color=green')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('dirty diaper') });
+    expect(p('?do=log&what=dirty&color=purple')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('color is') });
+    expect(p('?do=log&what=dirty&size=huge')).toMatchObject({ kind: 'invalid', reason: expect.stringContaining('size is') });
+    expect(stripLinkAction('https://x.test/tinylog/?do=log&what=dirty&color=green&size=small&keep=1')).toBe('/tinylog/?keep=1');
+  });
+
   it('logs spit-ups and books by their everyday names', () => {
     expect(p('?do=log&what=spit-up')).toMatchObject({ kind: 'log', card: 'spitup' });
     expect(p('?do=log&what=spit up')).toMatchObject({ card: 'spitup' });

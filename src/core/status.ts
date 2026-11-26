@@ -3,6 +3,7 @@ import { dayKey, dayRange, overlap } from './days';
 import { ago, amount, clockTime, duration, shortDate, stopwatch, until } from './format';
 import { formatHeight, formatWeight, growthUnits } from './growth';
 import { medKey, medSummary } from './meds';
+import { diaperKind, poopSummary } from './poop';
 import { parseVaccines, vaccineSummary } from './vaccines';
 import { tempSummary, tempUnit } from './temperature';
 import { moodInfo, moodSummary } from './wellbeing';
@@ -41,7 +42,8 @@ export function summary(e: LogEvent, prefs: SummaryPrefs): string {
       }
       break;
     case 'diaper':
-      bits.push(d.diaper === 'both' ? 'Wet + dirty' : d.diaper === 'dirty' ? 'Dirty' : 'Wet');
+      bits.push(diaperKind(d));
+      if (poopSummary(d)) bits.push(poopSummary(d));
       break;
     case 'sleep': {
       const place = SLEEP_PLACES.find(([id]) => id === d.where);
@@ -78,6 +80,16 @@ export function summary(e: LogEvent, prefs: SummaryPrefs): string {
     }
   }
   return bits.join(' · ');
+}
+
+/** An entry's title: the card's label, or the diaper's kind ("Wet + dirty diaper"). */
+export function entryLabel(e: LogEvent, card: CardDef): string {
+  return e.type === 'diaper' ? `${diaperKind(e.detail)} diaper` : card.label;
+}
+
+/** The summary to show beside `entryLabel` (a diaper's kind is already in its title). */
+export function entrySummary(e: LogEvent, prefs: SummaryPrefs): string {
+  return e.type === 'diaper' ? poopSummary(e.detail) : summary(e, prefs);
 }
 
 export interface CardStatus {

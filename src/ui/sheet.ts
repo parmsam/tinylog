@@ -4,9 +4,10 @@ import { ago, fromLocalInput, fromMl, toLocalInput, toMl } from '../core/format'
 import { cmFrom, CM_PER_IN, formatHeight, formatWeight, gramsFrom, growthUnits, heightInRange, toLbOz, weightInRange } from '../core/growth';
 import { cleanMedName, DOSE_UNITS, formatDose, MAX_MED_NAME, parseDose, recentMeds } from '../core/meds';
 import { formatTemp, parseTempSite, TEMP_SITES, tempFrom, tempIn, tempInRange, tempUnit } from '../core/temperature';
+import { parsePoopAmount, parsePoopColor, POOP_AMOUNTS, POOP_COLORS } from '../core/poop';
 import { MAX_VACCINE_NAME, parseVaccines, vaccineOptions } from '../core/vaccines';
 import { addEvent, app, deleteEvent, getEvent, revertTo, settings, updateEvent } from '../core/log';
-import { SLEEP_PLACES, type Detail, type DoseUnit, type Feeling, type GrowthUnits, type LogEvent, type TempUnit } from '../core/types';
+import { SLEEP_PLACES, type Detail, type DoseUnit, type Feeling, type GrowthUnits, type LogEvent, type TempUnit, type Units } from '../core/types';
 import { FEELINGS, MOODS, parseMood } from '../core/wellbeing';
 import { supportHtml } from '../viz/moodChart';
 import { toast } from './toast';
@@ -35,6 +36,8 @@ interface Draft {
   growthUnits: GrowthUnits;
   /** Unit for typing a temperature: starts at the setting, switchable per entry. */
   tempUnit: TempUnit;
+  /** Unit for a bottle or pump amount: the volume setting, and switching it here changes (and remembers) that setting. */
+  volUnit: Units;
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -106,6 +109,25 @@ function vaccineFields(d: Detail): string {
     <p class="hint">Names differ by country; use whatever is on the baby’s record. A record of what was given: for what’s due and when, ask your doctor.</p>`;
 }
 
+/**
+ * Diaper: wet, dirty or both; a dirty one can say what it looked like (color, amount), both optional.
+ * Colors are a record, never labelled normal or not.
+ */
+function diaperFields(card: CardDef, d: Detail): string {
+  const kind = d.diaper ?? card.preset?.diaper;
+  const base = seg('diaper', [['wet', '💧 Wet'], ['dirty', '💩 Dirty'], ['both', 'Both']], kind, 'Diaper');
+  if (kind === 'wet') return base;
+  const colors = seg(
+    'poopColor',
+    POOP_COLORS.map(([c, label, hex]) => [c, `<i class="poop-swatch" style="--sw: ${hex}" aria-hidden="true"></i>${label}`] as [string, string]),
+    d.poopColor,
+    'Color (optional)',
+  ).replace('class="seg"', 'class="seg chips poop-colors"');
+  const amount = seg('poopAmount', POOP_AMOUNTS, d.poopAmount, 'Amount (optional)');
+  return `${base}${colors}${amount}
+    <p class="hint">A record of what you saw. If you’re worried about a color, call your doctor.</p>`;
+}
+
 /** Temperature: the reading in either unit (with the other shown live) and, optionally, where it was taken. */
 function tempFields(d: Detail, unit: TempUnit): string {
   const name = unit === 'F' ? 'tf' : 'tc';
@@ -120,11 +142,14 @@ function tempConversion(d: Detail, unit: TempUnit): string {
   return d.tempC ? `= ${formatTemp(d.tempC, unit === 'C' ? 'F' : 'C')}` : '';
 }
 
-function amountField(ml: number | undefined, label: string) {
-  const units = settings.get().units;
+function amountField(ml: number | undefined, label: string, units: Units) {
   const v = ml ? fromMl(ml, units) : '';
-  return `<label class="field"><span class="field-label">${label} (${units})</span>
+  return `<label class="field"><span class="field-label">${label} (${units === 'oz' ? 'fl oz' : 'ml'})</span>
     <input type="number" name="amount" inputmode="decimal" min="0" step="${units === 'oz' ? 0.5 : 5}" value="${v}" placeholder="optional" /></label>`;
+}
+
+function volUnitSeg(units: Units): string {
+  return seg('vunit', [['ml', 'ml'], ['oz', 'fl oz']] as [Units, string][], units, 'Units');
 }
 
 function minutesField(name: 'minL' | 'minR' | 'min', label: string, value: number | undefined, placeholder = 'optional') {
@@ -182,7 +207,7 @@ function conversion(card: CardDef, d: Detail, units: GrowthUnits): string {
   return '';
 }
 
-function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits, tUnit: TempUnit): string {
+function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits, tUnit: TempUnit, vUnit: Units): string {
   switch (card.id) {
     case 'feed': {
       const method = d.method ?? 'breast';
@@ -192,18 +217,19 @@ function fieldsFor(card: CardDef, d: Detail, units: GrowthUnits, tUnit: TempUnit
         parts.push(lengthFields(d));
       }
       else {
-        parts.push(`<div class="row">${amountField(d.amount, 'Amount')}${seg('milk', [['breast', 'Breast milk'], ['formula', 'Formula']], d.milk, 'Milk')}</div>`);
+        parts.push(volUnitSeg(vUnit));
+        parts.push(`<div class="row">${amountField(d.amount, 'Amount', vUnit)}${seg('milk', [['breast', 'Breast milk'], ['formula', 'Formula']], d.milk, 'Milk')}</div>`);
       }
       return parts.join('');
     }
     case 'wet':
     case 'dirty':
-      return seg('diaper', [['wet', '💧 Wet'], ['dirty', '💩 Dirty'], ['both', 'Both']], d.diaper ?? card.preset?.diaper, 'Diaper');
+      return diaperFields(card, d);
     case 'nap':
     case 'night':
       return seg('sleep', [['nap', '😴 Nap'], ['night', '🌙 Night']], d.sleep ?? card.preset?.sleep, 'Sleep') + seg('where', SLEEP_PLACES, d.where, 'Where (optional)');
     case 'pump':
-      return seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side') + amountField(d.amount, 'Volume');
+      return seg('side', [['L', 'Left'], ['R', 'Right'], ['both', 'Both']], d.side, 'Side') + volUnitSeg(vUnit) + amountField(d.amount, 'Volume', vUnit);
     case 'weight':
       return unitSeg(card, units) + weightFields(card, d, units) + `<p class="hint conv" data-conv aria-live="polite">${conversion(card, d, units)}</p>`;
     case 'height':
@@ -247,7 +273,7 @@ function render(dialog: HTMLDialogElement, draft: Draft, existing: LogEvent | un
       <button type="button" class="icon-btn" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     ${picker}
-    ${fieldsFor(card, draft.detail, draft.growthUnits, draft.tempUnit)}
+    ${fieldsFor(card, draft.detail, draft.growthUnits, draft.tempUnit, draft.volUnit)}
     <div class="${card.timed ? 'row' : ''}">
       <label class="field"><span class="field-label">${timeLabel}</span>
         <input type="datetime-local" name="at" value="${draft.at}" required /></label>
@@ -279,6 +305,12 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
   if (milk) detail.milk = milk;
   const diaper = str('diaper') as Detail['diaper'];
   if (diaper) detail.diaper = diaper;
+  // Hidden while "Wet" is picked: keep what was chosen, in case it's switched back.
+  const poopShown = !!form.querySelector('[name="poopColor"]');
+  const poopColor = poopShown ? parsePoopColor(str('poopColor')) : draft.detail.poopColor;
+  if (poopColor) detail.poopColor = poopColor;
+  const poopAmount = poopShown ? parsePoopAmount(str('poopAmount')) : draft.detail.poopAmount;
+  if (poopAmount) detail.poopAmount = poopAmount;
   const sleep = str('sleep') as Detail['sleep'];
   if (sleep) detail.sleep = sleep;
   const where = str('where') as Detail['where'];
@@ -316,13 +348,15 @@ function read(form: HTMLFormElement, draft: Draft): Draft {
     if (vaccines.length) detail.vaccines = vaccines;
   }
   const amount = parseFloat(str('amount') ?? '');
-  if (amount > 0) detail.amount = toMl(amount, settings.get().units);
+  // The number was typed in the unit the field showed, before any switch.
+  if (amount > 0) detail.amount = toMl(amount, draft.volUnit);
   // Switching cards in the picker resets card-specific choices to that card's preset.
   const next = cardId !== draft.cardId ? { note: detail.note, ...cardById(cardId).preset } : detail;
   return {
     cardId,
     growthUnits: (str('gunit') as GrowthUnits | undefined) ?? draft.growthUnits,
     tempUnit: (str('tunit') as TempUnit | undefined) ?? draft.tempUnit,
+    volUnit: (str('vunit') as Units | undefined) ?? draft.volUnit,
     at: str('at') ?? draft.at,
     endAt: str('endAt') ?? draft.endAt,
     ongoing: f.get('ongoing') === 'on',
@@ -348,6 +382,11 @@ function detailFor(card: CardDef, d: Detail): Detail {
     case 'wet':
     case 'dirty':
       out.diaper = d.diaper ?? card.preset?.diaper;
+      // Color and amount only describe a dirty one.
+      if (out.diaper !== 'wet') {
+        if (d.poopColor) out.poopColor = d.poopColor;
+        if (d.poopAmount) out.poopAmount = d.poopAmount;
+      }
       break;
     case 'nap':
     case 'night':
@@ -407,6 +446,7 @@ export function openSheet(opts: SheetOpts) {
     detail: { ...card.preset, ...(existing?.detail ?? opts.detail) },
     growthUnits: growthUnits(settings.get()),
     tempUnit: tempUnit(settings.get()),
+    volUnit: settings.get().units,
   };
   draft = withEnd(draft);
   render(dialog, draft, existing);
@@ -415,8 +455,10 @@ export function openSheet(opts: SheetOpts) {
 
   dialog.onchange = (e) => {
     const t = e.target as HTMLInputElement;
-    if (['card', 'method', 'ongoing', 'side', 'gunit', 'tunit'].includes(t.name)) {
+    if (['card', 'method', 'ongoing', 'side', 'gunit', 'tunit', 'vunit', 'diaper'].includes(t.name)) {
       draft = withEnd(read(form(), draft));
+      // The volume switch is the volume setting: remembered for the next bottle, and used everywhere amounts show.
+      if (t.name === 'vunit' && draft.volUnit !== settings.get().units) settings.set({ units: draft.volUnit });
       render(dialog, draft, existing);
       form().querySelector<HTMLElement>(`[name="${t.name}"]:checked, [name="${t.name}"]`)?.focus();
     }

@@ -120,6 +120,62 @@ test.describe('the sheet', () => {
     await expect(entries(page).first()).toContainText('Bottle · 90 ml · formula');
   });
 
+  test('a bottle can be typed in ml or fl oz, and the choice is remembered', async ({ page }) => {
+    await open(page);
+    const sheet = page.locator('#sheet');
+    const box = (await card(page, 'feed').boundingBox())!;
+    await page.mouse.move(box.x + 20, box.y + 20);
+    await page.mouse.down();
+    await expect(sheet).toBeVisible();
+    await page.mouse.up();
+    await sheet.getByText('Bottle', { exact: true }).click();
+    await sheet.getByLabel('Amount (ml)').fill('120');
+    // Switching converts what was typed.
+    await sheet.getByText('fl oz', { exact: true }).click();
+    await expect(sheet.getByLabel('Amount (fl oz)')).toHaveValue('4.1');
+    await sheet.getByLabel('Amount (fl oz)').fill('4');
+    await sheet.getByText('Breast milk').click();
+    await sheet.getByRole('button', { name: 'Save' }).click();
+    await expect(sheet).toBeHidden();
+    await expect.poll(async () => (await storedEvents(page))[0]?.detail).toMatchObject({ method: 'bottle', amount: 118, milk: 'breast' });
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tinylog:v1:settings') ?? '{}').units)).toBe('oz');
+    await expect(entries(page).first()).toContainText('4 oz');
+
+    // Next time (and after a reload) the sheet opens in fl oz.
+    await page.reload();
+    await entries(page).first().click();
+    await expect(sheet.getByLabel('Amount (fl oz)')).toHaveValue('4');
+    await expect(sheet.getByRole('radio', { name: 'fl oz' })).toBeChecked();
+  });
+
+  test('a dirty diaper can say its color and amount (optional)', async ({ page }) => {
+    const now = Date.now();
+    await open(page, { events: [ev('diaper', now - 20 * MIN, { detail: { diaper: 'wet' } })] });
+    const sheet = page.locator('#sheet');
+    await entries(page).first().click();
+    // Not asked on a wet one.
+    await expect(sheet.getByText('Color (optional)')).toHaveCount(0);
+    await sheet.getByText('💩 Dirty', { exact: true }).click();
+    await sheet.getByText('Green', { exact: true }).click();
+    await sheet.getByText('Small', { exact: true }).click();
+    // Switching to wet and back keeps the choices.
+    await sheet.getByRole('radio', { name: '💧 Wet' }).check({ force: true });
+    await expect(sheet.getByText('Color (optional)')).toHaveCount(0);
+    await sheet.getByText('Both', { exact: true }).click();
+    await expect(sheet.getByRole('radio', { name: 'Green' })).toBeChecked();
+    await sheet.getByRole('button', { name: 'Save' }).click();
+    await expect(sheet).toBeHidden();
+    await expect.poll(async () => (await storedEvents(page))[0]?.detail).toMatchObject({ diaper: 'both', poopColor: 'green', poopAmount: 'small' });
+    await expect(entries(page).first()).toContainText('Wet + dirty diaper');
+    await expect(entries(page).first()).toContainText('green · small');
+
+    // Made wet again, the detail goes.
+    await entries(page).first().click();
+    await sheet.getByRole('radio', { name: '💧 Wet' }).check({ force: true });
+    await sheet.getByRole('button', { name: 'Save' }).click();
+    await expect.poll(async () => (await storedEvents(page))[0]?.detail?.poopColor).toBeUndefined();
+  });
+
   test('a sleep can say where it happened (optional)', async ({ page }) => {
     const now = Date.now();
     await open(page, { events: [ev('sleep', now - 60 * MIN, { endAt: now - 20 * MIN, detail: { sleep: 'nap' } })] });
@@ -357,7 +413,7 @@ test.describe('data', () => {
     await open(page, { events: [ev('feed', Date.now() - 45 * MIN, { detail: { method: 'bottle', amount: 120 } })] });
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByLabel("Baby's name").fill('Pip');
-    await page.locator('#settings').getByText('oz', { exact: true }).click();
+    await page.locator('#settings').getByText('fl oz', { exact: true }).click();
     await page.locator('#settings').getByText('Night', { exact: true }).click();
     await page.keyboard.press('Escape');
     await expect(page.locator('#brand-name')).toHaveText('Pip');

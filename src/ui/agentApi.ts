@@ -7,7 +7,7 @@ import { toMarkdown } from '../core/markdown';
 import { logCard, startCard, stopCard, toggleCard, type OpResult } from '../core/ops';
 import { patterns } from '../core/stats';
 import { formatHeight, formatWeight, growthSeries, growthUnits } from '../core/growth';
-import { summary } from '../core/status';
+import { entryLabel, entrySummary, summary } from '../core/status';
 import type { LogEvent } from '../core/types';
 import { undoLast } from './toast';
 
@@ -25,6 +25,9 @@ export interface ActOptions {
   method?: 'breast' | 'bottle';
   milk?: 'breast' | 'formula';
   diaper?: 'wet' | 'dirty' | 'both';
+  /** A dirty diaper: its color and how much, both optional. */
+  color?: 'yellow' | 'orange' | 'green' | 'brown' | 'black' | 'red' | 'white';
+  size?: 'small' | 'medium' | 'large';
   /** Where a sleep happened. */
   where?: 'bassinet' | 'crib' | 'held' | 'stroller' | 'car';
   note?: string;
@@ -77,12 +80,12 @@ function toEntry(e: LogEvent, now = Date.now()): Entry {
   return {
     id: e.id,
     what: card.id,
-    label: e.type === 'diaper' ? `${summary(e, prefs)} diaper` : card.label,
+    label: entryLabel(e, card),
     start: iso(e.at),
     end: end === null ? null : iso(end),
     minutes: card.timed ? Math.round((spanEnd(e, now) - e.at) / MIN) : null,
     ongoing: card.timed && e.endAt === undefined,
-    summary: e.type === 'diaper' ? '' : summary(e, prefs),
+    summary: entrySummary(e, prefs),
     note: e.detail?.note ?? null,
   };
 }
@@ -109,6 +112,7 @@ function act(verb: 'log' | 'start' | 'stop' | 'toggle', what: string, opts: ActO
 export const RECIPES: { ask: string; code: string; note: string }[] = [
   { ask: 'When did the baby last eat?', code: 'tinylog.state().last.feed', note: 'minutesAgo, the time (ISO) and a summary like "Breast · L". state() also has what is going on now and today\'s totals.' },
   { ask: 'Log a wet diaper from 10 minutes ago', code: "tinylog.log('wet', { minutesAgo: 10 })", note: 'Also: dirty, both, spitup, bath, books (one per book), music (one per song), doctor (with a note).' },
+  { ask: 'Log a dirty diaper, a small green one', code: "tinylog.log('dirty', { color: 'green', size: 'small' })", note: 'Both optional; color is yellow, orange, green, brown, black, red or white (white/grey), size small, medium or large. Record the color as said; never say whether it is normal. If they are worried, the baby\'s doctor is the one to ask.' },
   { ask: 'Log a weight from today\'s checkup', code: "tinylog.log('weight', { kg: 6.4 })", note: 'Or { lb: 14, oz: 2 } or { g: 6400 }. Height: tinylog.log(\'height\', { cm: 61.5 }) or { inches: 24.25 }. tinylog.growth() lists every measurement.' },
   { ask: 'Log how I\'m feeling', code: "tinylog.log('mood', { mood: 'low', feelings: ['anxious', 'tearful'] })", note: 'The parent\'s own check-in: mood 1–5 or very-low, low, okay, good, great; feelings are optional (calm, hopeful, connected, anxious, tearful, irritable, overwhelmed, numb, lonely). Kept out of markdown(); it describes, never diagnoses.' },
   { ask: 'Log a dose of vitamin D', code: "tinylog.log('medicine', { name: 'Vitamin D', dose: 1, unit: 'drops' })", note: 'Any medicine or vitamin by name; dose and unit (ml, drops, mg) are optional. state().last.med says when one was last given. Record what was given; never suggest a dose or when the next one is due.' },
@@ -128,6 +132,7 @@ tinylog.log(what, opts?)               log it now (timed things toggle); opts:
                                        { minutesAgo, side: 'L'|'R'|'both', ml, oz, method, milk, diaper, note,
                                          minL, minR, min,  (breastfeeding minutes: per side, or a total)
                                          where: 'bassinet'|'crib'|'held'|'stroller'|'car',  (sleeps)
+                                         color: 'yellow'|'orange'|'green'|'brown'|'black'|'red'|'white', size: 'small'|'medium'|'large'  (dirty diapers)
                                          kg, g, lb, oz  (weight; on a weight oz is weight)  cm, inches  (height),
                                          mood: 1-5|'very-low'|'low'|'okay'|'good'|'great', feelings: [...]  (mood check-in),
                                          name, dose, unit: 'ml'|'drops'|'mg'  (medicine; name needed),

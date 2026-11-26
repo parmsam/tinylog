@@ -2,7 +2,7 @@ import { cardFor } from '../core/cards';
 import { addDays, dayDate, dayRange, eventsForDay, spanEnd } from '../core/days';
 import { isOngoing } from '../core/events';
 import { clockTime, duration } from '../core/format';
-import { summary } from '../core/status';
+import { entryLabel, entrySummary } from '../core/status';
 import type { LogEvent, Settings } from '../core/types';
 import { frac, hourLabel, hourMarks } from './geom';
 
@@ -20,13 +20,13 @@ const r1 = (v: number) => Math.round(v * 10) / 10;
 function tip(e: LogEvent, prefs: Prefs, now: number, clippedStart: boolean): string {
   const card = cardFor(e)!;
   const t = (ts: number) => clockTime(ts, prefs.clock);
-  const label = e.type === 'diaper' ? `${summary(e, prefs)} diaper` : card.label;
+  const label = entryLabel(e, card);
   const when = card.timed
     ? isOngoing(e)
       ? `since ${t(e.at)} (${duration(now - e.at)})`
       : `${t(e.at)}${clippedStart ? ' (prev. day)' : ''}–${t(spanEnd(e, now))} (${duration(spanEnd(e, now) - e.at)})`
     : t(e.at);
-  const s = e.type === 'diaper' ? '' : summary(e, prefs);
+  const s = entrySummary(e, prefs);
   return [`${card.emoji} ${label}`, when, s, e.detail?.note].filter(Boolean).join(' · ');
 }
 

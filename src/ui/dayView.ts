@@ -3,7 +3,7 @@ import { addDays, dayDate, dayKey, dayRange, eventsForDay, spanEnd } from '../co
 import { isOngoing } from '../core/events';
 import { clockTime, dayTitle, duration, shortDate } from '../core/format';
 import { app, getEvent, setNote, settings, today } from '../core/log';
-import { summary } from '../core/status';
+import { entryLabel, entrySummary } from '../core/status';
 import type { LogEvent } from '../core/types';
 import { riseIn } from '../fx/anims';
 import { sameTimeOn } from './actions';
@@ -101,10 +101,10 @@ function entryHtml(e: LogEvent, dayStart: number, now: number): string {
   const ongoing = isOngoing(e);
   const dur = card.timed ? (ongoing ? `${duration(now - e.at)} …` : duration(spanEnd(e, now) - e.at)) : '';
   const until = card.timed && e.endAt !== undefined ? `until ${clockTime(e.endAt, prefs.clock)}` : '';
-  // Diapers are titled by kind ("Wet + dirty"), so the summary isn't repeated underneath.
+  // Diapers are titled by kind ("Wet + dirty"); underneath is only what it looked like.
   const isDiaper = e.type === 'diaper';
-  const bits = [until, isDiaper ? '' : summary(e, prefs), e.detail?.note].filter(Boolean).join(' · ');
-  const title = isDiaper ? `${summary(e, prefs)} diaper` : ongoing ? `${card.label} (still going)` : card.label;
+  const bits = [until, entrySummary(e, prefs), e.detail?.note].filter(Boolean).join(' · ');
+  const title = isDiaper || !ongoing ? entryLabel(e, card) : `${card.label} (still going)`;
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   return `<li><button type="button" class="entry" data-id="${e.id}" style="--c: var(--c-${card.id})">
     <span class="entry-time">${t}${before}</span>

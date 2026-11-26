@@ -155,7 +155,7 @@ export function openSettings() {
     </div>
     <label class="field"><span class="field-label">Baby's name</span>
       <input type="text" name="babyName" value="${esc(s.babyName)}" placeholder="Shown at the top. Stays on this device." autocomplete="off" /></label>
-    ${seg('units', [['ml', 'ml'], ['oz', 'oz']], s.units, 'Volume')}
+    ${seg('units', [['ml', 'ml'], ['oz', 'fl oz']], s.units, 'Volume')}
     ${seg('growthUnits', [['metric', 'kg · cm'], ['imperial', 'lb · in']], s.growthUnits, 'Weight & height')}
     <p class="hint">How weights and heights are shown. When adding one you can type it in either unit; it's converted for you.</p>
     ${seg('tempUnit', [['C', '°C'], ['F', '°F']], s.tempUnit, 'Temperature')}

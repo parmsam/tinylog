@@ -4,7 +4,7 @@ import { dayTotals } from '../core/daily';
 import { dayKey, dayRange, eventsForDay, spanEnd } from '../core/days';
 import { isOngoing } from '../core/events';
 import { amount, clockTime, duration } from '../core/format';
-import { summary } from '../core/status';
+import { entryLabel, entrySummary } from '../core/status';
 import type { LogEvent, Settings } from '../core/types';
 import { arcPath, frac, hourLabel, hourMarks, polar } from './geom';
 import { attachTips } from './tooltip';
@@ -21,13 +21,13 @@ const f1 = (v: number) => Math.round(v * 10) / 10;
 export function tipFor(e: LogEvent, prefs: Prefs, now: number): string {
   const card = cardFor(e)!;
   const t = (ts: number) => clockTime(ts, prefs.clock);
-  const label = e.type === 'diaper' ? `${summary(e, prefs)} diaper` : card.label;
+  const label = entryLabel(e, card);
   const bits = [`${card.emoji} ${label}`];
   if (card.timed) {
     const end = spanEnd(e, now);
     bits.push(isOngoing(e) ? `since ${t(e.at)} (${duration(now - e.at)})` : `${t(e.at)}–${t(end)} (${duration(end - e.at)})`);
   } else bits.push(t(e.at));
-  const s = e.type !== 'diaper' ? summary(e, prefs) : '';
+  const s = entrySummary(e, prefs);
   if (s) bits.push(s);
   if (e.detail?.note) bits.push(e.detail.note);
   return bits.join(' · ');

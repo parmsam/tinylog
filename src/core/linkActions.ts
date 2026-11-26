@@ -2,6 +2,7 @@ import type { CardId } from './cards';
 import { ML_PER_OZ } from './format';
 import { cmFrom, gramsFrom, heightInRange, weightInRange } from './growth';
 import { cleanMedName, parseDose, parseDoseUnit } from './meds';
+import { parsePoopAmount, parsePoopColor } from './poop';
 import { parseVaccines } from './vaccines';
 import { parseTempSite, tempFrom, tempInRange } from './temperature';
 import { FEELINGS, parseFeelings, parseMood } from './wellbeing';
@@ -16,6 +17,7 @@ import type { Detail, SleepPlace, Side } from './types';
  *   &ago=15  logs it 15 minutes ago       &side=L|R|both   &milk=breast|formula   &note=…
  *   &minl=12&minr=8 (or &min=20)  breastfeeding length in minutes
  *   &where=bassinet|crib|held|stroller|car  where a sleep happened
+ *   ?do=log&what=dirty&color=green&size=small  (color yellow|orange|green|brown|black|red|white; size small|medium|large)
  *   ?do=log&what=weight&kg=7.2 (or &g=7200, &lb=15&oz=14)   ?do=log&what=height&cm=62 (or &in=24.5)
  *   ?do=log&what=mood&mood=low (1–5 or very-low|low|okay|good|great)  &feelings=anxious,tearful
  *   ?do=log&what=medicine&name=Vitamin+D&dose=1&unit=drops (unit ml|drops|mg; &ml=2.5 is a dose in ml)
@@ -32,7 +34,7 @@ export type LinkAction =
   | { kind: 'invalid'; reason: string };
 
 /** Query parameters that belong to an action (removed after it runs). */
-export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings', 'name', 'dose', 'unit', 'vaccines', 'c', 'f', 'site'] as const;
+export const LINK_PARAMS = ['do', 'what', 'side', 'ml', 'oz', 'milk', 'method', 'note', 'ago', 'diaper', 'min', 'minl', 'minr', 'where', 'kg', 'g', 'lb', 'cm', 'in', 'mood', 'feelings', 'name', 'dose', 'unit', 'vaccines', 'c', 'f', 'site', 'color', 'size'] as const;
 
 /** Friendly names for cards: what people (and Siri) actually say. */
 const WHAT: Record<string, CardId | 'sleep' | 'both'> = {
@@ -173,6 +175,20 @@ export function parseLinkAction(search: string, now = Date.now()): LinkAction | 
   if (milk === 'formula' || milk === 'breast') detail.milk = milk;
   const diaper = q.get('diaper')?.trim().toLowerCase();
   if (diaper === 'wet' || diaper === 'dirty' || diaper === 'both') detail.diaper = diaper;
+
+  // What a dirty diaper looked like: only on a dirty (or wet + dirty) one.
+  const rawColor = q.get('color');
+  const rawSize = q.get('size');
+  if (rawColor !== null || rawSize !== null) {
+    const dirty = detail.diaper ? detail.diaper !== 'wet' : card === 'dirty';
+    if (!dirty) return { kind: 'invalid', reason: 'color and size are for a dirty diaper (&what=dirty or both)' };
+    const color = parsePoopColor(rawColor);
+    if (rawColor !== null && !color) return { kind: 'invalid', reason: 'color is yellow, orange, green, brown, black, red or white' };
+    const size = parsePoopAmount(rawSize);
+    if (rawSize !== null && !size) return { kind: 'invalid', reason: 'size is small, medium or large' };
+    if (color) detail.poopColor = color;
+    if (size) detail.poopAmount = size;
+  }
 
   const num = (k: string) => (q.get(k) === null ? undefined : Number(q.get(k)));
   if (card === 'weight') {

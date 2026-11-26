@@ -1282,6 +1282,18 @@ table.totals thead th {
   padding: 6px 12px;
   font-weight: 600;
 }
+/* Dirty diaper colors: a small swatch before each name. */
+.poop-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--sw);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent);
+  flex: none;
+}
+:root[data-theme='night'] .poop-swatch {
+  filter: brightness(0.75);
+}
 /* Vaccines: names typed before can be long. */
 .vaccine-chips span {
   overflow-wrap: anywhere;

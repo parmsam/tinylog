@@ -16,6 +16,10 @@ export const SLEEP_PLACES: [SleepPlace, string][] = [
 export type TempUnit = 'C' | 'F';
 export type TempSite = 'forehead' | 'ear' | 'armpit' | 'rectal' | 'mouth';
 
+/** A dirty diaper's color and how much there was (both optional). */
+export type PoopColor = 'yellow' | 'orange' | 'green' | 'brown' | 'black' | 'red' | 'white';
+export type PoopAmount = 'small' | 'medium' | 'large';
+
 /** Unit of a medicine dose. */
 export type DoseUnit = 'ml' | 'drops' | 'mg';
 
@@ -33,6 +37,9 @@ export interface Detail {
   minR?: number;
   min?: number;
   diaper?: 'wet' | 'dirty' | 'both';
+  /** Dirty (or wet + dirty) diaper: what it looked like, optional. */
+  poopColor?: PoopColor;
+  poopAmount?: PoopAmount;
   sleep?: 'nap' | 'night';
   where?: SleepPlace; // sleep
   /** Weight in grams (0.1 g steps, so lb/oz round-trip); displayed in the user's growth units. */
